@@ -1,0 +1,20 @@
+{
+  "problem_type": "LP",
+  "sense": "maximize",
+  "variables": [
+    {"name": "crude_a", "type": "continuous", "lower_bound": 0, "upper_bound": 50000},
+    {"name": "crude_b", "type": "continuous", "lower_bound": 0, "upper_bound": 40000},
+    {"name": "diesel", "type": "continuous", "lower_bound": 0, "upper_bound": 1e30},
+    {"name": "gasoline", "type": "continuous", "lower_bound": 0, "upper_bound": 1e30}
+  ],
+  "objective": {
+    "linear": {"diesel": 55, "gasoline": 70, "crude_a": -40, "crude_b": -35}
+  },
+  "constraints": [
+    {"name": "diesel_yield", "linear": {"crude_a": 0.45, "crude_b": 0.35, "diesel": -1}, "sense": "=", "rhs": 0},
+    {"name": "gas_yield", "linear": {"crude_a": 0.35, "crude_b": 0.40, "gasoline": -1}, "sense": "=", "rhs": 0},
+    {"name": "diesel_demand", "linear": {"diesel": 1}, "sense": ">=", "rhs": 12000},
+    {"name": "gas_demand", "linear": {"gasoline": 1}, "sense": ">=", "rhs": 10000},
+    {"name": "unit_cap", "linear": {"crude_a": 1, "crude_b": 1}, "sense": "<=", "rhs": 60000}
+  ]
+}

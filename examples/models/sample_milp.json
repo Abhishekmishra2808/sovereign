@@ -1,0 +1,13 @@
+{
+  "problem_type": "MILP",
+  "sense": "maximize",
+  "variables": [
+    {"name": "x", "type": "binary", "lower_bound": 0, "upper_bound": 1},
+    {"name": "y", "type": "binary", "lower_bound": 0, "upper_bound": 1},
+    {"name": "z", "type": "binary", "lower_bound": 0, "upper_bound": 1}
+  ],
+  "objective": {"linear": {"x": 5, "y": 3, "z": 2}},
+  "constraints": [
+    {"name": "cap", "linear": {"x": 4, "y": 3, "z": 2}, "sense": "<=", "rhs": 7}
+  ]
+}

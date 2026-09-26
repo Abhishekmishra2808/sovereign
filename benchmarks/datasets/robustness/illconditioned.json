@@ -1,0 +1,44 @@
+{
+  "problem_type": "LP",
+  "sense": "maximize",
+  "variables": [
+    {
+      "name": "x",
+      "type": "continuous",
+      "lower_bound": 0,
+      "upper_bound": 1e+30
+    },
+    {
+      "name": "y",
+      "type": "continuous",
+      "lower_bound": 0,
+      "upper_bound": 1e+30
+    }
+  ],
+  "objective": {
+    "linear": {
+      "x": 3000000.0,
+      "y": 2000000.0
+    }
+  },
+  "constraints": [
+    {
+      "name": "scaled_resource",
+      "linear": {
+        "x": 1000000.0,
+        "y": 1000000.0
+      },
+      "sense": "<=",
+      "rhs": 10000000.0
+    },
+    {
+      "name": "tiny_cut",
+      "linear": {
+        "x": 1e-06,
+        "y": 0.0
+      },
+      "sense": ">=",
+      "rhs": 0.0
+    }
+  ]
+}

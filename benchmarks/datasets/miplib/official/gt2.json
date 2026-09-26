@@ -1,0 +1,1811 @@
+{
+  "problem_type": "MILP",
+  "sense": "minimize",
+  "variables": [
+    {
+      "name": "x...0101",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0201",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0301",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0401",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0701",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0801",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0901",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...1001",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0102",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 15.0
+    },
+    {
+      "name": "x...0202",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 15.0
+    },
+    {
+      "name": "x...0302",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 15.0
+    },
+    {
+      "name": "x...0402",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 15.0
+    },
+    {
+      "name": "x...0502",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 15.0
+    },
+    {
+      "name": "x...0602",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 15.0
+    },
+    {
+      "name": "x...0702",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 15.0
+    },
+    {
+      "name": "x...0802",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 15.0
+    },
+    {
+      "name": "x...0902",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 15.0
+    },
+    {
+      "name": "x...1002",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 15.0
+    },
+    {
+      "name": "x...1102",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 15.0
+    },
+    {
+      "name": "x...1202",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 15.0
+    },
+    {
+      "name": "x...0103",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 14.0
+    },
+    {
+      "name": "x...0203",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 14.0
+    },
+    {
+      "name": "x...0303",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 14.0
+    },
+    {
+      "name": "x...0403",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 14.0
+    },
+    {
+      "name": "x...0503",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 14.0
+    },
+    {
+      "name": "x...0603",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 14.0
+    },
+    {
+      "name": "x...0703",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 14.0
+    },
+    {
+      "name": "x...0803",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 14.0
+    },
+    {
+      "name": "x...0903",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 14.0
+    },
+    {
+      "name": "x...1003",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 14.0
+    },
+    {
+      "name": "x...1103",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 14.0
+    },
+    {
+      "name": "x...1203",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 14.0
+    },
+    {
+      "name": "x...0104",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0204",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0304",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0404",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0504",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0604",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0704",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0804",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0904",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...1004",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...1104",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...1204",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0105",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0205",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0305",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0405",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0505",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0605",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0705",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0805",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0905",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...1005",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...1105",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...1205",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0106",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 8.0
+    },
+    {
+      "name": "x...0206",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 8.0
+    },
+    {
+      "name": "x...0306",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 8.0
+    },
+    {
+      "name": "x...0406",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 8.0
+    },
+    {
+      "name": "x...0506",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 8.0
+    },
+    {
+      "name": "x...0606",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 8.0
+    },
+    {
+      "name": "x...0706",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 8.0
+    },
+    {
+      "name": "x...0806",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 8.0
+    },
+    {
+      "name": "x...0906",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 8.0
+    },
+    {
+      "name": "x...1006",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 8.0
+    },
+    {
+      "name": "x...1106",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 8.0
+    },
+    {
+      "name": "x...1206",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 8.0
+    },
+    {
+      "name": "x...0507",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0607",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...1107",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...1207",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0108",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 12.0
+    },
+    {
+      "name": "x...0208",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 12.0
+    },
+    {
+      "name": "x...0308",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 12.0
+    },
+    {
+      "name": "x...0408",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 12.0
+    },
+    {
+      "name": "x...0708",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 12.0
+    },
+    {
+      "name": "x...0808",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 12.0
+    },
+    {
+      "name": "x...0908",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 12.0
+    },
+    {
+      "name": "x...1008",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 12.0
+    },
+    {
+      "name": "x...0109",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0209",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0309",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0409",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0509",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0609",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0709",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0809",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0909",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...1009",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...1109",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...1209",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0110",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0111",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0112",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0113",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0114",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0115",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0116",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0117",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0210",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0211",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0212",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0213",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0214",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0215",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0216",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0217",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0310",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0311",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0312",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0313",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0314",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0315",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0316",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0317",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0410",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0411",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0412",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0413",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0414",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0415",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0416",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0417",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0510",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0511",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0512",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0513",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0514",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0515",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0516",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0517",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0610",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0611",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0612",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0613",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0614",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0615",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0616",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0617",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0710",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0711",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0712",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0713",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0714",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0715",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0716",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0717",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0810",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0811",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0812",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0813",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0814",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0815",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0816",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0817",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...0910",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...0911",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0912",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...0913",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...0914",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...0915",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0916",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...0917",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...1010",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...1011",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...1012",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...1013",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...1014",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...1015",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...1016",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...1017",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...1110",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...1111",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...1112",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...1113",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...1114",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...1115",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...1116",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...1117",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    },
+    {
+      "name": "x...1210",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 6.0
+    },
+    {
+      "name": "x...1211",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...1212",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 9.0
+    },
+    {
+      "name": "x...1213",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 5.0
+    },
+    {
+      "name": "x...1214",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 4.0
+    },
+    {
+      "name": "x...1215",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...1216",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 2.0
+    },
+    {
+      "name": "x...1217",
+      "type": "binary",
+      "lower_bound": 0.0,
+      "upper_bound": 1.0
+    }
+  ],
+  "objective": {
+    "linear": {
+      "x...0101": 3595.0,
+      "x...0201": 3595.0,
+      "x...0301": 1833.0,
+      "x...0401": 3595.0,
+      "x...0701": 3595.0,
+      "x...0801": 3595.0,
+      "x...0901": 1833.0,
+      "x...1001": 3595.0,
+      "x...0102": 3100.0,
+      "x...0202": 3100.0,
+      "x...0302": 1257.0,
+      "x...0402": 3100.0,
+      "x...0502": 1355.0,
+      "x...0602": 7797.0,
+      "x...0702": 3100.0,
+      "x...0802": 3100.0,
+      "x...0902": 1257.0,
+      "x...1002": 3100.0,
+      "x...1102": 1355.0,
+      "x...1202": 7797.0,
+      "x...0103": 2685.0,
+      "x...0203": 2685.0,
+      "x...0303": 1257.0,
+      "x...0403": 2685.0,
+      "x...0503": 1176.0,
+      "x...0603": 6214.0,
+      "x...0703": 2685.0,
+      "x...0803": 2685.0,
+      "x...0903": 1257.0,
+      "x...1003": 2685.0,
+      "x...1103": 1176.0,
+      "x...1203": 6214.0,
+      "x...0104": 2940.0,
+      "x...0204": 2940.0,
+      "x...0304": 1980.0,
+      "x...0404": 2940.0,
+      "x...0504": 1980.0,
+      "x...0604": 7145.0,
+      "x...0704": 2940.0,
+      "x...0804": 2940.0,
+      "x...0904": 1980.0,
+      "x...1004": 2940.0,
+      "x...1104": 1980.0,
+      "x...1204": 7145.0,
+      "x...0105": 3100.0,
+      "x...0205": 3100.0,
+      "x...0305": 1816.0,
+      "x...0405": 3100.0,
+      "x...0505": 1926.0,
+      "x...0605": 7011.0,
+      "x...0705": 3100.0,
+      "x...0805": 3100.0,
+      "x...0905": 1816.0,
+      "x...1005": 3100.0,
+      "x...1105": 1926.0,
+      "x...1205": 7011.0,
+      "x...0106": 3100.0,
+      "x...0206": 3100.0,
+      "x...0306": 1816.0,
+      "x...0406": 3100.0,
+      "x...0506": 1983.0,
+      "x...0606": 7797.0,
+      "x...0706": 3100.0,
+      "x...0806": 3100.0,
+      "x...0906": 1816.0,
+      "x...1006": 3100.0,
+      "x...1106": 1983.0,
+      "x...1206": 7797.0,
+      "x...0507": 1926.0,
+      "x...0607": 7011.0,
+      "x...1107": 1926.0,
+      "x...1207": 7011.0,
+      "x...0108": 3100.0,
+      "x...0208": 3100.0,
+      "x...0308": 1257.0,
+      "x...0408": 3100.0,
+      "x...0708": 3100.0,
+      "x...0808": 3100.0,
+      "x...0908": 1257.0,
+      "x...1008": 3100.0,
+      "x...0109": 2448.0,
+      "x...0209": 2448.0,
+      "x...0309": 1652.0,
+      "x...0409": 2448.0,
+      "x...0509": 1652.0,
+      "x...0609": 5954.0,
+      "x...0709": 2448.0,
+      "x...0809": 2448.0,
+      "x...0909": 1652.0,
+      "x...1009": 2448.0,
+      "x...1109": 1652.0,
+      "x...1209": 5954.0
+    }
+  },
+  "constraints": [
+    {
+      "name": "dem...01",
+      "linear": {
+        "x...0101": 50.0,
+        "x...0102": 45.0,
+        "x...0103": 40.0,
+        "x...0104": 30.0,
+        "x...0105": 32.0,
+        "x...0106": 50.0,
+        "x...0108": 45.0,
+        "x...0109": 2534.0,
+        "x...0110": 22.0,
+        "x...0111": 56.0,
+        "x...0112": 30.0,
+        "x...0113": 30.0,
+        "x...0114": 23.0,
+        "x...0115": 42.0,
+        "x...0116": 56.0,
+        "x...0117": 28.0
+      },
+      "sense": ">=",
+      "rhs": 200.0
+    },
+    {
+      "name": "dem...02",
+      "linear": {
+        "x...0201": 50.0,
+        "x...0202": 45.0,
+        "x...0203": 40.0,
+        "x...0204": 30.0,
+        "x...0205": 32.0,
+        "x...0206": 50.0,
+        "x...0208": 45.0,
+        "x...0209": 2534.0,
+        "x...0210": 22.0,
+        "x...0211": 56.0,
+        "x...0212": 30.0,
+        "x...0213": 30.0,
+        "x...0214": 23.0,
+        "x...0215": 42.0,
+        "x...0216": 56.0,
+        "x...0217": 28.0
+      },
+      "sense": ">=",
+      "rhs": 80.0
+    },
+    {
+      "name": "dem...03",
+      "linear": {
+        "x...0301": 50.0,
+        "x...0302": 45.0,
+        "x...0303": 40.0,
+        "x...0304": 30.0,
+        "x...0305": 32.0,
+        "x...0306": 50.0,
+        "x...0308": 45.0,
+        "x...0309": 2534.0,
+        "x...0310": 22.0,
+        "x...0311": 56.0,
+        "x...0312": 30.0,
+        "x...0313": 30.0,
+        "x...0314": 23.0,
+        "x...0315": 42.0,
+        "x...0316": 56.0,
+        "x...0317": 28.0
+      },
+      "sense": ">=",
+      "rhs": 300.0
+    },
+    {
+      "name": "dem...04",
+      "linear": {
+        "x...0401": 50.0,
+        "x...0402": 45.0,
+        "x...0403": 40.0,
+        "x...0404": 30.0,
+        "x...0405": 32.0,
+        "x...0406": 52.0,
+        "x...0408": 44.0,
+        "x...0409": 2534.0,
+        "x...0410": 22.0,
+        "x...0411": 56.0,
+        "x...0412": 30.0,
+        "x...0413": 30.0,
+        "x...0414": 23.0,
+        "x...0415": 42.0,
+        "x...0416": 56.0,
+        "x...0417": 28.0
+      },
+      "sense": ">=",
+      "rhs": 250.0
+    },
+    {
+      "name": "dem...05",
+      "linear": {
+        "x...0502": 28.0,
+        "x...0503": 45.0,
+        "x...0504": 16.5,
+        "x...0505": 45.0,
+        "x...0506": 52.0,
+        "x...0507": 45.0,
+        "x...0509": 2519.0,
+        "x...0510": 25.0,
+        "x...0511": 34.0,
+        "x...0512": 25.0,
+        "x...0513": 19.0,
+        "x...0514": 56.0,
+        "x...0515": 34.0,
+        "x...0516": 34.0,
+        "x...0517": 25.0
+      },
+      "sense": ">=",
+      "rhs": 61.0
+    },
+    {
+      "name": "dem...06",
+      "linear": {
+        "x...0602": 28.0,
+        "x...0603": 45.0,
+        "x...0604": 16.5,
+        "x...0605": 45.0,
+        "x...0606": 52.0,
+        "x...0607": 45.0,
+        "x...0609": 2519.0,
+        "x...0610": 25.0,
+        "x...0611": 34.0,
+        "x...0612": 25.0,
+        "x...0613": 19.0,
+        "x...0614": 56.0,
+        "x...0615": 34.0,
+        "x...0616": 34.0,
+        "x...0617": 25.0
+      },
+      "sense": ">=",
+      "rhs": 6064.0
+    },
+    {
+      "name": "dem...07",
+      "linear": {
+        "x...0701": 50.0,
+        "x...0702": 45.0,
+        "x...0703": 40.0,
+        "x...0704": 30.0,
+        "x...0705": 32.0,
+        "x...0706": 50.0,
+        "x...0708": 45.0,
+        "x...0709": 2534.0,
+        "x...0710": 22.0,
+        "x...0711": 56.0,
+        "x...0712": 30.0,
+        "x...0713": 30.0,
+        "x...0714": 23.0,
+        "x...0715": 42.0,
+        "x...0716": 56.0,
+        "x...0717": 28.0
+      },
+      "sense": ">=",
+      "rhs": 94.0
+    },
+    {
+      "name": "dem...08",
+      "linear": {
+        "x...0801": 50.0,
+        "x...0802": 45.0,
+        "x...0803": 40.0,
+        "x...0804": 30.0,
+        "x...0805": 32.0,
+        "x...0806": 50.0,
+        "x...0808": 45.0,
+        "x...0809": 2534.0,
+        "x...0810": 22.0,
+        "x...0811": 56.0,
+        "x...0812": 30.0,
+        "x...0813": 30.0,
+        "x...0814": 23.0,
+        "x...0815": 42.0,
+        "x...0816": 56.0,
+        "x...0817": 28.0
+      },
+      "sense": ">=",
+      "rhs": 67.0
+    },
+    {
+      "name": "dem...09",
+      "linear": {
+        "x...0901": 50.0,
+        "x...0902": 45.0,
+        "x...0903": 40.0,
+        "x...0904": 30.0,
+        "x...0905": 32.0,
+        "x...0906": 50.0,
+        "x...0908": 45.0,
+        "x...0909": 2534.0,
+        "x...0910": 22.0,
+        "x...0911": 56.0,
+        "x...0912": 30.0,
+        "x...0913": 30.0,
+        "x...0914": 23.0,
+        "x...0915": 42.0,
+        "x...0916": 56.0,
+        "x...0917": 28.0
+      },
+      "sense": ">=",
+      "rhs": 450.0
+    },
+    {
+      "name": "dem...10",
+      "linear": {
+        "x...1001": 50.0,
+        "x...1002": 45.0,
+        "x...1003": 40.0,
+        "x...1004": 30.0,
+        "x...1005": 32.0,
+        "x...1006": 52.0,
+        "x...1008": 44.0,
+        "x...1009": 2534.0,
+        "x...1010": 22.0,
+        "x...1011": 56.0,
+        "x...1012": 30.0,
+        "x...1013": 30.0,
+        "x...1014": 23.0,
+        "x...1015": 42.0,
+        "x...1016": 56.0,
+        "x...1017": 28.0
+      },
+      "sense": ">=",
+      "rhs": 231.0
+    },
+    {
+      "name": "dem...11",
+      "linear": {
+        "x...1102": 28.0,
+        "x...1103": 45.0,
+        "x...1104": 16.5,
+        "x...1105": 45.0,
+        "x...1106": 52.0,
+        "x...1107": 45.0,
+        "x...1109": 2519.0,
+        "x...1110": 25.0,
+        "x...1111": 34.0,
+        "x...1112": 25.0,
+        "x...1113": 19.0,
+        "x...1114": 56.0,
+        "x...1115": 34.0,
+        "x...1116": 34.0,
+        "x...1117": 25.0
+      },
+      "sense": ">=",
+      "rhs": 76.0
+    },
+    {
+      "name": "dem...12",
+      "linear": {
+        "x...1202": 28.0,
+        "x...1203": 45.0,
+        "x...1204": 16.5,
+        "x...1205": 45.0,
+        "x...1206": 52.0,
+        "x...1207": 45.0,
+        "x...1209": 2519.0,
+        "x...1210": 25.0,
+        "x...1211": 34.0,
+        "x...1212": 25.0,
+        "x...1213": 19.0,
+        "x...1214": 56.0,
+        "x...1215": 34.0,
+        "x...1216": 34.0,
+        "x...1217": 25.0
+      },
+      "sense": ">=",
+      "rhs": 0.0
+    },
+    {
+      "name": "avail.01",
+      "linear": {
+        "x...0101": 1.0,
+        "x...0201": 1.0,
+        "x...0301": 1.0,
+        "x...0401": 1.0,
+        "x...0701": 1.0,
+        "x...0801": 1.0,
+        "x...0901": 1.0,
+        "x...1001": 1.0
+      },
+      "sense": "<=",
+      "rhs": 9.0
+    },
+    {
+      "name": "avail.02",
+      "linear": {
+        "x...0102": 1.0,
+        "x...0202": 1.0,
+        "x...0302": 1.0,
+        "x...0402": 1.0,
+        "x...0502": 1.0,
+        "x...0602": 1.0,
+        "x...0702": 1.0,
+        "x...0802": 1.0,
+        "x...0902": 1.0,
+        "x...1002": 1.0,
+        "x...1102": 1.0,
+        "x...1202": 1.0
+      },
+      "sense": "<=",
+      "rhs": 15.0
+    },
+    {
+      "name": "avail.03",
+      "linear": {
+        "x...0103": 1.0,
+        "x...0203": 1.0,
+        "x...0303": 1.0,
+        "x...0403": 1.0,
+        "x...0503": 1.0,
+        "x...0603": 1.0,
+        "x...0703": 1.0,
+        "x...0803": 1.0,
+        "x...0903": 1.0,
+        "x...1003": 1.0,
+        "x...1103": 1.0,
+        "x...1203": 1.0
+      },
+      "sense": "<=",
+      "rhs": 14.0
+    },
+    {
+      "name": "avail.04",
+      "linear": {
+        "x...0104": 1.0,
+        "x...0204": 1.0,
+        "x...0304": 1.0,
+        "x...0404": 1.0,
+        "x...0504": 1.0,
+        "x...0604": 1.0,
+        "x...0704": 1.0,
+        "x...0804": 1.0,
+        "x...0904": 1.0,
+        "x...1004": 1.0,
+        "x...1104": 1.0,
+        "x...1204": 1.0
+      },
+      "sense": "<=",
+      "rhs": 1.0
+    },
+    {
+      "name": "avail.05",
+      "linear": {
+        "x...0105": 1.0,
+        "x...0205": 1.0,
+        "x...0305": 1.0,
+        "x...0405": 1.0,
+        "x...0505": 1.0,
+        "x...0605": 1.0,
+        "x...0705": 1.0,
+        "x...0805": 1.0,
+        "x...0905": 1.0,
+        "x...1005": 1.0,
+        "x...1105": 1.0,
+        "x...1205": 1.0
+      },
+      "sense": "<=",
+      "rhs": 6.0
+    },
+    {
+      "name": "avail.06",
+      "linear": {
+        "x...0106": 1.0,
+        "x...0206": 1.0,
+        "x...0306": 1.0,
+        "x...0406": 1.0,
+        "x...0506": 1.0,
+        "x...0606": 1.0,
+        "x...0706": 1.0,
+        "x...0806": 1.0,
+        "x...0906": 1.0,
+        "x...1006": 1.0,
+        "x...1106": 1.0,
+        "x...1206": 1.0
+      },
+      "sense": "<=",
+      "rhs": 8.0
+    },
+    {
+      "name": "avail.07",
+      "linear": {
+        "x...0507": 1.0,
+        "x...0607": 1.0,
+        "x...1107": 1.0,
+        "x...1207": 1.0
+      },
+      "sense": "<=",
+      "rhs": 5.0
+    },
+    {
+      "name": "avail.08",
+      "linear": {
+        "x...0108": 1.0,
+        "x...0208": 1.0,
+        "x...0308": 1.0,
+        "x...0408": 1.0,
+        "x...0708": 1.0,
+        "x...0808": 1.0,
+        "x...0908": 1.0,
+        "x...1008": 1.0
+      },
+      "sense": "<=",
+      "rhs": 12.0
+    },
+    {
+      "name": "avail.09",
+      "linear": {
+        "x...0109": 1.0,
+        "x...0209": 1.0,
+        "x...0309": 1.0,
+        "x...0409": 1.0,
+        "x...0509": 1.0,
+        "x...0609": 1.0,
+        "x...0709": 1.0,
+        "x...0809": 1.0,
+        "x...0909": 1.0,
+        "x...1009": 1.0,
+        "x...1109": 1.0,
+        "x...1209": 1.0
+      },
+      "sense": "<=",
+      "rhs": 5.0
+    },
+    {
+      "name": "avail.10",
+      "linear": {
+        "x...0110": 1.0,
+        "x...0210": 1.0,
+        "x...0310": 1.0,
+        "x...0410": 1.0,
+        "x...0510": 1.0,
+        "x...0610": 1.0,
+        "x...0710": 1.0,
+        "x...0810": 1.0,
+        "x...0910": 1.0,
+        "x...1010": 1.0,
+        "x...1110": 1.0,
+        "x...1210": 1.0
+      },
+      "sense": "<=",
+      "rhs": 6.0
+    },
+    {
+      "name": "avail.11",
+      "linear": {
+        "x...0111": 1.0,
+        "x...0211": 1.0,
+        "x...0311": 1.0,
+        "x...0411": 1.0,
+        "x...0511": 1.0,
+        "x...0611": 1.0,
+        "x...0711": 1.0,
+        "x...0811": 1.0,
+        "x...0911": 1.0,
+        "x...1011": 1.0,
+        "x...1111": 1.0,
+        "x...1211": 1.0
+      },
+      "sense": "<=",
+      "rhs": 4.0
+    },
+    {
+      "name": "avail.12",
+      "linear": {
+        "x...0112": 1.0,
+        "x...0212": 1.0,
+        "x...0312": 1.0,
+        "x...0412": 1.0,
+        "x...0512": 1.0,
+        "x...0612": 1.0,
+        "x...0712": 1.0,
+        "x...0812": 1.0,
+        "x...0912": 1.0,
+        "x...1012": 1.0,
+        "x...1112": 1.0,
+        "x...1212": 1.0
+      },
+      "sense": "<=",
+      "rhs": 9.0
+    },
+    {
+      "name": "avail.13",
+      "linear": {
+        "x...0113": 1.0,
+        "x...0213": 1.0,
+        "x...0313": 1.0,
+        "x...0413": 1.0,
+        "x...0513": 1.0,
+        "x...0613": 1.0,
+        "x...0713": 1.0,
+        "x...0813": 1.0,
+        "x...0913": 1.0,
+        "x...1013": 1.0,
+        "x...1113": 1.0,
+        "x...1213": 1.0
+      },
+      "sense": "<=",
+      "rhs": 5.0
+    },
+    {
+      "name": "avail.14",
+      "linear": {
+        "x...0114": 1.0,
+        "x...0214": 1.0,
+        "x...0314": 1.0,
+        "x...0414": 1.0,
+        "x...0514": 1.0,
+        "x...0614": 1.0,
+        "x...0714": 1.0,
+        "x...0814": 1.0,
+        "x...0914": 1.0,
+        "x...1014": 1.0,
+        "x...1114": 1.0,
+        "x...1214": 1.0
+      },
+      "sense": "<=",
+      "rhs": 4.0
+    },
+    {
+      "name": "avail.15",
+      "linear": {
+        "x...0115": 1.0,
+        "x...0215": 1.0,
+        "x...0315": 1.0,
+        "x...0415": 1.0,
+        "x...0515": 1.0,
+        "x...0615": 1.0,
+        "x...0715": 1.0,
+        "x...0815": 1.0,
+        "x...0915": 1.0,
+        "x...1015": 1.0,
+        "x...1115": 1.0,
+        "x...1215": 1.0
+      },
+      "sense": "<=",
+      "rhs": 2.0
+    },
+    {
+      "name": "avail.16",
+      "linear": {
+        "x...0116": 1.0,
+        "x...0216": 1.0,
+        "x...0316": 1.0,
+        "x...0416": 1.0,
+        "x...0516": 1.0,
+        "x...0616": 1.0,
+        "x...0716": 1.0,
+        "x...0816": 1.0,
+        "x...0916": 1.0,
+        "x...1016": 1.0,
+        "x...1116": 1.0,
+        "x...1216": 1.0
+      },
+      "sense": "<=",
+      "rhs": 2.0
+    },
+    {
+      "name": "avail.17",
+      "linear": {
+        "x...0117": 1.0,
+        "x...0217": 1.0,
+        "x...0317": 1.0,
+        "x...0417": 1.0,
+        "x...0517": 1.0,
+        "x...0617": 1.0,
+        "x...0717": 1.0,
+        "x...0817": 1.0,
+        "x...0917": 1.0,
+        "x...1017": 1.0,
+        "x...1117": 1.0,
+        "x...1217": 1.0
+      },
+      "sense": "<=",
+      "rhs": 1.0
+    }
+  ]
+}

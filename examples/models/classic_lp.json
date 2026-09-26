@@ -1,0 +1,13 @@
+{
+  "problem_type": "LP",
+  "sense": "maximize",
+  "variables": [
+    {"name": "x", "type": "continuous", "lower_bound": 0, "upper_bound": 1e30},
+    {"name": "y", "type": "continuous", "lower_bound": 0, "upper_bound": 1e30}
+  ],
+  "objective": {"linear": {"x": 3, "y": 2}},
+  "constraints": [
+    {"name": "c1", "linear": {"x": 1, "y": 1}, "sense": "<=", "rhs": 4},
+    {"name": "c2", "linear": {"x": 2, "y": 1}, "sense": "<=", "rhs": 5}
+  ]
+}

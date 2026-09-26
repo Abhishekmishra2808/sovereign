@@ -1,0 +1,310 @@
+{
+  "problem_type": "MILP",
+  "sense": "minimize",
+  "variables": [
+    {
+      "name": "STM1",
+      "type": "continuous",
+      "lower_bound": 0.0,
+      "upper_bound": 1e+30
+    },
+    {
+      "name": "ANM1",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 18.0
+    },
+    {
+      "name": "UE1",
+      "type": "continuous",
+      "lower_bound": 0.0,
+      "upper_bound": 1e+30
+    },
+    {
+      "name": "STM2",
+      "type": "integer",
+      "lower_bound": 57.0,
+      "upper_bound": 75.0
+    },
+    {
+      "name": "ANM2",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 18.0
+    },
+    {
+      "name": "UE2",
+      "type": "continuous",
+      "lower_bound": 0.0,
+      "upper_bound": 1e+30
+    },
+    {
+      "name": "STM3",
+      "type": "integer",
+      "lower_bound": 57.0,
+      "upper_bound": 75.0
+    },
+    {
+      "name": "ANM3",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 18.0
+    },
+    {
+      "name": "UE3",
+      "type": "continuous",
+      "lower_bound": 0.0,
+      "upper_bound": 1e+30
+    },
+    {
+      "name": "STM4",
+      "type": "integer",
+      "lower_bound": 57.0,
+      "upper_bound": 75.0
+    },
+    {
+      "name": "ANM4",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 18.0
+    },
+    {
+      "name": "UE4",
+      "type": "continuous",
+      "lower_bound": 0.0,
+      "upper_bound": 1e+30
+    },
+    {
+      "name": "STM5",
+      "type": "integer",
+      "lower_bound": 57.0,
+      "upper_bound": 75.0
+    },
+    {
+      "name": "ANM5",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 18.0
+    },
+    {
+      "name": "UE5",
+      "type": "continuous",
+      "lower_bound": 0.0,
+      "upper_bound": 1e+30
+    },
+    {
+      "name": "STM6",
+      "type": "integer",
+      "lower_bound": 57.0,
+      "upper_bound": 75.0
+    },
+    {
+      "name": "ANM6",
+      "type": "integer",
+      "lower_bound": 0.0,
+      "upper_bound": 18.0
+    },
+    {
+      "name": "UE6",
+      "type": "continuous",
+      "lower_bound": 0.0,
+      "upper_bound": 1e+30
+    }
+  ],
+  "objective": {
+    "linear": {
+      "STM1": 2700.0,
+      "ANM1": 1500.0,
+      "UE1": 30.0,
+      "STM2": 2700.0,
+      "ANM2": 1500.0,
+      "UE2": 30.0,
+      "STM3": 2700.0,
+      "ANM3": 1500.0,
+      "UE3": 30.0,
+      "STM4": 2700.0,
+      "ANM4": 1500.0,
+      "UE4": 30.0,
+      "STM5": 2700.0,
+      "ANM5": 1500.0,
+      "UE5": 30.0,
+      "STM6": 2700.0,
+      "ANM6": 1500.0,
+      "UE6": 30.0
+    }
+  },
+  "constraints": [
+    {
+      "name": "ANZ1",
+      "linear": {
+        "STM1": 1.0
+      },
+      "sense": "=",
+      "rhs": 60.0
+    },
+    {
+      "name": "STD1",
+      "linear": {
+        "STM1": 150.0,
+        "ANM1": -100.0,
+        "UE1": 1.0
+      },
+      "sense": ">=",
+      "rhs": 8000.0
+    },
+    {
+      "name": "UEB1",
+      "linear": {
+        "STM1": -20.0,
+        "UE1": 1.0
+      },
+      "sense": "<=",
+      "rhs": 0.0
+    },
+    {
+      "name": "ANZ2",
+      "linear": {
+        "STM1": 0.9,
+        "ANM1": 1.0,
+        "STM2": -1.0
+      },
+      "sense": "=",
+      "rhs": 0.0
+    },
+    {
+      "name": "STD2",
+      "linear": {
+        "STM2": 150.0,
+        "ANM2": -100.0,
+        "UE2": 1.0
+      },
+      "sense": ">=",
+      "rhs": 9000.0
+    },
+    {
+      "name": "UEB2",
+      "linear": {
+        "STM2": -20.0,
+        "UE2": 1.0
+      },
+      "sense": "<=",
+      "rhs": 0.0
+    },
+    {
+      "name": "ANZ3",
+      "linear": {
+        "STM2": 0.9,
+        "ANM2": 1.0,
+        "STM3": -1.0
+      },
+      "sense": "=",
+      "rhs": 0.0
+    },
+    {
+      "name": "STD3",
+      "linear": {
+        "STM3": 150.0,
+        "ANM3": -100.0,
+        "UE3": 1.0
+      },
+      "sense": ">=",
+      "rhs": 8000.0
+    },
+    {
+      "name": "UEB3",
+      "linear": {
+        "STM3": -20.0,
+        "UE3": 1.0
+      },
+      "sense": "<=",
+      "rhs": 0.0
+    },
+    {
+      "name": "ANZ4",
+      "linear": {
+        "STM3": 0.9,
+        "ANM3": 1.0,
+        "STM4": -1.0
+      },
+      "sense": "=",
+      "rhs": 0.0
+    },
+    {
+      "name": "STD4",
+      "linear": {
+        "STM4": 150.0,
+        "ANM4": -100.0,
+        "UE4": 1.0
+      },
+      "sense": ">=",
+      "rhs": 10000.0
+    },
+    {
+      "name": "UEB4",
+      "linear": {
+        "STM4": -20.0,
+        "UE4": 1.0
+      },
+      "sense": "<=",
+      "rhs": 0.0
+    },
+    {
+      "name": "ANZ5",
+      "linear": {
+        "STM4": 0.9,
+        "ANM4": 1.0,
+        "STM5": -1.0
+      },
+      "sense": "=",
+      "rhs": 0.0
+    },
+    {
+      "name": "STD5",
+      "linear": {
+        "STM5": 150.0,
+        "ANM5": -100.0,
+        "UE5": 1.0
+      },
+      "sense": ">=",
+      "rhs": 9000.0
+    },
+    {
+      "name": "UEB5",
+      "linear": {
+        "STM5": -20.0,
+        "UE5": 1.0
+      },
+      "sense": "<=",
+      "rhs": 0.0
+    },
+    {
+      "name": "ANZ6",
+      "linear": {
+        "STM5": 0.9,
+        "ANM5": 1.0,
+        "STM6": -1.0
+      },
+      "sense": "=",
+      "rhs": 0.0
+    },
+    {
+      "name": "STD6",
+      "linear": {
+        "STM6": 150.0,
+        "ANM6": -100.0,
+        "UE6": 1.0
+      },
+      "sense": ">=",
+      "rhs": 12000.0
+    },
+    {
+      "name": "UEB6",
+      "linear": {
+        "STM6": -20.0,
+        "UE6": 1.0
+      },
+      "sense": "<=",
+      "rhs": 0.0
+    }
+  ]
+}

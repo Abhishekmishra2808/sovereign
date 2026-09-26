@@ -1,0 +1,15 @@
+{
+  "problem_type": "LP",
+  "sense": "minimize",
+  "variables": [
+    {"name": "comp_a", "type": "continuous", "lower_bound": 0, "upper_bound": 1000},
+    {"name": "comp_b", "type": "continuous", "lower_bound": 0, "upper_bound": 800},
+    {"name": "blend", "type": "continuous", "lower_bound": 0, "upper_bound": 1500}
+  ],
+  "objective": {"linear": {"comp_a": 12, "comp_b": 18}},
+  "constraints": [
+    {"name": "mass", "linear": {"comp_a": 1, "comp_b": 1, "blend": -1}, "sense": "=", "rhs": 0},
+    {"name": "quality", "linear": {"comp_a": 90, "comp_b": 95, "blend": -92}, "sense": ">=", "rhs": 0},
+    {"name": "demand", "linear": {"blend": 1}, "sense": ">=", "rhs": 500}
+  ]
+}

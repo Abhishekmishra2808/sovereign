@@ -1,0 +1,73 @@
+{
+  "problem_type": "LP",
+  "sense": "minimize",
+  "variables": [
+    {
+      "name": "x1",
+      "type": "continuous",
+      "lower_bound": 0,
+      "upper_bound": 1e+30
+    },
+    {
+      "name": "x2",
+      "type": "continuous",
+      "lower_bound": 0,
+      "upper_bound": 1e+30
+    },
+    {
+      "name": "x3",
+      "type": "continuous",
+      "lower_bound": 0,
+      "upper_bound": 1e+30
+    },
+    {
+      "name": "x4",
+      "type": "continuous",
+      "lower_bound": 0,
+      "upper_bound": 1e+30
+    }
+  ],
+  "objective": {
+    "linear": {
+      "x1": -0.75,
+      "x2": 20.0,
+      "x3": -0.5,
+      "x4": 6.0
+    }
+  },
+  "constraints": [
+    {
+      "name": "r1",
+      "linear": {
+        "x1": 0.25,
+        "x2": -8.0,
+        "x3": -1.0,
+        "x4": 9.0
+      },
+      "sense": "<=",
+      "rhs": 0.0
+    },
+    {
+      "name": "r2",
+      "linear": {
+        "x1": 0.5,
+        "x2": -12.0,
+        "x3": -0.5,
+        "x4": 3.0
+      },
+      "sense": "<=",
+      "rhs": 0.0
+    },
+    {
+      "name": "r3",
+      "linear": {
+        "x1": 0.0,
+        "x2": 0.0,
+        "x3": 1.0,
+        "x4": 0.0
+      },
+      "sense": "<=",
+      "rhs": 1.0
+    }
+  ]
+}

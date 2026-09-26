@@ -1,0 +1,225 @@
+{
+  "problem_type": "MILP",
+  "sense": "minimize",
+  "variables": [
+    {
+      "name": "s0",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s1",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s2",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s3",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s4",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s5",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s6",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s7",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s8",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s9",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s10",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s11",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s12",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    },
+    {
+      "name": "s13",
+      "type": "binary",
+      "lower_bound": 0,
+      "upper_bound": 1
+    }
+  ],
+  "objective": {
+    "linear": {
+      "s0": 5,
+      "s1": 6,
+      "s2": 2,
+      "s3": 5,
+      "s4": 8,
+      "s5": 6,
+      "s6": 2,
+      "s7": 3,
+      "s8": 3,
+      "s9": 1,
+      "s10": 2,
+      "s11": 8,
+      "s12": 1,
+      "s13": 7
+    }
+  },
+  "constraints": [
+    {
+      "name": "cover_0",
+      "linear": {
+        "s4": 1,
+        "s5": 1,
+        "s7": 1,
+        "s10": 1,
+        "s12": 1,
+        "s13": 1
+      },
+      "sense": ">=",
+      "rhs": 1
+    },
+    {
+      "name": "cover_1",
+      "linear": {
+        "s0": 1,
+        "s3": 1,
+        "s4": 1,
+        "s6": 1,
+        "s8": 1,
+        "s10": 1
+      },
+      "sense": ">=",
+      "rhs": 1
+    },
+    {
+      "name": "cover_2",
+      "linear": {
+        "s0": 1,
+        "s2": 1,
+        "s3": 1,
+        "s4": 1,
+        "s5": 1,
+        "s7": 1,
+        "s11": 1
+      },
+      "sense": ">=",
+      "rhs": 1
+    },
+    {
+      "name": "cover_3",
+      "linear": {
+        "s4": 1,
+        "s5": 1,
+        "s7": 1,
+        "s9": 1,
+        "s10": 1,
+        "s11": 1,
+        "s12": 1
+      },
+      "sense": ">=",
+      "rhs": 1
+    },
+    {
+      "name": "cover_4",
+      "linear": {
+        "s0": 1,
+        "s1": 1,
+        "s5": 1,
+        "s6": 1,
+        "s7": 1,
+        "s12": 1
+      },
+      "sense": ">=",
+      "rhs": 1
+    },
+    {
+      "name": "cover_5",
+      "linear": {
+        "s2": 1,
+        "s6": 1,
+        "s7": 1,
+        "s9": 1,
+        "s12": 1
+      },
+      "sense": ">=",
+      "rhs": 1
+    },
+    {
+      "name": "cover_6",
+      "linear": {
+        "s4": 1,
+        "s8": 1,
+        "s9": 1
+      },
+      "sense": ">=",
+      "rhs": 1
+    },
+    {
+      "name": "cover_7",
+      "linear": {
+        "s1": 1,
+        "s2": 1,
+        "s3": 1,
+        "s8": 1,
+        "s12": 1,
+        "s13": 1
+      },
+      "sense": ">=",
+      "rhs": 1
+    },
+    {
+      "name": "cover_8",
+      "linear": {
+        "s2": 1,
+        "s3": 1,
+        "s5": 1,
+        "s8": 1,
+        "s10": 1,
+        "s11": 1
+      },
+      "sense": ">=",
+      "rhs": 1
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "problem_type": "LP",
+  "sense": "maximize",
+  "variables": [
+    {
+      "name": "x",
+      "type": "continuous",
+      "lower_bound": 0,
+      "upper_bound": 10
+    },
+    {
+      "name": "y",
+      "type": "continuous",
+      "lower_bound": 0,
+      "upper_bound": 10
+    }
+  ],
+  "objective": {
+    "linear": {
+      "x": 3,
+      "y": 2
+    }
+  },
+  "constraints": [
+    {
+      "name": "resource",
+      "linear": {
+        "x": 1,
+        "y": 1
+      },
+      "sense": "<=",
+      "rhs": 10
+    },
+    {
+      "name": "demand_x",
+      "linear": {
+        "x": 1
+      },
+      "sense": ">=",
+      "rhs": 0
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "problem_type": "LP",
+  "sense": "minimize",
+  "variables": [
+    {"name": "g1", "type": "continuous", "lower_bound": 0, "upper_bound": 100},
+    {"name": "g2", "type": "continuous", "lower_bound": 0, "upper_bound": 80},
+    {"name": "g3", "type": "continuous", "lower_bound": 0, "upper_bound": 60}
+  ],
+  "objective": {"linear": {"g1": 20, "g2": 25, "g3": 15}},
+  "constraints": [
+    {"name": "demand", "linear": {"g1": 1, "g2": 1, "g3": 1}, "sense": ">=", "rhs": 150}
+  ]
+}

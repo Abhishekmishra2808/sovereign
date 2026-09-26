@@ -1,0 +1,97 @@
+[
+  {
+    "path": "benchmarks/datasets/robustness/kuhn_degeneracy.json",
+    "name": "robustness_kuhn_degeneracy",
+    "purpose": "Degenerate LP; demonstrates Bland anti-cycling path in revised simplex",
+    "expected_status": "OPTIMAL",
+    "expected_objective_approx": -1.25
+  },
+  {
+    "path": "benchmarks/datasets/robustness/illconditioned.json",
+    "name": "robustness_illconditioned",
+    "purpose": "Ill-conditioned coeffs; scaling + tolerances must recover obj\u224830",
+    "expected_status": "OPTIMAL",
+    "expected_objective_approx": 30000000.0,
+    "note": "objective is scaled 1e6\u00d7 vs sample_lp; primal still x=10,y=0"
+  },
+  {
+    "path": "benchmarks/datasets/robustness/weak_lp_relaxation.json",
+    "name": "robustness_weak_lp_relaxation",
+    "purpose": "Weak LP relaxation; integer optimum via branch-and-bound",
+    "expected_status": "OPTIMAL",
+    "expected_objective_approx": 100.0
+  },
+  {
+    "path": "benchmarks/datasets/miplib/knapsack6.json",
+    "name": "miplib_style_knapsack6",
+    "family": "synthetic (MIPLIB-style; not an official MIPLIB ID)",
+    "expected_status": "OPTIMAL",
+    "expected_objective_approx": 34.0
+  },
+  {
+    "path": "benchmarks/datasets/miplib/multi_knapsack_18x3.json",
+    "name": "multi_knapsack_18x3",
+    "family": "synthetic ablation fixture (not official MIPLIB)",
+    "purpose": "Harder MILP for B&B vs branch-and-cut ablation",
+    "n_items": 18,
+    "n_knapsacks": 3
+  },
+  {
+    "path": "benchmarks/datasets/miplib/multi_knapsack_24x4.json",
+    "name": "multi_knapsack_24x4",
+    "family": "synthetic ablation fixture (not official MIPLIB)",
+    "purpose": "Harder MILP for B&B vs branch-and-cut ablation",
+    "n_items": 24,
+    "n_knapsacks": 4
+  },
+  {
+    "path": "benchmarks/datasets/miplib/set_partition_14x9.json",
+    "name": "set_partition_14x9",
+    "family": "synthetic ablation fixture (not official MIPLIB)",
+    "purpose": "Set-cover MILP for branching/cut ablation"
+  },
+  {
+    "path": "benchmarks/datasets/miplib/official/flugpl.json",
+    "name": "flugpl",
+    "family": "MIPLIB 2017 (official)",
+    "source": "https://miplib.zib.de/WebData/instances/flugpl.mps.gz"
+  },
+  {
+    "path": "benchmarks/datasets/miplib/official/gt2.json",
+    "name": "gt2",
+    "family": "MIPLIB 2017 (official)",
+    "source": "https://miplib.zib.de/WebData/instances/gt2.mps.gz"
+  },
+  {
+    "path": "benchmarks/datasets/miplib/official/b-ball.json",
+    "name": "b-ball",
+    "family": "MIPLIB 2017 (official)",
+    "source": "https://miplib.zib.de/WebData/instances/b-ball.mps.gz"
+  },
+  {
+    "path": "benchmarks/datasets/miplib/official/pk1.json",
+    "name": "pk1",
+    "family": "MIPLIB 2017 (official)",
+    "source": "https://miplib.zib.de/WebData/instances/pk1.mps.gz"
+  },
+  {
+    "path": "benchmarks/datasets/miplib/official/gen-ip016.json",
+    "name": "gen-ip016",
+    "family": "MIPLIB 2017 (official)",
+    "source": "https://miplib.zib.de/WebData/instances/gen-ip016.mps.gz"
+  },
+  {
+    "path": "benchmarks/datasets/scale/transport_20x20.json",
+    "name": "scale_transport_20x20",
+    "purpose": "Scale stress: thousands of variables transportation LP",
+    "n_vars": 400,
+    "n_cons": 40
+  },
+  {
+    "path": "benchmarks/datasets/scale/transport_50x50.json",
+    "name": "scale_transport_50x50",
+    "purpose": "Scale stress: thousands of variables transportation LP",
+    "n_vars": 2500,
+    "n_cons": 100
+  }
+]

@@ -1,0 +1,1 @@
+{"problem_type":"QP","sense":"minimize","variables":[{"name":"x","type":"continuous","lower_bound":0,"upper_bound":1e30},{"name":"y","type":"continuous","lower_bound":0,"upper_bound":1e30}],"objective":{"quadratic":{"x":{"x":2},"y":{"y":2}}},"constraints":[{"name":"ge","linear":{"x":1,"y":1},"sense":">=","rhs":2}]}
