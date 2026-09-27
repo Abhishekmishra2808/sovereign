@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
+cmake_policy(SET CMP0091 NEW)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 project(sovereign_optimizer VERSION 0.1.0 LANGUAGES CXX)
 
 # Prefer C++17; fall back gracefully on older toolchains.
@@ -37,6 +39,15 @@ if(SOVEREIGN_BUILD_TESTS)
     add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
   endif()
   add_subdirectory(tests)
+endif()
+
+# GPU benchmark (only with CUDA)
+if(SOVEREIGN_USE_CUDA)
+  add_executable(gpu_benchmark benchmarks/gpu_benchmark.cpp)
+  target_link_libraries(gpu_benchmark PRIVATE sovereign_core)
+  if(TARGET sovereign_cuda)
+    target_link_libraries(gpu_benchmark PRIVATE sovereign_cuda)
+  endif()
 endif()
 
 install(TARGETS sovereign RUNTIME DESTINATION bin)

@@ -181,7 +181,7 @@ SolverResult ConvexQpSolver::solve(const OptimizationModel& model) const {
     if (alpha <= 1e-16) break;
   }
 
-  double obj = 0.0;
+  double obj = model.objective.constant;
   for (const auto& kv : model.objective.linear) {
     const int i = var_index(model, kv.first);
     if (i >= 0) obj += kv.second * x[static_cast<std::size_t>(i)];

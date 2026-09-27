@@ -1,4 +1,5 @@
 #include "sovereign/sparse_matrix.hpp"
+#include "sovereign/gpu_spmv.hpp"
 
 #include <algorithm>
 #include <stdexcept>
@@ -42,15 +43,7 @@ void SparseMatrixCSC::multiply(const std::vector<double>& x, std::vector<double>
   if (x.size() != ncols) {
     throw std::invalid_argument("SparseMatrixCSC::multiply dimension mismatch");
   }
-  y.assign(nrows, 0.0);
-  for (std::size_t j = 0; j < ncols; ++j) {
-    const double xj = x[j];
-    if (xj == 0.0) continue;
-    for (int p = col_ptr[j]; p < col_ptr[j + 1]; ++p) {
-      y[static_cast<std::size_t>(row_idx[static_cast<std::size_t>(p)])] +=
-          values[static_cast<std::size_t>(p)] * xj;
-    }
-  }
+  spmv_csc_auto(nrows, ncols, col_ptr, row_idx, values, x, y);
 }
 
 void SparseMatrixCSC::multiply_transpose(const std::vector<double>& x,

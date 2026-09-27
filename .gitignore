@@ -22,3 +22,25 @@ compile_commands.json
 .env.local
 *.pem
 
+
+build-msvc/
+build-session/
+
+# Online workspace local state and worker credentials
+/data/
+/artifacts/
+/build-cloud/
+/build-gpu/
+/.venv-fabric/
+
+# Generated builds and private local preview/session state
+/build*/
+/session-*.md
+
+# Legacy local website assets are not part of the hosted backend
+/api/static/
+/site/
+/installer/
+/deploy.ps1
+/deploy.sh
+/nginx.conf

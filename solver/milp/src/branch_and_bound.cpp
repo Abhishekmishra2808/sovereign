@@ -3,6 +3,8 @@
 #include "sovereign/cuts.hpp"
 #include "sovereign/heuristics.hpp"
 #include "sovereign/lp_solver.hpp"
+#include "sovereign/json_io.hpp"
+#include "sovereign/presolve.hpp"
 #include "sovereign/revised_simplex.hpp"
 
 #include <algorithm>
@@ -146,9 +148,32 @@ int pick_pseudo_cost(const OptimizationModel& milp,
 SolverResult solve_node_lp(const OptimizationModel& node_model,
                            const RevisedSimplexOptions& /*lp_opt*/) {
   OptimizationModel relax = make_lp_relaxation(node_model);
+  // Branch bounds change at every node. The engine's one-time root presolve
+  // cannot detect contradictions introduced by a later branch, and sending
+  // those infeasible nodes to Phase I can make simplex cycle for 100k pivots.
+  Presolver presolver;
+  const PresolveResult prep = presolver.run(relax);
+  if (prep.infeasible || prep.unbounded) {
+    SolverResult r;
+    r.status = prep.infeasible ? SolverStatus::Infeasible : SolverStatus::Unbounded;
+    r.message = prep.message;
+    return r;
+  }
+  if (prep.reduced.variables.empty()) {
+    SolverResult r;
+    r.status = SolverStatus::Optimal;
+    r.has_objective_value = true;
+    r = presolver.recover(r, prep, relax.sense);
+    r.objective_value = relax.objective.constant;
+    for (const auto& kv : relax.objective.linear) {
+      r.objective_value += kv.second * r.primal.at(kv.first);
+    }
+    r.message = "Optimal (node presolve fixed all variables).";
+    return r;
+  }
   // Route through LpSolver so SOVEREIGN_LP_ALGORITHM=auto|ipm|simplex applies
   // to MILP node relaxations (not just standalone LPs).
-  return LpSolver().solve(relax);
+  return presolver.recover(LpSolver().solve(prep.reduced), prep, relax.sense);
 }
 
 #if defined(_WIN32)
@@ -212,20 +237,48 @@ void solve_two_lps_parallel(const OptimizationModel& down, const OptimizationMod
 }
 #endif
 
+// Add cuts to a node, subject to an independent validity gate.
+//
+// Every candidate is checked by check_cut_validity() before it is allowed into
+// the node model. Cuts are inherited by all descendants, so a single invalid cut
+// does not merely weaken one node -- it can remove the true optimum from an
+// entire subtree and the search will still report OPTIMAL for whatever survives.
+// The gate is deliberately written independently of the generators so that a
+// generator bug degrades into "cut rejected", never into a wrong answer.
 int apply_cuts(OptimizationModel& model, const std::unordered_map<std::string, double>& x,
-               double integer_tol, int max_cuts) {
+               double integer_tol, int max_cuts,
+               const std::vector<std::unordered_map<std::string, double>>& reference_points,
+               std::vector<std::string>* rejections) {
   auto covers = generate_cover_cuts(model, x, integer_tol);
-  auto mirs = generate_mir_cuts(model, x, integer_tol);
+  auto gomory = generate_mir_cuts(model, x, integer_tol);
+
+  std::vector<Cut> candidates;
+  candidates.reserve(covers.size() + gomory.size());
+  for (const auto& c : covers) candidates.push_back(c);
+  for (const auto& c : gomory) candidates.push_back(c);
+
   int added = 0;
-  for (const auto& cut : covers) {
+  int rejected = 0;
+  for (const auto& cut : candidates) {
     if (added >= max_cuts) break;
+    const std::string why = check_cut_validity(model, cut.constraint, reference_points,
+                                               std::max(integer_tol, 1e-6));
+    if (!why.empty()) {
+      ++rejected;
+      if (rejections != nullptr) rejections->push_back(why);
+      continue;
+    }
     model.constraints.push_back(cut.constraint);
     ++added;
   }
-  for (const auto& cut : mirs) {
-    if (added >= max_cuts) break;
-    model.constraints.push_back(cut.constraint);
-    ++added;
+
+  if (rejected > 0 && rejections != nullptr) {
+    // One summary line, not one per cut: a pathological generator must not be
+    // able to blow up the warnings vector.
+    std::ostringstream oss;
+    oss << "Cut validity gate rejected " << rejected << " candidate cut"
+        << (rejected == 1 ? "" : "s") << " (see cut_rejections).";
+    rejections->push_back(oss.str());
   }
   return added;
 }
@@ -379,8 +432,10 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
                                                  : std::numeric_limits<double>::infinity();
   bool found_finite_bound = false;
   std::vector<std::string> warnings;
+  std::vector<std::string> cut_rejections;
   std::unordered_map<std::string, PseudoCostStats> pseudo;
   bool any_node_lp_error = false;
+  bool hit_node_limit = false;
 
   std::priority_queue<SearchNode, std::vector<SearchNode>, BestBoundCompareMin> pq_min;
   std::priority_queue<SearchNode, std::vector<SearchNode>, BestBoundCompareMax> pq_max;
@@ -415,8 +470,19 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
 
   while (!empty_queue()) {
     if (nodes >= options_.max_nodes) {
-      result.status = has_incumbent ? SolverStatus::Feasible : SolverStatus::Error;
-      result.message = "MILP node limit reached.";
+      std::ostringstream oss;
+      oss << "Branch-and-bound stopped at the node limit (" << options_.max_nodes
+          << " nodes explored). ";
+      if (has_incumbent) {
+        oss << "Reporting the incumbent as FEASIBLE; optimality is NOT proven. "
+            << "Open nodes remain in the queue.";
+      } else {
+        oss << "No integer-feasible point was found, so infeasibility cannot be "
+            << "certified either.";
+      }
+      result.status = has_incumbent ? SolverStatus::Feasible : SolverStatus::IterationLimit;
+      result.message = oss.str();
+      hit_node_limit = true;
       break;
     }
 
@@ -438,47 +504,23 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
       return result;
     }
     if (lp.status != SolverStatus::Optimal && lp.status != SolverStatus::Feasible) {
-      // A node LP failed to solve (e.g. iteration limit, singular basis).
-      // This subtree cannot be soundly pruned or explored further — record
-      // the failure and downgrade the final status so we never silently
-      // report OPTIMAL (or INFEASIBLE) with a dropped branch.
+      // A node LP failed to solve. This subtree cannot be soundly pruned or
+      // explored further — record the failure and downgrade the final status so
+      // we never silently report OPTIMAL (or INFEASIBLE) with a dropped branch.
+      // Distinguish the reason, because "ran out of iterations" and "the basis
+      // went singular" call for completely different responses.
       any_node_lp_error = true;
-      warnings.push_back("Node LP failed (subtree unsound, dropped): " + lp.message);
+      std::ostringstream oss;
+      oss << "Node LP returned " << to_string(lp.status)
+          << " (subtree dropped, optimality not certified)";
+      if (!lp.message.empty()) oss << ": " << lp.message;
+      if (lp.duality_gap > 0.0) {
+        oss << " [relative duality gap " << lp.duality_gap << "]";
+      }
+      warnings.push_back(oss.str());
       if (std::getenv("SOVEREIGN_DUMP_FAILING_NODE")) {
         std::ofstream out(std::getenv("SOVEREIGN_DUMP_FAILING_NODE"));
-        out << "{\n  \"problem_type\": \"LP\",\n  \"sense\": \""
-            << (node.model.sense == Sense::Maximize ? "maximize" : "minimize")
-            << "\",\n  \"variables\": [\n";
-        for (std::size_t i = 0; i < node.model.variables.size(); ++i) {
-          const auto& v = node.model.variables[i];
-          out << "    {\"name\": \"" << v.name << "\", \"type\": \"continuous\", \"lower_bound\": "
-              << v.lower_bound << ", \"upper_bound\": " << v.upper_bound << "}"
-              << (i + 1 < node.model.variables.size() ? "," : "") << "\n";
-        }
-        out << "  ],\n  \"objective\": {\"linear\": {";
-        bool first = true;
-        for (const auto& kv : node.model.objective.linear) {
-          if (!first) out << ", ";
-          out << "\"" << kv.first << "\": " << kv.second;
-          first = false;
-        }
-        out << "}},\n  \"constraints\": [\n";
-        for (std::size_t ci = 0; ci < node.model.constraints.size(); ++ci) {
-          const auto& c = node.model.constraints[ci];
-          out << "    {\"name\": \"" << c.name << "\", \"linear\": {";
-          bool f2 = true;
-          for (const auto& kv : c.linear) {
-            if (!f2) out << ", ";
-            out << "\"" << kv.first << "\": " << kv.second;
-            f2 = false;
-          }
-          const char* sense_str = c.sense == ConstraintSense::Le ? "<=" :
-                                   c.sense == ConstraintSense::Ge ? ">=" : "=";
-          out << "}, \"sense\": \"" << sense_str << "\", \"rhs\": " << c.rhs << "}"
-              << (ci + 1 < node.model.constraints.size() ? "," : "") << "\n";
-        }
-        out << "  ]\n}\n";
-        out.close();
+        if (out) out << model_to_json_string(make_lp_relaxation(node.model)) << '\n';
       }
       continue;
     }
@@ -489,17 +531,39 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
                           (node.depth == 0 || options_.cut_frequency <= 1 ||
                            (node.depth % options_.cut_frequency) == 0);
     if (cut_here) {
+      // Any incumbent we already have is a proven-feasible integer point, so it
+      // is exactly the evidence the validity gate needs.
+      std::vector<std::unordered_map<std::string, double>> reference_points;
+      if (has_incumbent) {
+        reference_points.push_back(incumbent_x);
+      }
       const int rounds = (node.depth == 0) ? options_.max_cut_rounds : 1;
+      int cuts_added_here = 0;
       for (int round = 0; round < rounds; ++round) {
-        const int added =
-            apply_cuts(node.model, lp.primal, options_.integer_tol, options_.max_cuts_per_node);
+        std::vector<std::string> rejections;
+        const int added = apply_cuts(node.model, lp.primal, options_.integer_tol,
+                                     options_.max_cuts_per_node, reference_points,
+                                     &rejections);
+        for (const auto& r : rejections) cut_rejections.push_back(r);
         if (added == 0) break;
-        warnings.push_back("Added " + std::to_string(added) + " cuts at depth " +
-                           std::to_string(node.depth) + " round " + std::to_string(round));
+        cuts_added_here += added;
         lp = solve_node_lp(node.model, lp_opt);
         lp_iterations += lp.iterations;
-        if (lp.status != SolverStatus::Optimal && lp.status != SolverStatus::Feasible) break;
+        if (lp.status != SolverStatus::Optimal && lp.status != SolverStatus::Feasible) {
+          std::ostringstream oss;
+          oss << "Cut loop stopped at depth " << node.depth << " round " << round
+              << ": node LP became " << to_string(lp.status);
+          if (!lp.message.empty()) oss << " (" << lp.message << ")";
+          cut_rejections.push_back(oss.str());
+          break;
+        }
         if (!lp.has_objective_value) break;
+      }
+      if (cuts_added_here > 0) {
+        std::ostringstream oss;
+        oss << "Added " << cuts_added_here << " validated cut"
+            << (cuts_added_here == 1 ? "" : "s") << " at depth " << node.depth;
+        warnings.push_back(oss.str());
       }
     }
 
@@ -608,24 +672,33 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
     if (found_finite_bound) {
       result.optimality_gap = std::max(0.0, relative_gap(sense, best_bound, incumbent));
     }
-    if (!empty_queue() && nodes >= options_.max_nodes) {
+    if (hit_node_limit) {
+      // message was already set at the point we broke out of the loop.
       result.status = SolverStatus::Feasible;
-      result.message = "Integer feasible solution found (node limit).";
     } else if (any_node_lp_error) {
       // A subtree LP failed; we cannot certify optimality even though the
-      // remaining tree was exhausted.
+      // remaining tree was exhausted. Say which subtrees and why.
       result.status = SolverStatus::Feasible;
-      result.message =
-          "Integer feasible solution found, but one or more node LPs failed "
-          "(optimality not certified).";
+      std::ostringstream oss;
+      oss << "Integer feasible solution found, but the search is INCOMPLETE: one or more "
+          << "node LPs failed, so their subtrees were dropped without being explored or "
+          << "proved infeasible. Optimality is NOT certified. See warnings for the "
+          << "per-node reason.";
+      result.message = oss.str();
     } else if (result.optimality_gap <= options_.mip_gap || empty_queue()) {
       result.status = SolverStatus::Optimal;
-      result.message =
-          "Optimal integer solution found by branch-and-cut (strong/pseudo branching).";
+      std::ostringstream oss;
+      oss << "Optimal integer solution found by branch-and-cut. ";
+      oss << "Tree exhausted with no dropped subtrees, so the bound is proven.";
+      result.message = oss.str();
       result.optimality_gap = 0.0;
     } else {
       result.status = SolverStatus::Feasible;
-      result.message = "Integer feasible solution found.";
+      std::ostringstream oss;
+      oss << "Integer feasible solution found, but the relative gap " << result.optimality_gap
+          << " still exceeds the requested mip_gap " << options_.mip_gap
+          << ". Nodes remain open, so this is not proven optimal.";
+      result.message = oss.str();
     }
     result.has_objective_value = true;
     result.objective_value = incumbent;
@@ -634,23 +707,46 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
     // No incumbent AND some subtree was dropped due to LP failure: we must
     // not claim INFEASIBLE, since the failure may have hidden the only
     // feasible region.
-    result.status = SolverStatus::Error;
+    result.status = SolverStatus::NumericalError;
     result.message =
-        "MILP search inconclusive: no incumbent found and one or more node "
-        "LPs failed, so infeasibility cannot be certified.";
+        "MILP search INCONCLUSIVE: no integer-feasible point was found, and one or more "
+        "node LPs failed, so their subtrees were never explored. Infeasibility cannot be "
+        "certified and no answer is available. See warnings for the per-node reason.";
+  } else if (hit_node_limit) {
+    // Set in the loop; keep whatever reason we recorded there.
   } else if (result.message.empty()) {
     result.status = SolverStatus::Infeasible;
-    result.message = "MILP is infeasible.";
+    result.message =
+        "MILP is infeasible: the node queue emptied with every node proved infeasible or "
+        "pruned by bound, and no node LP failed.";
   }
 
   std::ostringstream oss;
   oss << "nodes=" << nodes << " lp_iters=" << lp_iterations << " branch_rule="
       << (options_.branch_rule == BranchRule::StrongBranching
-              ? "strong"
-              : (options_.branch_rule == BranchRule::PseudoCost ? "pseudocost"
+              ? "strong"              : (options_.branch_rule == BranchRule::PseudoCost ? "pseudocost"
                                                                 : "most_fractional"))
       << " parallel_strong_lp=" << (parallel_strong ? "on" : "off");
   result.warnings.push_back(oss.str());
+
+  // Rejected cuts are never silent. A generator that emits invalid cuts is a
+  // correctness problem, so the count goes into the summary and the individual
+  // reasons follow (bounded, so a pathological generator cannot exhaust memory).
+  if (!cut_rejections.empty()) {
+    std::ostringstream cut_oss;
+    cut_oss << "cut_validity_gate rejections=" << cut_rejections.size();
+    result.warnings.push_back(cut_oss.str());
+    const std::size_t kMaxReported = 20;
+    for (std::size_t i = 0; i < cut_rejections.size() && i < kMaxReported; ++i) {
+      result.warnings.push_back("cut_rejected: " + cut_rejections[i]);
+    }
+    if (cut_rejections.size() > kMaxReported) {
+      result.warnings.push_back("cut_rejected: ... " +
+                                std::to_string(cut_rejections.size() - kMaxReported) +
+                                " further rejections suppressed");
+    }
+  }
+
   return result;
 }
 

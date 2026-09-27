@@ -543,6 +543,20 @@ bool perform_pivot(SimplexState& st, int enter, int leave_pos,
 
 enum class PhaseStatus { Optimal, Unbounded, Singular, IterationLimit };
 
+// A phase that stops early is not an answer. Each terminal reason maps to the
+// status the caller actually sees, so "we ran out of iterations" is never
+// reported as a generic ERROR (which reads like a bug) nor as OPTIMAL.
+SolverStatus status_for(PhaseStatus ps) {
+  switch (ps) {
+    case PhaseStatus::Singular:
+      return SolverStatus::NumericalError;
+    case PhaseStatus::IterationLimit:
+      return SolverStatus::IterationLimit;
+    default:
+      return SolverStatus::Error;
+  }
+}
+
 PhaseStatus run_phase(SimplexState& st, const std::vector<double>& c,
                       int max_iterations, bool allow_artificials, std::string* detail) {
   // Sticky Bland is LOCAL to this phase/call — a fresh stack bool, never stored
@@ -645,7 +659,7 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
     }
     result.status = SolverStatus::Optimal;
     result.has_objective_value = true;
-    double obj = 0.0;
+    double obj = original.objective.constant;
     for (int i = 0; i < lp.n_structural; ++i) {
       const double x = lp.shift[static_cast<std::size_t>(i)];
       result.primal[lp.names[static_cast<std::size_t>(i)]] = x;
@@ -728,19 +742,23 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
         run_phase(st, c1, opt.max_iterations, true, &detail);
     result.iterations = st.iterations;
     if (ps == PhaseStatus::IterationLimit) {
-      result.status = SolverStatus::Error;
-      result.message = detail;
+      result.status = SolverStatus::IterationLimit;
+      result.message = "Phase I hit the iteration limit (" +
+                       std::to_string(opt.max_iterations) +
+                       " iterations) without finding a feasible basis. " + detail;
       return result;
     }
     if (ps == PhaseStatus::Singular) {
-      result.status = SolverStatus::Error;
-      result.message = detail;
+      result.status = SolverStatus::NumericalError;
+      result.message = "Phase I basis became numerically singular. " + detail;
       return result;
     }
     if (ps == PhaseStatus::Unbounded) {
       // Phase I should not be unbounded for artificial min >= 0
-      result.status = SolverStatus::Error;
-      result.message = "Phase I reported unbounded (numerical issue).";
+      result.status = SolverStatus::NumericalError;
+      result.message =
+          "Phase I reported unbounded, which is impossible for a minimize-artificial "
+          "Phase I objective. The basis is numerically corrupt, not the model.";
       return result;
     }
     double phase1_obj = 0.0;
@@ -797,9 +815,16 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
 
   const PhaseStatus ps2 = run_phase(st, c2, opt.max_iterations, false, &detail);
   result.iterations = st.iterations;
-  if (ps2 == PhaseStatus::Singular || ps2 == PhaseStatus::IterationLimit) {
-    result.status = SolverStatus::Error;
-    result.message = detail.empty() ? "Phase II failed." : detail;
+  if (ps2 == PhaseStatus::Singular) {
+    result.status = SolverStatus::NumericalError;
+    result.message = "Phase II basis became numerically singular. " + detail;
+    return result;
+  }
+  if (ps2 == PhaseStatus::IterationLimit) {
+    result.status = SolverStatus::IterationLimit;
+    result.message = "Phase II hit the iteration limit (" +
+                     std::to_string(opt.max_iterations) +
+                     " iterations) before reaching optimality. No proven solution.";
     return result;
   }
   if (ps2 == PhaseStatus::Unbounded) {
@@ -830,7 +855,105 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
         clamp_nonnegative(st.xB[static_cast<std::size_t>(i)], opt.feasibility_tol);
   }
 
-  double obj = 0.0;
+  // ---------------------------------------------------------------------
+  // Optimality certificate.
+  //
+  // run_phase() returned Optimal because no nonbasic column had a reduced cost
+  // below -optimality_tol, but that was measured on the *perturbed* right-hand
+  // side and against the eta chain. We have since refactorized and re-solved
+  // against the true b, so the basis is not literally the one that was proven.
+  // Claiming OPTIMAL without re-checking means a basis that silently lost dual
+  // feasibility still gets reported as a proof. Measure it.
+  //
+  // Primal:   ||b - Ax||_inf / (1 + ||b||_inf)
+  // Dual:     worst reduced cost over nonbasic columns (must be >= -tol)
+  // Gap:      |c'x - b'y| / (1 + |c'x|), with y from the true dual B^{-T} c_B
+  // ---------------------------------------------------------------------
+  double residual = 0.0;
+  {
+    std::vector<double> Ax;
+    lp.A.multiply(x, Ax);
+    double bnorm = 1.0;
+    for (int i = 0; i < lp.m; ++i) bnorm = std::max(bnorm, std::abs(lp.b[static_cast<std::size_t>(i)]));
+    for (int i = 0; i < lp.m; ++i) {
+      residual = std::max(residual, std::abs(lp.b[static_cast<std::size_t>(i)] - Ax[static_cast<std::size_t>(i)]));
+    }
+    residual /= bnorm;
+  }
+  result.primal_residual = residual;
+
+  std::vector<double> cB(static_cast<std::size_t>(lp.m), 0.0);
+  for (int i = 0; i < lp.m; ++i) {
+    cB[static_cast<std::size_t>(i)] = lp.c[static_cast<std::size_t>(st.basis[static_cast<std::size_t>(i)])];
+  }
+  std::vector<double> y = cB;
+  if (!btran(st, y)) {
+    result.status = SolverStatus::NumericalError;
+    result.message =
+        "Could not recompute the dual vector from the final basis; optimality cannot be "
+        "certified. The basis factorization is numerically unreliable.";
+    return result;
+  }
+
+  double worst_rc = 0.0;
+  for (int j : st.nonbasic) {
+    if (is_artificial(lp.names[static_cast<std::size_t>(j)])) continue;
+    double aj_pi = 0.0;
+    for (int p = lp.A.col_ptr[static_cast<std::size_t>(j)];
+         p < lp.A.col_ptr[static_cast<std::size_t>(j) + 1]; ++p) {
+      aj_pi += lp.A.values[static_cast<std::size_t>(p)] *
+               y[static_cast<std::size_t>(lp.A.row_idx[static_cast<std::size_t>(p)])];
+    }
+    worst_rc = std::min(worst_rc, lp.c[static_cast<std::size_t>(j)] - aj_pi);
+  }
+  result.dual_residual = std::max(0.0, -worst_rc);
+
+  double cxs = 0.0;
+  for (int j = 0; j < lp.n; ++j) {
+    cxs += lp.c[static_cast<std::size_t>(j)] * x[static_cast<std::size_t>(j)];
+  }
+  double bys = 0.0;
+  for (int i = 0; i < lp.m; ++i) {
+    bys += lp.b[static_cast<std::size_t>(i)] * y[static_cast<std::size_t>(i)];
+  }
+  result.duality_gap = std::abs(cxs - bys) / (1.0 + std::abs(cxs));
+
+  const bool primal_ok = residual <= opt.feasibility_tol;
+  const bool dual_ok = -worst_rc <= opt.optimality_tol;
+  const bool gap_ok = result.duality_gap <= std::max(opt.optimality_tol, 1e-9);
+
+  if (!primal_ok || !dual_ok || !gap_ok) {
+    std::ostringstream oss;
+    oss << "Revised simplex finished iterating but the final basis does not certify "
+        << "optimality. Relative primal residual = " << residual
+        << " (tol " << opt.feasibility_tol << "); most negative reduced cost = " << worst_rc
+        << " (tol -" << opt.optimality_tol << "); relative duality gap = "
+        << result.duality_gap << " (tol " << opt.optimality_tol << "). ";
+    if (!primal_ok) {
+      oss << "Primal infeasible, so the point is not even usable. ";
+    } else if (!dual_ok) {
+      oss << "Primal feasible but the basis is dual infeasible, so this is a vertex "
+             "that may be improvable; optimality is NOT proven. ";
+    } else {
+      oss << "Primal and dual feasible but the duality gap is still open. ";
+    }
+    oss << "Downgrading to NUMERICAL_ERROR rather than reporting OPTIMAL.";
+
+    result.status = SolverStatus::NumericalError;
+    result.message = oss.str();
+    // Still publish the primal so a caller can inspect it, but flag that the
+    // objective is unverified. has_objective_value stays false so nothing
+    // downstream can treat the number as an answer.
+    for (int j = 0; j < lp.n_structural; ++j) {
+      const double y_scaled = x[static_cast<std::size_t>(j)];
+      const double yv = lp.col_scale[static_cast<std::size_t>(j)] * y_scaled;
+      result.primal[lp.names[static_cast<std::size_t>(j)]] =
+          lp.shift[static_cast<std::size_t>(j)] + yv;
+    }
+    return result;
+  }
+
+  double obj = original.objective.constant;
   for (int j = 0; j < lp.n_structural; ++j) {
     const double y_scaled = x[static_cast<std::size_t>(j)];
     const double y = lp.col_scale[static_cast<std::size_t>(j)] * y_scaled;

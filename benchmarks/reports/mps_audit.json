@@ -1,0 +1,122 @@
+[
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\b-ball.mps",
+    "rows": 30,
+    "columns": 100,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\binkar10_1.mps",
+    "rows": 1026,
+    "columns": 2298,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\blend2.mps",
+    "rows": 274,
+    "columns": 353,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\flugpl.mps",
+    "rows": 18,
+    "columns": 18,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\gen-ip002.mps",
+    "rows": 24,
+    "columns": 41,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\gen-ip016.mps",
+    "rows": 24,
+    "columns": 28,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\gen-ip021.mps",
+    "rows": 28,
+    "columns": 35,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\gen-ip036.mps",
+    "rows": 46,
+    "columns": 29,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\gen-ip054.mps",
+    "rows": 27,
+    "columns": 30,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\gt2.mps",
+    "rows": 29,
+    "columns": 188,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\khb05250.mps",
+    "rows": 101,
+    "columns": 1350,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\markshare_4_0.mps",
+    "rows": 4,
+    "columns": 34,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\markshare_5_0.mps",
+    "rows": 5,
+    "columns": 45,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\mod010.mps",
+    "rows": 146,
+    "columns": 2655,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\neos5.mps",
+    "rows": 63,
+    "columns": 63,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\p0201.mps",
+    "rows": 133,
+    "columns": 201,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\pk1.mps",
+    "rows": 45,
+    "columns": 86,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\r50x360.mps",
+    "rows": 410,
+    "columns": 720,
+    "result": "PASS; matches independent JSON"
+  },
+  {
+    "file": "benchmarks\\datasets\\miplib\\official\\rentacar.mps",
+    "rows": 6805,
+    "columns": 9557,
+    "result": "PASS; reference omits two range upper bounds and empty tautologies (independently checked)"
+  },
+  {
+    "file": "benchmarks\\datasets\\netlib\\afiro.mps",
+    "rows": 27,
+    "columns": 32,
+    "result": "PASS; matches independent JSON"
+  }
+]

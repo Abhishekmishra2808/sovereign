@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -318,7 +319,7 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
     // Unconstrained: same logic as simplex path
     result.status = SolverStatus::Optimal;
     result.has_objective_value = true;
-    double obj = 0.0;
+    double obj = original.objective.constant;
     for (int i = 0; i < lp.n_structural; ++i) {
       const double x = lp.shift[static_cast<std::size_t>(i)];
       result.primal[lp.names[static_cast<std::size_t>(i)]] = x;
@@ -377,17 +378,34 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
     const double mu = dot(x, s) / static_cast<double>(n);
     const double p_res = max_abs(rp) / bnorm;
     const double d_res = max_abs(rd) / cnorm;
-    const double gap = mu / (1.0 + std::abs(dot(lp.c, x)));
+
+    // The duality gap is the *sum* of complementarity products, x's, NOT their
+    // average mu = x's/n.
+    //
+    // Derivation for min c'x s.t. Ax = b, x >= 0 with dual A'y + s = c, s >= 0:
+    //   c'x - b'y = c'x - (Ax)'y = x'(c - A'y) = x'(rd + s) = x'rd + x's
+    // so once the dual residual rd is small, c'x - b'y and x's agree. Dividing
+    // by n makes the termination test n times too lenient: on a wide sparse LP
+    // (say n = 10200 transport variables) x's/n collapses below the tolerance
+    // while the real gap is still ~1e-4 relative, and the solver reports
+    // OPTIMAL on a measurably suboptimal point. That is exactly what happened
+    // on transport_50x50 (504.604 vs 504.600) and transport_100x100
+    // (1009.0399 vs 1009.0000).
+    const double complementarity = dot(x, s);
+    const double gap = std::abs(complementarity) / (1.0 + std::abs(dot(lp.c, x)));
 
     if (p_res < opt.feasibility_tol && d_res < opt.feasibility_tol &&
         gap < opt.optimality_tol) {
       result.status = SolverStatus::Optimal;
       result.iterations = it + 1;
       result.has_objective_value = true;
+      result.duality_gap = gap;
+      result.primal_residual = p_res;
+      result.dual_residual = d_res;
       result.message = "Optimal solution found by primal-dual interior-point (Mehrotra).";
 
       // Map structural solution back
-      double obj = 0.0;
+      double obj = original.objective.constant;
       for (int j = 0; j < lp.n_structural; ++j) {
         const double yj =
             lp.col_scale[static_cast<std::size_t>(j)] * x[static_cast<std::size_t>(j)];
@@ -408,8 +426,11 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
     }
     std::vector<double> dx_aff, dy_aff, ds_aff;
     if (!solve_newton(lp, x, s, rp, rd, rxs, dx_aff, dy_aff, ds_aff)) {
-      result.status = SolverStatus::Error;
-      result.message = "IPM Newton factorization failed (affine).";
+      result.status = SolverStatus::NumericalError;
+      result.message =
+          "IPM Newton normal-equations factorization is singular on the affine predictor "
+          "(the basis is numerically dependent). The iterate is not trustworthy, so falling "
+          "back to the simplex path is the correct response.";
       result.iterations = it;
       return result;
     }
@@ -434,8 +455,11 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
     }
     std::vector<double> dx, dy, ds;
     if (!solve_newton(lp, x, s, rp, rd, rxs, dx, dy, ds)) {
-      result.status = SolverStatus::Error;
-      result.message = "IPM Newton factorization failed (corrector).";
+      result.status = SolverStatus::NumericalError;
+      result.message =
+          "IPM Newton normal-equations factorization is singular on the corrector "
+          "(the basis is numerically dependent). The iterate is not trustworthy, so "
+          "falling back to the simplex path is the correct response.";
       result.iterations = it;
       return result;
     }
@@ -458,8 +482,37 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
     result.iterations = it + 1;
   }
 
-  result.status = SolverStatus::Error;
-  result.message = "IPM iteration limit reached without convergence.";
+  // Iteration budget exhausted. Report the actual residuals so the caller can
+  // see *why* it stopped, and deliberately do NOT attach the last iterate: it
+  // is an interior point that has not met the gap test, so its objective is not
+  // a valid answer. Returning it with has_objective_value=true is how a
+  // suboptimal number escapes as if it were proven.
+  {
+    std::vector<double> Ax;
+    lp.A.multiply(x, Ax);
+    std::vector<double> rp = lp.b;
+    for (int i = 0; i < m; ++i) rp[static_cast<std::size_t>(i)] -= Ax[static_cast<std::size_t>(i)];
+    std::vector<double> Aty = matvec_At(lp.A, y);
+    std::vector<double> rd = lp.c;
+    for (int j = 0; j < n; ++j) {
+      rd[static_cast<std::size_t>(j)] -=
+          Aty[static_cast<std::size_t>(j)] + s[static_cast<std::size_t>(j)];
+    }
+    const double complementarity = dot(x, s);
+    const double gap = std::abs(complementarity) / (1.0 + std::abs(dot(lp.c, x)));
+
+    result.status = SolverStatus::IterationLimit;
+    result.duality_gap = gap;
+    result.primal_residual = max_abs(rp) / bnorm;
+    result.dual_residual = max_abs(rd) / cnorm;
+    std::ostringstream oss;
+    oss << "IPM did not converge in " << opt.max_iterations
+        << " iterations. Relative duality gap = " << gap
+        << " (tolerance " << opt.optimality_tol << "), primal residual = "
+        << result.primal_residual << ", dual residual = " << result.dual_residual
+        << ". No solution returned; the caller should fall back to the simplex path.";
+    result.message = oss.str();
+  }
   return result;
 }
 

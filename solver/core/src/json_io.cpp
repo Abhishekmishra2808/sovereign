@@ -30,6 +30,7 @@ OptimizationModel parse_model(const json& j) {
 
   if (j.contains("objective")) {
     const auto& oj = j.at("objective");
+    model.objective.constant = oj.value("constant", 0.0);
     if (oj.contains("linear")) {
       for (auto it = oj.at("linear").begin(); it != oj.at("linear").end(); ++it) {
         model.objective.linear[it.key()] = it.value().get<double>();
@@ -79,6 +80,7 @@ json model_to_json(const OptimizationModel& model) {
   }
   j["objective"] = json::object();
   j["objective"]["linear"] = model.objective.linear;
+  j["objective"]["constant"] = model.objective.constant;
   if (!model.objective.quadratic.empty()) {
     j["objective"]["quadratic"] = model.objective.quadratic;
   }
@@ -123,6 +125,12 @@ std::string result_to_json_string(const SolverResult& result) {
   }
   j["primal"] = result.primal;
   j["optimality_gap"] = result.optimality_gap;
+  // Certificates. A reader (or the dashboard) can now check the claim instead of
+  // having to take the status string on faith.
+  j["duality_gap"] = result.duality_gap;
+  j["primal_residual"] = result.primal_residual;
+  j["dual_residual"] = result.dual_residual;
+  j["optimality_proven"] = is_conclusive(result.status);
   j["iterations"] = result.iterations;
   j["nodes"] = result.nodes;
   j["runtime_seconds"] = result.runtime_seconds;

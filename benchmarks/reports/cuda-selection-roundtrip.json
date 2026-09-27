@@ -1,0 +1,387 @@
+{
+  "engine": "D:\\sih119\\sovereign\\build-gpu-real\\solver\\Release\\sovereign.exe",
+  "capabilities": {
+    "hostname": "GMG",
+    "platform": "Windows",
+    "cpu_threads": 16,
+    "cuda_available": true,
+    "gpu_name": "NVIDIA GeForce RTX 5050 Laptop GPU",
+    "engine_version": "1.1.0"
+  },
+  "entries": [
+    {
+      "case": "automatic_lp",
+      "model_sha256": "fc9ff51f66c84ad9aabaded81b7c2807bacfd935d3247bba8171faa2d9aec7e7",
+      "requested_device": "auto",
+      "assigned_device": "cpu",
+      "job": {
+        "id": "9e7dc3eccc287aef1b869d18",
+        "name": "automatic_lp",
+        "state": "COMPLETED",
+        "created": 1790500034.0476537,
+        "updated": 1790500034.1869051,
+        "worker_id": "04d7e4aed146b5830ff57ade",
+        "attempts": 1,
+        "message": null,
+        "device": "auto",
+        "target": null,
+        "routing": {
+          "preferred_device": "cpu",
+          "reason": "CPU selected by default: measured whole-solver CUDA runs have not shown a speedup for the tested workloads. Select CUDA explicitly to compare.",
+          "shape": {
+            "columns": 2,
+            "rows": 2,
+            "nonzeros": 3,
+            "integer_variables": 0,
+            "problem_type": "LP",
+            "estimated": false
+          },
+          "policy": "cpu-baseline-v2",
+          "execution_device": "cpu"
+        },
+        "algorithm": "auto",
+        "result": {
+          "dual_residual": 2.1301479099141338e-13,
+          "duality_gap": 1.8968021707680755e-11,
+          "gpu_operations": 0,
+          "gpu_used": false,
+          "iterations": 6,
+          "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+          "nodes": 0,
+          "objective_value": 29.999999999698563,
+          "optimality_gap": 0.0,
+          "optimality_proven": true,
+          "primal": {
+            "x": 9.999999999758899,
+            "y": 2.1093329147128608e-10
+          },
+          "primal_residual": 9.485745522397337e-14,
+          "requested_device": "cpu",
+          "runtime_seconds": 0.0532606,
+          "status": "OPTIMAL",
+          "warnings": [
+            "Presolve: fixed=0 subst=0 dropped_cons=1 bound_tights=0 passes=2"
+          ],
+          "verification": {
+            "is_valid": true,
+            "issues": [],
+            "max_bound_violation": 0.0,
+            "max_constraint_violation": 0.0,
+            "max_integrality_violation": 0.0,
+            "message": "Solution verified.",
+            "recomputed_objective": 29.999999999698563
+          },
+          "configuration": {
+            "modelFormat": "json",
+            "device": "auto",
+            "workerId": null,
+            "algorithm": "auto",
+            "qpAlgorithm": "auto",
+            "milpMethod": "branch_and_cut",
+            "branchRule": "strong",
+            "presolve": true,
+            "parallelBranching": false,
+            "maxNodes": 100000,
+            "timeLimitSeconds": 300,
+            "routing": {
+              "preferred_device": "cpu",
+              "reason": "CPU selected by default: measured whole-solver CUDA runs have not shown a speedup for the tested workloads. Select CUDA explicitly to compare.",
+              "shape": {
+                "columns": 2,
+                "rows": 2,
+                "nonzeros": 3,
+                "integer_variables": 0,
+                "problem_type": "LP",
+                "estimated": false
+              },
+              "policy": "cpu-baseline-v2",
+              "execution_device": "cpu"
+            },
+            "executionDevice": "cpu",
+            "effectivePresolve": true
+          }
+        }
+      }
+    },
+    {
+      "case": "ordinary_lp",
+      "model_sha256": "fc9ff51f66c84ad9aabaded81b7c2807bacfd935d3247bba8171faa2d9aec7e7",
+      "requested_device": "cuda",
+      "assigned_device": "cuda",
+      "job": {
+        "id": "8573cf076913b4f9e3c243df",
+        "name": "ordinary_lp",
+        "state": "COMPLETED",
+        "created": 1790500034.1989217,
+        "updated": 1790500034.609688,
+        "worker_id": "04d7e4aed146b5830ff57ade",
+        "attempts": 1,
+        "message": null,
+        "device": "cuda",
+        "target": null,
+        "routing": {
+          "preferred_device": "cuda",
+          "reason": "CUDA selected manually.",
+          "shape": {
+            "columns": 2,
+            "rows": 2,
+            "nonzeros": 3,
+            "integer_variables": 0,
+            "problem_type": "LP",
+            "estimated": false
+          },
+          "policy": "cpu-baseline-v2",
+          "execution_device": "cuda"
+        },
+        "algorithm": "auto",
+        "result": {
+          "dual_residual": 2.1301479099141338e-13,
+          "duality_gap": 1.8968021707680755e-11,
+          "gpu_operations": 17,
+          "gpu_used": true,
+          "iterations": 6,
+          "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+          "nodes": 0,
+          "objective_value": 29.999999999698563,
+          "optimality_gap": 0.0,
+          "optimality_proven": true,
+          "primal": {
+            "x": 9.999999999758899,
+            "y": 2.1093329147128608e-10
+          },
+          "primal_residual": 9.485745522397337e-14,
+          "requested_device": "cuda",
+          "runtime_seconds": 0.2359401,
+          "status": "OPTIMAL",
+          "warnings": [
+            "Presolve: fixed=0 subst=0 dropped_cons=1 bound_tights=0 passes=2"
+          ],
+          "verification": {
+            "is_valid": true,
+            "issues": [],
+            "max_bound_violation": 0.0,
+            "max_constraint_violation": 0.0,
+            "max_integrality_violation": 0.0,
+            "message": "Solution verified.",
+            "recomputed_objective": 29.999999999698563
+          },
+          "configuration": {
+            "modelFormat": "json",
+            "device": "cuda",
+            "workerId": null,
+            "algorithm": "auto",
+            "qpAlgorithm": "auto",
+            "milpMethod": "branch_and_cut",
+            "branchRule": "strong",
+            "presolve": true,
+            "parallelBranching": false,
+            "maxNodes": 100000,
+            "timeLimitSeconds": 300,
+            "routing": {
+              "preferred_device": "cuda",
+              "reason": "CUDA selected manually.",
+              "shape": {
+                "columns": 2,
+                "rows": 2,
+                "nonzeros": 3,
+                "integer_variables": 0,
+                "problem_type": "LP",
+                "estimated": false
+              },
+              "policy": "cpu-baseline-v2",
+              "execution_device": "cuda"
+            },
+            "executionDevice": "cuda",
+            "effectivePresolve": true
+          }
+        }
+      }
+    },
+    {
+      "case": "presolve_fixed_lp",
+      "model_sha256": "d43817be262df838cea19ce395b70d52731a5680e9899e7f591b3b478dfbcfba",
+      "requested_device": "cuda",
+      "assigned_device": "cuda",
+      "job": {
+        "id": "0631fdd5697a727aa4dec250",
+        "name": "presolve_fixed_lp",
+        "state": "COMPLETED",
+        "created": 1790500034.620731,
+        "updated": 1790500034.9106584,
+        "worker_id": "04d7e4aed146b5830ff57ade",
+        "attempts": 1,
+        "message": null,
+        "device": "cuda",
+        "target": null,
+        "routing": {
+          "preferred_device": "cuda",
+          "reason": "CUDA selected manually.",
+          "shape": {
+            "columns": 1,
+            "rows": 1,
+            "nonzeros": 1,
+            "integer_variables": 0,
+            "problem_type": "LP",
+            "estimated": false
+          },
+          "policy": "cpu-baseline-v2",
+          "execution_device": "cuda"
+        },
+        "algorithm": "auto",
+        "result": {
+          "dual_residual": 9.999999999994996e-13,
+          "duality_gap": 4.0000000001202545e-12,
+          "gpu_operations": 14,
+          "gpu_used": true,
+          "iterations": 5,
+          "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+          "nodes": 0,
+          "objective_value": 1.000000000001,
+          "optimality_gap": 0.0,
+          "optimality_proven": true,
+          "primal": {
+            "x": 1.000000000001
+          },
+          "primal_residual": 2.000000000082918e-12,
+          "requested_device": "cuda",
+          "runtime_seconds": 0.0820434,
+          "status": "OPTIMAL",
+          "warnings": [
+            "CUDA request reran without presolve because the first solve used zero GPU kernels."
+          ],
+          "verification": {
+            "is_valid": true,
+            "issues": [],
+            "max_bound_violation": 1.000088900582341e-12,
+            "max_constraint_violation": 0.0,
+            "max_integrality_violation": 0.0,
+            "message": "Solution verified.",
+            "recomputed_objective": 1.000000000001
+          },
+          "configuration": {
+            "modelFormat": "json",
+            "device": "cuda",
+            "workerId": null,
+            "algorithm": "auto",
+            "qpAlgorithm": "auto",
+            "milpMethod": "branch_and_cut",
+            "branchRule": "strong",
+            "presolve": true,
+            "parallelBranching": false,
+            "maxNodes": 100000,
+            "timeLimitSeconds": 300,
+            "routing": {
+              "preferred_device": "cuda",
+              "reason": "CUDA selected manually.",
+              "shape": {
+                "columns": 1,
+                "rows": 1,
+                "nonzeros": 1,
+                "integer_variables": 0,
+                "problem_type": "LP",
+                "estimated": false
+              },
+              "policy": "cpu-baseline-v2",
+              "execution_device": "cuda"
+            },
+            "executionDevice": "cuda",
+            "effectivePresolve": false
+          }
+        }
+      }
+    },
+    {
+      "case": "unconstrained_lp",
+      "model_sha256": "99f1d3eef0eb89bc6a6f042f8165b6922484fdd3b5294d0a4371c7a2cd7e3e85",
+      "requested_device": "cuda",
+      "assigned_device": "cuda",
+      "job": {
+        "id": "3db23252d15a42c677f04322",
+        "name": "unconstrained_lp",
+        "state": "FAILED",
+        "created": 1790500034.919684,
+        "updated": 1790500035.0738337,
+        "worker_id": "04d7e4aed146b5830ff57ade",
+        "attempts": 1,
+        "message": "CUDA was selected, but the worker reported 0 GPU operations (assigned=cuda, executable=cuda). The job was not accepted as GPU execution. Check the CUDA-enabled worker and choose an IPM model with constraints.",
+        "device": "cuda",
+        "target": null,
+        "routing": {
+          "preferred_device": "cuda",
+          "reason": "CUDA selected manually.",
+          "shape": {
+            "columns": 1,
+            "rows": 0,
+            "nonzeros": 0,
+            "integer_variables": 0,
+            "problem_type": "LP",
+            "estimated": false
+          },
+          "policy": "cpu-baseline-v2",
+          "execution_device": "cuda"
+        },
+        "algorithm": "auto",
+        "result": {
+          "dual_residual": 0.0,
+          "duality_gap": 0.0,
+          "gpu_operations": 0,
+          "gpu_used": false,
+          "iterations": 0,
+          "message": "Optimal (presolve fixed all variables).",
+          "nodes": 0,
+          "objective_value": 0.0,
+          "optimality_gap": 0.0,
+          "optimality_proven": true,
+          "primal": {
+            "x": 0.0
+          },
+          "primal_residual": 0.0,
+          "requested_device": "cuda",
+          "runtime_seconds": 2.92e-05,
+          "status": "OPTIMAL",
+          "warnings": [
+            "Presolve fixed all variables."
+          ],
+          "verification": {
+            "is_valid": true,
+            "issues": [],
+            "max_bound_violation": 0.0,
+            "max_constraint_violation": 0.0,
+            "max_integrality_violation": 0.0,
+            "message": "Solution verified.",
+            "recomputed_objective": 0.0
+          },
+          "configuration": {
+            "modelFormat": "json",
+            "device": "cuda",
+            "workerId": null,
+            "algorithm": "auto",
+            "qpAlgorithm": "auto",
+            "milpMethod": "branch_and_cut",
+            "branchRule": "strong",
+            "presolve": true,
+            "parallelBranching": false,
+            "maxNodes": 100000,
+            "timeLimitSeconds": 300,
+            "routing": {
+              "preferred_device": "cuda",
+              "reason": "CUDA selected manually.",
+              "shape": {
+                "columns": 1,
+                "rows": 0,
+                "nonzeros": 0,
+                "integer_variables": 0,
+                "problem_type": "LP",
+                "estimated": false
+              },
+              "policy": "cpu-baseline-v2",
+              "execution_device": "cuda"
+            },
+            "executionDevice": "cuda",
+            "effectivePresolve": true
+          }
+        }
+      }
+    }
+  ]
+}

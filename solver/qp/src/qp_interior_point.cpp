@@ -427,7 +427,7 @@ SolverResult solve_qp_ipm(const IpmQp& lp, const QpInteriorPointOptions& opt,
           "Optimal convex QP found by Mehrotra predictor-corrector IPM "
           "(Hessian in KKT (1,1) block).";
 
-      double obj = 0.0;
+      double obj = original.objective.constant;
       for (int j = 0; j < lp.n_structural; ++j) {
         const double yj = x[static_cast<std::size_t>(j)];
         const double xv = lp.shift[static_cast<std::size_t>(j)] + yj;

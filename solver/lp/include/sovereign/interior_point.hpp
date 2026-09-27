@@ -5,9 +5,14 @@
 namespace sovereign {
 
 struct InteriorPointOptions {
-  int max_iterations = 100;
-  double feasibility_tol = 1e-8;
-  double optimality_tol = 1e-8;
+  // Budget is sized for the *correct* termination test. The previous test
+  // divided the complementarity sum by n, which made it n times too lenient and
+  // let the loop exit early on wide sparse models; with the real relative
+  // duality gap the method legitimately needs more iterations, so the default
+  // is raised accordingly.
+  int max_iterations = 250;
+  double feasibility_tol = 1e-9;
+  double optimality_tol = 1e-9;
   double fraction_to_boundary = 0.999;
   bool enable_scaling = true;
 };

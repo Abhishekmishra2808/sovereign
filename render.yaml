@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: sovereign-workspace
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /api/health
+    numInstances: 1
+    envVars:
+      - key: SOVEREIGN_ADMIN_TOKEN
+        generateValue: true
+      - key: SOVEREIGN_DB
+        value: /var/data/workspace.db
+    disk:
+      name: sovereign-data
+      mountPath: /var/data
+      sizeGB: 1

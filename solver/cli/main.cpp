@@ -1,6 +1,10 @@
 #include "sovereign/engine.hpp"
 #include "sovereign/json_io.hpp"
+#include "sovereign/mps_io.hpp"
 #include "sovereign/verifier.hpp"
+#include "sovereign/gpu_spmv.hpp"
+#include <nlohmann/json.hpp>
+#include <cstdlib>
 
 #include <fstream>
 #include <iostream>
@@ -10,7 +14,7 @@ namespace {
 
 void print_usage() {
   std::cerr << "Usage:\n"
-            << "  sovereign solve <model.json> [--verify] [--out <result.json>]\n"
+            << "  sovereign solve <model.json|model.mps> [--verify] [--out <result.json>]\n"
             << "  sovereign version\n";
 }
 
@@ -43,10 +47,26 @@ int cmd_solve(int argc, char** argv) {
   }
 
   try {
-    const auto model = sovereign::load_model_from_json_file(model_path);
+    const char* requested = std::getenv("SOVEREIGN_DEVICE");
+    const std::string device = requested ? requested : "cpu";
+    if (device == "cuda" && !sovereign::gpu_available()) {
+      throw std::runtime_error("CUDA requested but unavailable. Build with SOVEREIGN_USE_CUDA=ON and check the NVIDIA driver.");
+    }
+    sovereign::reset_gpu_operations();
+    // Dispatch on the file extension so .mps and .json both work. Reading an
+    // MPS file through the JSON reader produced a raw nlohmann parse exception,
+    // which told the user nothing about what was actually wrong.
+    const auto model = sovereign::load_model_from_file(model_path);
     sovereign::OptimizationEngine engine;
-    const auto result = engine.solve(model);
-    const std::string result_json = sovereign::result_to_json_string(result);
+    sovereign::EngineOptions options;
+    const char* presolve = std::getenv("SOVEREIGN_PRESOLVE");
+    options.presolve = !presolve || std::string(presolve) != "0";
+    const auto result = engine.solve(model, options);
+    auto payload = nlohmann::json::parse(sovereign::result_to_json_string(result));
+    payload["requested_device"] = device;
+    payload["gpu_operations"] = sovereign::gpu_operations();
+    payload["gpu_used"] = sovereign::gpu_operations() > 0;
+    const std::string result_json = payload.dump(2);
     std::cout << result_json << "\n";
 
     if (!out_path.empty()) {
@@ -81,8 +101,19 @@ int main(int argc, char** argv) {
   }
 
   const std::string cmd = argv[1];
+  if (cmd == "capabilities") {
+    std::cout << nlohmann::json{{"version", "1.1.0"},
+      {"cuda_available", sovereign::gpu_available()}, {"gpu_acceleration", "sparse-matrix-vector"}}.dump() << "\n";
+    return 0;
+  }
   if (cmd == "version") {
     return cmd_version();
+  }
+  if (cmd == "convert" && argc == 3) {
+    try {
+      std::cout << sovereign::model_to_json_string(sovereign::load_model_from_file(argv[2])) << "\n";
+      return 0;
+    } catch (const std::exception& e) { std::cerr << e.what() << "\n"; return 1; }
   }
   if (cmd == "solve") {
     return cmd_solve(argc, argv);

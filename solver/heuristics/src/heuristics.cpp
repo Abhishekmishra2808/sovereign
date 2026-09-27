@@ -14,7 +14,7 @@ bool is_int_type(VariableType t) {
 
 double eval_obj(const OptimizationModel& m,
                 const std::unordered_map<std::string, double>& x) {
-  double obj = 0.0;
+  double obj = m.objective.constant;
   for (const auto& kv : m.objective.linear) {
     auto it = x.find(kv.first);
     if (it != x.end()) obj += kv.second * it->second;

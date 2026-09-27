@@ -32,6 +32,22 @@ from mps_to_json import parse_mps  # noqa: E402
 
 INF = 1e30
 
+# Comparison tolerances.
+#
+# LP: our simplex terminates on an exact basis condition and our interior point
+#     on a 1e-9 relative duality gap, so agreement with a reference solver
+#     should be at that order. 1e-7 leaves headroom for accumulated rounding
+#     across a sparse factorization without becoming so loose that real bugs
+#     slip through. The previous default of 1e-3 was ~4 orders of magnitude
+#     looser and reported "match" for a genuine 4e-5 error.
+LP_RTOL, LP_ATOL = 1e-7, 1e-9
+# QP: QP objectives carry more conditioning error than LP, hence one decade looser.
+QP_RTOL, QP_ATOL = 1e-6, 1e-8
+# MILP: a different-but-valid optimal basis can differ by more, and many
+#       instances are only ever solved to a gap. Explicit, and labelled as such
+#       wherever it is used.
+MILP_RTOL, MILP_ATOL = 1e-4, 1e-6
+
 
 def find_sovereign() -> str:
     for p in [
@@ -243,7 +259,29 @@ def run_highs_on_mps(mps_path: Path, timeout: float = 120.0) -> Optional[Dict[st
     }
 
 
-def obj_close(a: Any, b: Any, rtol: float = 1e-3, atol: float = 1e-2) -> Optional[bool]:
+def obj_close(
+    a: Any,
+    b: Any,
+    rtol: float = LP_RTOL,
+    atol: float = LP_ATOL,
+) -> Optional[bool]:
+    """Compare two objective values.
+
+    The previous default was rtol=1e-3, which is roughly three orders of
+    magnitude looser than any real solver's optimality tolerance. On
+    transport_50x50 that reported "match" for 504.604 against a true 504.600 --
+    a 4e-5 relative error -- and hid a genuine interior-point bug behind a green
+    column in EVIDENCE.md.
+
+    The defaults here are derived from the engine's own declared tolerances
+    (feasibility/optimality 1e-9): an LP solved to 1e-9 relative duality gap
+    should agree with a reference to roughly the same order. Anything looser is
+    a choice, and a loose choice must be passed explicitly and labelled, not
+    inherited silently.
+
+    MILP objectives legitimately differ by more than this, so callers comparing
+    across integer classes should pass MILP_RTOL/MILP_ATOL and say so.
+    """
     if a is None or b is None:
         return None
     try:
@@ -253,6 +291,24 @@ def obj_close(a: Any, b: Any, rtol: float = 1e-3, atol: float = 1e-2) -> Optiona
     if math.isnan(fa) or math.isnan(fb):
         return None
     return abs(fa - fb) <= atol + rtol * max(abs(fa), abs(fb), 1.0)
+
+
+def relative_error(a: Any, b: Any) -> Optional[float]:
+    """Signed relative objective error, reported alongside the boolean verdict.
+
+    Printing only "yes"/"no" hides magnitude. When a comparison is marginal the
+    number is the interesting part, so the evidence pack records both.
+    """
+    if a is None or b is None:
+        return None
+    try:
+        fa, fb = float(a), float(b)
+    except (TypeError, ValueError):
+        return None
+    if math.isnan(fa) or math.isnan(fb):
+        return None
+    scale = max(abs(fa), abs(fb), 1.0)
+    return (fa - fb) / scale
 
 
 def suite_paths(suite: str) -> List[Tuple[str, Path]]:

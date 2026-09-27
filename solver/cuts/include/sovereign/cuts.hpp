@@ -19,10 +19,26 @@ std::vector<Cut> generate_cover_cuts(const OptimizationModel& milp,
                                      double int_tol = 1e-6,
                                      int max_cuts = 8);
 
-// Mixed-integer rounding style cut from a single row with a fractional integer var.
+// Chvatal-Gomory style rounding cut from a single row with a fractional integer var.
+// Rows that cannot be rounded soundly (a column that may go negative while its
+// coefficient is fractional) are skipped rather than emitted invalidly.
 std::vector<Cut> generate_mir_cuts(const OptimizationModel& milp,
                                    const std::unordered_map<std::string, double>& x,
                                    double int_tol = 1e-6,
                                    int max_cuts = 8);
+
+// Independent safety net for ANY cut, including ones added by hand.
+//
+// A cut is only valid if it does not remove a point we already know is
+// integer-feasible. `reference_points` is every such point the search has
+// accumulated (incumbents, heuristic successes). Generators can be wrong; this
+// check is written independently of them, so a generator bug degrades into
+// "cut rejected" rather than "invalid MILP answer".
+//
+// Returns the rejection reason, or an empty string if the cut is accepted.
+std::string check_cut_validity(
+    const OptimizationModel& milp, const Constraint& cut,
+    const std::vector<std::unordered_map<std::string, double>>& reference_points,
+    double tol = 1e-6);
 
 }  // namespace sovereign

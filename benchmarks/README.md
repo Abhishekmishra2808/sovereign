@@ -14,6 +14,12 @@ Outputs:
 - `benchmarks/reports/latest.csv`
 - `benchmarks/reports/EVIDENCE.md`
 
+The selected SIH corpus is locked by `reports/corpus-manifest.json` (input
+hashes, dimensions, source/origin and measured HiGHS references). Run
+`python benchmarks/runners/build_corpus_manifest.py --check` before comparing
+results. License metadata is explicitly still unrecorded; a measured reference
+status is not a proof of optimum when the reference timed out.
+
 ## Suites
 
 | Suite | Contents |
@@ -34,6 +40,13 @@ python benchmarks/runners/run_miplib_official.py
 
 That writes `reports/miplib_official.json` (LP-relax matches vs HiGHS; full MILP
 timeouts reported honestly). Evidence §2b distinguishes official vs synthetic.
+
+## Paired GPU timing
+
+Run `python benchmarks/runners/run_gpu_paired.py --trials 5 --warmups 1` on a
+CUDA machine. It writes `reports/gpu-paired.json` and compressed full responses
+in `reports/gpu-paired-responses.jsonl.gz`. The current measurements and
+limitations are in `reports/gpu-paired.md`.
 
 ## Tools
 

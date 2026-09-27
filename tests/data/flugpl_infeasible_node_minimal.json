@@ -1,0 +1,43 @@
+{
+  "problem_type": "LP",
+  "sense": "minimize",
+  "variables": [
+    {
+      "name": "STM5",
+      "type": "continuous",
+      "lower_bound": 67,
+      "upper_bound": 75
+    },
+    {
+      "name": "ANM5",
+      "type": "continuous",
+      "lower_bound": 11,
+      "upper_bound": 18
+    },
+    {
+      "name": "STM6",
+      "type": "continuous",
+      "lower_bound": 71,
+      "upper_bound": 71
+    }
+  ],
+  "objective": {
+    "linear": {
+      "ANM5": 1500,
+      "STM5": 2700,
+      "STM6": 2700
+    }
+  },
+  "constraints": [
+    {
+      "name": "ANZ6",
+      "linear": {
+        "ANM5": 1,
+        "STM5": 0.9,
+        "STM6": -1
+      },
+      "sense": "=",
+      "rhs": 0
+    }
+  ]
+}

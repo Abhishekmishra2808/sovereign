@@ -1,0 +1,2482 @@
+{
+  "generated_at": "2026-09-26T23:10:47.560145+00:00",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "cpu_threads": 16,
+  "gpu": "NVIDIA GeForce RTX 5050 Laptop GPU",
+  "engine": {
+    "cuda_available": false,
+    "gpu_acceleration": "sparse-matrix-vector",
+    "version": "1.1.0"
+  },
+  "time_limit_seconds": 3,
+  "note": "Measured through a local HTTP coordinator and outbound worker using the same protocol as Render. All runs in this report use CPU. No live Render deployment or GPU speedup is claimed.",
+  "rows": [
+    {
+      "dataset": "afiro",
+      "suite": "Netlib LP",
+      "source": "https://netlib.org/lp/data/",
+      "sha256": "0dc541059d4c9e59087c32f3ea597b75ee4ebc7c20a076b719583635753f41bd",
+      "shape": {
+        "columns": 32,
+        "rows": 27,
+        "nonzeros": 83,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": true
+      },
+      "profile": "Revised simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "f7fb2ebc306525ba03e928e6",
+      "status": "OPTIMAL",
+      "objective": -464.75314285714285,
+      "runtime_seconds": 0.0006518,
+      "turnaround_seconds": 3.1089934000046924,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -464.75314285714285,
+        "runtime_seconds": 0.017746099969372153,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 8.526512829121202e-14,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -464.75314285714285
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 32,
+          "rows": 27,
+          "nonzeros": 83,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "afiro",
+      "suite": "Netlib LP",
+      "source": "https://netlib.org/lp/data/",
+      "sha256": "0dc541059d4c9e59087c32f3ea597b75ee4ebc7c20a076b719583635753f41bd",
+      "shape": {
+        "columns": 32,
+        "rows": 27,
+        "nonzeros": 83,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": true
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "0ba8ce1869b48cbdd4ddb693",
+      "status": "OPTIMAL",
+      "objective": -464.7531428511401,
+      "runtime_seconds": 0.0003066,
+      "turnaround_seconds": 0.19553859997540712,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -464.75314285714285,
+        "runtime_seconds": 0.017746099969372153,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 1.701470941983601e-12,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -464.7531428511401
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 32,
+          "rows": 27,
+          "nonzeros": 83,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "flugpl",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_flugpl.html",
+      "sha256": "2cc1c052e8e7aeae0a8146cb64c57963c70d3e1f900fc5d7f153986bef283468",
+      "shape": {
+        "columns": 18,
+        "rows": 18,
+        "nonzeros": 46,
+        "integer_variables": 11,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & cut / strong",
+      "configuration": {
+        "algorithm": "simplex",
+        "branchRule": "strong"
+      },
+      "job_id": "329ea34c35c5316519172828",
+      "status": "NUMERICAL_ERROR",
+      "objective": null,
+      "runtime_seconds": 0.0007739,
+      "turnaround_seconds": 2.7298340999986976,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 1201500.0,
+        "runtime_seconds": 0.12265639996621758,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Solver result did not pass verification.",
+      "verification": {
+        "is_valid": false,
+        "issues": [
+          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
+        ],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Verification skipped for non-feasible status.",
+        "recomputed_objective": 0.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 18,
+          "rows": 18,
+          "nonzeros": 46,
+          "integer_variables": 11,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "flugpl",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_flugpl.html",
+      "sha256": "2cc1c052e8e7aeae0a8146cb64c57963c70d3e1f900fc5d7f153986bef283468",
+      "shape": {
+        "columns": 18,
+        "rows": 18,
+        "nonzeros": 46,
+        "integer_variables": 11,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & bound / fractional",
+      "configuration": {
+        "algorithm": "simplex",
+        "milpMethod": "branch_and_bound",
+        "branchRule": "most_fractional"
+      },
+      "job_id": "99bb05e8b604e416ac769355",
+      "status": "NUMERICAL_ERROR",
+      "objective": null,
+      "runtime_seconds": 0.0004798,
+      "turnaround_seconds": 3.146226899989415,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 1201500.0,
+        "runtime_seconds": 0.12265639996621758,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Solver result did not pass verification.",
+      "verification": {
+        "is_valid": false,
+        "issues": [
+          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
+        ],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Verification skipped for non-feasible status.",
+        "recomputed_objective": 0.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 18,
+          "rows": 18,
+          "nonzeros": 46,
+          "integer_variables": 11,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "flugpl",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_flugpl.html",
+      "sha256": "2cc1c052e8e7aeae0a8146cb64c57963c70d3e1f900fc5d7f153986bef283468",
+      "shape": {
+        "columns": 18,
+        "rows": 18,
+        "nonzeros": 46,
+        "integer_variables": 11,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & cut / pseudocost",
+      "configuration": {
+        "algorithm": "ipm",
+        "branchRule": "pseudocost"
+      },
+      "job_id": "37c3957091befa46fa894849",
+      "status": "TIME_LIMIT",
+      "objective": null,
+      "runtime_seconds": 3,
+      "turnaround_seconds": 6.029095500009134,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 1201500.0,
+        "runtime_seconds": 0.12265639996621758,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Time limit reached (3 seconds).",
+      "verification": null,
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 18,
+          "rows": 18,
+          "nonzeros": 46,
+          "integer_variables": 11,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "gt2",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_gt2.html",
+      "sha256": "e4ce723153bf4e2bcac95236c209334c346c10b95284e3a5bfb7ce7e3fcceecc",
+      "shape": {
+        "columns": 188,
+        "rows": 29,
+        "nonzeros": 376,
+        "integer_variables": 188,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & cut / strong",
+      "configuration": {
+        "algorithm": "simplex",
+        "branchRule": "strong"
+      },
+      "job_id": "3d5056e3cdf8218f0f77e74c",
+      "status": "TIME_LIMIT",
+      "objective": null,
+      "runtime_seconds": 3,
+      "turnaround_seconds": 5.015281400003005,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 21166.0,
+        "runtime_seconds": 0.1169886999996379,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Time limit reached (3 seconds).",
+      "verification": null,
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 188,
+          "rows": 29,
+          "nonzeros": 376,
+          "integer_variables": 188,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "gt2",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_gt2.html",
+      "sha256": "e4ce723153bf4e2bcac95236c209334c346c10b95284e3a5bfb7ce7e3fcceecc",
+      "shape": {
+        "columns": 188,
+        "rows": 29,
+        "nonzeros": 376,
+        "integer_variables": 188,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & bound / fractional",
+      "configuration": {
+        "algorithm": "simplex",
+        "milpMethod": "branch_and_bound",
+        "branchRule": "most_fractional"
+      },
+      "job_id": "2a3534b33fc70e91e63ef3f5",
+      "status": "TIME_LIMIT",
+      "objective": null,
+      "runtime_seconds": 3,
+      "turnaround_seconds": 6.2040263999952,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 21166.0,
+        "runtime_seconds": 0.1169886999996379,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Time limit reached (3 seconds).",
+      "verification": null,
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 188,
+          "rows": 29,
+          "nonzeros": 376,
+          "integer_variables": 188,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "gt2",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_gt2.html",
+      "sha256": "e4ce723153bf4e2bcac95236c209334c346c10b95284e3a5bfb7ce7e3fcceecc",
+      "shape": {
+        "columns": 188,
+        "rows": 29,
+        "nonzeros": 376,
+        "integer_variables": 188,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & cut / pseudocost",
+      "configuration": {
+        "algorithm": "ipm",
+        "branchRule": "pseudocost"
+      },
+      "job_id": "0130c80a08e3b710c378fedf",
+      "status": "TIME_LIMIT",
+      "objective": null,
+      "runtime_seconds": 3,
+      "turnaround_seconds": 6.178138200019021,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 21166.0,
+        "runtime_seconds": 0.1169886999996379,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Time limit reached (3 seconds).",
+      "verification": null,
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 188,
+          "rows": 29,
+          "nonzeros": 376,
+          "integer_variables": 188,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "b-ball",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_b-ball.html",
+      "sha256": "830233a1edda6de7b01a4ba4a5023af667463dbf47255ffeb28051859086264a",
+      "shape": {
+        "columns": 100,
+        "rows": 30,
+        "nonzeros": 209,
+        "integer_variables": 88,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & cut / strong",
+      "configuration": {
+        "algorithm": "simplex",
+        "branchRule": "strong"
+      },
+      "job_id": "d75bfebdb84473f4dec87670",
+      "status": "TIME_LIMIT",
+      "objective": null,
+      "runtime_seconds": 3,
+      "turnaround_seconds": 5.474575600004755,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -1.500001,
+        "runtime_seconds": 0.24602620000950992,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Time limit reached (3 seconds).",
+      "verification": null,
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 100,
+          "rows": 30,
+          "nonzeros": 209,
+          "integer_variables": 88,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "b-ball",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_b-ball.html",
+      "sha256": "830233a1edda6de7b01a4ba4a5023af667463dbf47255ffeb28051859086264a",
+      "shape": {
+        "columns": 100,
+        "rows": 30,
+        "nonzeros": 209,
+        "integer_variables": 88,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & bound / fractional",
+      "configuration": {
+        "algorithm": "simplex",
+        "milpMethod": "branch_and_bound",
+        "branchRule": "most_fractional"
+      },
+      "job_id": "8c2820a7eb82986c45083e2c",
+      "status": "TIME_LIMIT",
+      "objective": null,
+      "runtime_seconds": 3,
+      "turnaround_seconds": 6.168657500005793,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -1.500001,
+        "runtime_seconds": 0.24602620000950992,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Time limit reached (3 seconds).",
+      "verification": null,
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 100,
+          "rows": 30,
+          "nonzeros": 209,
+          "integer_variables": 88,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "b-ball",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_b-ball.html",
+      "sha256": "830233a1edda6de7b01a4ba4a5023af667463dbf47255ffeb28051859086264a",
+      "shape": {
+        "columns": 100,
+        "rows": 30,
+        "nonzeros": 209,
+        "integer_variables": 88,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & cut / pseudocost",
+      "configuration": {
+        "algorithm": "ipm",
+        "branchRule": "pseudocost"
+      },
+      "job_id": "31cc6c391b168cbd9fb22a91",
+      "status": "TIME_LIMIT",
+      "objective": null,
+      "runtime_seconds": 3,
+      "turnaround_seconds": 6.1816869000322185,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -1.500001,
+        "runtime_seconds": 0.24602620000950992,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Time limit reached (3 seconds).",
+      "verification": null,
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 100,
+          "rows": 30,
+          "nonzeros": 209,
+          "integer_variables": 88,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "pk1",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_pk1.html",
+      "sha256": "439c3bb58b76d817b963a2fe779931c885f303512223a215977557f3713665ad",
+      "shape": {
+        "columns": 86,
+        "rows": 45,
+        "nonzeros": 915,
+        "integer_variables": 55,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & cut / strong",
+      "configuration": {
+        "algorithm": "simplex",
+        "branchRule": "strong"
+      },
+      "job_id": "9f29315ae6b21a9bb9b19b18",
+      "status": "NUMERICAL_ERROR",
+      "objective": null,
+      "runtime_seconds": 1.6348338,
+      "turnaround_seconds": 4.494620200013742,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "TIME_LIMIT_REACHED",
+        "objective": 18.0,
+        "runtime_seconds": 3.0021411000052467,
+        "mip_gap": 1.0,
+        "version": "1.15.1"
+      },
+      "message": "Solver result did not pass verification.",
+      "verification": {
+        "is_valid": false,
+        "issues": [
+          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
+        ],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Verification skipped for non-feasible status.",
+        "recomputed_objective": 0.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 86,
+          "rows": 45,
+          "nonzeros": 915,
+          "integer_variables": 55,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "pk1",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_pk1.html",
+      "sha256": "439c3bb58b76d817b963a2fe779931c885f303512223a215977557f3713665ad",
+      "shape": {
+        "columns": 86,
+        "rows": 45,
+        "nonzeros": 915,
+        "integer_variables": 55,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & bound / fractional",
+      "configuration": {
+        "algorithm": "simplex",
+        "milpMethod": "branch_and_bound",
+        "branchRule": "most_fractional"
+      },
+      "job_id": "42ee858a70001b5d53d07802",
+      "status": "NUMERICAL_ERROR",
+      "objective": null,
+      "runtime_seconds": 1.8540029,
+      "turnaround_seconds": 4.95703729998786,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "TIME_LIMIT_REACHED",
+        "objective": 18.0,
+        "runtime_seconds": 3.0021411000052467,
+        "mip_gap": 1.0,
+        "version": "1.15.1"
+      },
+      "message": "Solver result did not pass verification.",
+      "verification": {
+        "is_valid": false,
+        "issues": [
+          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
+        ],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Verification skipped for non-feasible status.",
+        "recomputed_objective": 0.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 86,
+          "rows": 45,
+          "nonzeros": 915,
+          "integer_variables": 55,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "pk1",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_pk1.html",
+      "sha256": "439c3bb58b76d817b963a2fe779931c885f303512223a215977557f3713665ad",
+      "shape": {
+        "columns": 86,
+        "rows": 45,
+        "nonzeros": 915,
+        "integer_variables": 55,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & cut / pseudocost",
+      "configuration": {
+        "algorithm": "ipm",
+        "branchRule": "pseudocost"
+      },
+      "job_id": "05cd407f7a3cb80901ddb80f",
+      "status": "TIME_LIMIT",
+      "objective": null,
+      "runtime_seconds": 3,
+      "turnaround_seconds": 6.009432399994694,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "TIME_LIMIT_REACHED",
+        "objective": 18.0,
+        "runtime_seconds": 3.0021411000052467,
+        "mip_gap": 1.0,
+        "version": "1.15.1"
+      },
+      "message": "Time limit reached (3 seconds).",
+      "verification": null,
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 86,
+          "rows": 45,
+          "nonzeros": 915,
+          "integer_variables": 55,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "gen-ip016",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_gen-ip016.html",
+      "sha256": "ef4c1352e88333b701065dc279b9d27f71cf0c5d89ae6e5b57d9504aa83f6eba",
+      "shape": {
+        "columns": 28,
+        "rows": 24,
+        "nonzeros": 672,
+        "integer_variables": 28,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & cut / strong",
+      "configuration": {
+        "algorithm": "simplex",
+        "branchRule": "strong"
+      },
+      "job_id": "8d5aadcb170fd2385f0ab81b",
+      "status": "NUMERICAL_ERROR",
+      "objective": null,
+      "runtime_seconds": 0.0007404,
+      "turnaround_seconds": 2.9959702999913134,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "TIME_LIMIT_REACHED",
+        "objective": -9405.178445272,
+        "runtime_seconds": 3.0036459999973886,
+        "mip_gap": 0.010635657043455699,
+        "version": "1.15.1"
+      },
+      "message": "Solver result did not pass verification.",
+      "verification": {
+        "is_valid": false,
+        "issues": [
+          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
+        ],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Verification skipped for non-feasible status.",
+        "recomputed_objective": 0.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 28,
+          "rows": 24,
+          "nonzeros": 672,
+          "integer_variables": 28,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "gen-ip016",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_gen-ip016.html",
+      "sha256": "ef4c1352e88333b701065dc279b9d27f71cf0c5d89ae6e5b57d9504aa83f6eba",
+      "shape": {
+        "columns": 28,
+        "rows": 24,
+        "nonzeros": 672,
+        "integer_variables": 28,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & bound / fractional",
+      "configuration": {
+        "algorithm": "simplex",
+        "milpMethod": "branch_and_bound",
+        "branchRule": "most_fractional"
+      },
+      "job_id": "de6b45c735ba7ac9a5024067",
+      "status": "NUMERICAL_ERROR",
+      "objective": null,
+      "runtime_seconds": 0.0006319,
+      "turnaround_seconds": 2.964936600008514,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "TIME_LIMIT_REACHED",
+        "objective": -9405.178445272,
+        "runtime_seconds": 3.0036459999973886,
+        "mip_gap": 0.010635657043455699,
+        "version": "1.15.1"
+      },
+      "message": "Solver result did not pass verification.",
+      "verification": {
+        "is_valid": false,
+        "issues": [
+          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
+        ],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Verification skipped for non-feasible status.",
+        "recomputed_objective": 0.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 28,
+          "rows": 24,
+          "nonzeros": 672,
+          "integer_variables": 28,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "gen-ip016",
+      "suite": "MIPLIB official",
+      "source": "https://miplib.zib.de/instance_details_gen-ip016.html",
+      "sha256": "ef4c1352e88333b701065dc279b9d27f71cf0c5d89ae6e5b57d9504aa83f6eba",
+      "shape": {
+        "columns": 28,
+        "rows": 24,
+        "nonzeros": 672,
+        "integer_variables": 28,
+        "problem_type": "MILP",
+        "estimated": true
+      },
+      "profile": "Branch & cut / pseudocost",
+      "configuration": {
+        "algorithm": "ipm",
+        "branchRule": "pseudocost"
+      },
+      "job_id": "c05ecaa6752dc4dc328094ff",
+      "status": "TIME_LIMIT",
+      "objective": null,
+      "runtime_seconds": 3,
+      "turnaround_seconds": 6.241761299956124,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "TIME_LIMIT_REACHED",
+        "objective": -9405.178445272,
+        "runtime_seconds": 3.0036459999973886,
+        "mip_gap": 0.010635657043455699,
+        "version": "1.15.1"
+      },
+      "message": "Time limit reached (3 seconds).",
+      "verification": null,
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 28,
+          "rows": 24,
+          "nonzeros": 672,
+          "integer_variables": 28,
+          "problem_type": "MILP",
+          "estimated": true
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "kuhn_degeneracy",
+      "suite": "Synthetic robustness",
+      "source": "Repository fixture",
+      "sha256": "97b487044dcd7a6447d893dd3b60610800bd8878f672033c59d6a109855a7808",
+      "shape": {
+        "columns": 4,
+        "rows": 3,
+        "nonzeros": 12,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Revised simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "f1098f0d58fc675013d2f227",
+      "status": "OPTIMAL",
+      "objective": -1.2500000000000002,
+      "runtime_seconds": 9.96e-05,
+      "turnaround_seconds": 2.906151300005149,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -1.25,
+        "runtime_seconds": 0.0007810000097379088,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 1.1102230246251565e-16,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -1.2500000000000002
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 4,
+          "rows": 3,
+          "nonzeros": 12,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "kuhn_degeneracy",
+      "suite": "Synthetic robustness",
+      "source": "Repository fixture",
+      "sha256": "97b487044dcd7a6447d893dd3b60610800bd8878f672033c59d6a109855a7808",
+      "shape": {
+        "columns": 4,
+        "rows": 3,
+        "nonzeros": 12,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "111dad006e42af5557d0d254",
+      "status": "OPTIMAL",
+      "objective": -1.2499999999982918,
+      "runtime_seconds": 0.0001367,
+      "turnaround_seconds": 3.0999861999880522,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -1.25,
+        "runtime_seconds": 0.0007810000097379088,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -1.2499999999982918
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 4,
+          "rows": 3,
+          "nonzeros": 12,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "illconditioned",
+      "suite": "Synthetic robustness",
+      "source": "Repository fixture",
+      "sha256": "28c1f82a4952b287fc1693492b72ebe8233757dcadcd98002c6fc92c4196f3c9",
+      "shape": {
+        "columns": 2,
+        "rows": 2,
+        "nonzeros": 4,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Revised simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "a6bb3595507537b97e16bc6d",
+      "status": "OPTIMAL",
+      "objective": 30000000.0,
+      "runtime_seconds": 9.63e-05,
+      "turnaround_seconds": 2.7513958000345156,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 30000000.0,
+        "runtime_seconds": 0.0006418999982997775,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 30000000.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2,
+          "rows": 2,
+          "nonzeros": 4,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "illconditioned",
+      "suite": "Synthetic robustness",
+      "source": "Repository fixture",
+      "sha256": "28c1f82a4952b287fc1693492b72ebe8233757dcadcd98002c6fc92c4196f3c9",
+      "shape": {
+        "columns": 2,
+        "rows": 2,
+        "nonzeros": 4,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "c54d18c882e3e69f97b9cf7f",
+      "status": "OPTIMAL",
+      "objective": 29999999.99967302,
+      "runtime_seconds": 0.000149,
+      "turnaround_seconds": 3.1492709000012837,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 30000000.0,
+        "runtime_seconds": 0.0006418999982997775,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 29999999.99967302
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2,
+          "rows": 2,
+          "nonzeros": 4,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "weak_lp_relaxation",
+      "suite": "Synthetic robustness",
+      "source": "Repository fixture",
+      "sha256": "0653ebcee3fe888c4b5de16e8e8fb11df8d762b8ec44fef92fc400212f200dc9",
+      "shape": {
+        "columns": 2,
+        "rows": 1,
+        "nonzeros": 2,
+        "integer_variables": 2,
+        "problem_type": "MILP",
+        "estimated": false
+      },
+      "profile": "Branch & cut / strong",
+      "configuration": {
+        "algorithm": "simplex",
+        "branchRule": "strong"
+      },
+      "job_id": "122776affb23ccb4311f82eb",
+      "status": "OPTIMAL",
+      "objective": 100.0,
+      "runtime_seconds": 0.0004627,
+      "turnaround_seconds": 2.7623929000110365,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 100.0,
+        "runtime_seconds": 0.0008971000206656754,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 100.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2,
+          "rows": 1,
+          "nonzeros": 2,
+          "integer_variables": 2,
+          "problem_type": "MILP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "weak_lp_relaxation",
+      "suite": "Synthetic robustness",
+      "source": "Repository fixture",
+      "sha256": "0653ebcee3fe888c4b5de16e8e8fb11df8d762b8ec44fef92fc400212f200dc9",
+      "shape": {
+        "columns": 2,
+        "rows": 1,
+        "nonzeros": 2,
+        "integer_variables": 2,
+        "problem_type": "MILP",
+        "estimated": false
+      },
+      "profile": "Branch & bound / fractional",
+      "configuration": {
+        "algorithm": "simplex",
+        "milpMethod": "branch_and_bound",
+        "branchRule": "most_fractional"
+      },
+      "job_id": "9700248d1b39ed092a998e4b",
+      "status": "OPTIMAL",
+      "objective": 100.0,
+      "runtime_seconds": 0.0001173,
+      "turnaround_seconds": 0.1698290000203997,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 100.0,
+        "runtime_seconds": 0.0008971000206656754,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 100.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2,
+          "rows": 1,
+          "nonzeros": 2,
+          "integer_variables": 2,
+          "problem_type": "MILP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "weak_lp_relaxation",
+      "suite": "Synthetic robustness",
+      "source": "Repository fixture",
+      "sha256": "0653ebcee3fe888c4b5de16e8e8fb11df8d762b8ec44fef92fc400212f200dc9",
+      "shape": {
+        "columns": 2,
+        "rows": 1,
+        "nonzeros": 2,
+        "integer_variables": 2,
+        "problem_type": "MILP",
+        "estimated": false
+      },
+      "profile": "Branch & cut / pseudocost",
+      "configuration": {
+        "algorithm": "ipm",
+        "branchRule": "pseudocost"
+      },
+      "job_id": "44ad67d4b6b534ad266fb460",
+      "status": "OPTIMAL",
+      "objective": 100.0,
+      "runtime_seconds": 0.0002056,
+      "turnaround_seconds": 3.1026425000163727,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 100.0,
+        "runtime_seconds": 0.0008971000206656754,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 100.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2,
+          "rows": 1,
+          "nonzeros": 2,
+          "integer_variables": 2,
+          "problem_type": "MILP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "transport_20x20",
+      "suite": "Synthetic scale",
+      "source": "Repository generator",
+      "sha256": "4bf47cbca304e43ef05cc10b430d68a541c11148f5acf01dae363610c1116606",
+      "shape": {
+        "columns": 400,
+        "rows": 40,
+        "nonzeros": 800,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Revised simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "491ce033f4afdf690298b432",
+      "status": "OPTIMAL",
+      "objective": 201.99999999999994,
+      "runtime_seconds": 0.0074187,
+      "turnaround_seconds": 2.809154399961699,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 201.99999999999994,
+        "runtime_seconds": 0.001982100016903132,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 201.99999999999994
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 400,
+          "rows": 40,
+          "nonzeros": 800,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "transport_20x20",
+      "suite": "Synthetic scale",
+      "source": "Repository generator",
+      "sha256": "4bf47cbca304e43ef05cc10b430d68a541c11148f5acf01dae363610c1116606",
+      "shape": {
+        "columns": 400,
+        "rows": 40,
+        "nonzeros": 800,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "ec2b45ce5370cfb611b311c8",
+      "status": "OPTIMAL",
+      "objective": 202.0000000008087,
+      "runtime_seconds": 0.0015816,
+      "turnaround_seconds": 3.144277499988675,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 201.99999999999994,
+        "runtime_seconds": 0.001982100016903132,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 1.5987211554602254e-14,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 202.0000000008087
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 400,
+          "rows": 40,
+          "nonzeros": 800,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "transport_50x50",
+      "suite": "Synthetic scale",
+      "source": "Repository generator",
+      "sha256": "318d116db1e83e3210c4bbff2a6ec3c282bdaa1c17d8249e08819fc11ebeb1b8",
+      "shape": {
+        "columns": 2500,
+        "rows": 100,
+        "nonzeros": 5000,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Revised simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "045679fbafafd96d0a28322c",
+      "status": "OPTIMAL",
+      "objective": 504.6000000000004,
+      "runtime_seconds": 0.9789567,
+      "turnaround_seconds": 3.8952332000480965,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 504.6000000000004,
+        "runtime_seconds": 0.009527500020340085,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 504.6000000000004
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2500,
+          "rows": 100,
+          "nonzeros": 5000,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "transport_50x50",
+      "suite": "Synthetic scale",
+      "source": "Repository generator",
+      "sha256": "318d116db1e83e3210c4bbff2a6ec3c282bdaa1c17d8249e08819fc11ebeb1b8",
+      "shape": {
+        "columns": 2500,
+        "rows": 100,
+        "nonzeros": 5000,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "e0011a4505e7f8dc52d5ba77",
+      "status": "OPTIMAL",
+      "objective": 504.60000000368524,
+      "runtime_seconds": 0.0213351,
+      "turnaround_seconds": 3.208051500027068,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 504.6000000000004,
+        "runtime_seconds": 0.009527500020340085,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 1.2434497875801753e-14,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 504.60000000368524
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2500,
+          "rows": 100,
+          "nonzeros": 5000,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "transport_100x100",
+      "suite": "Synthetic scale",
+      "source": "Repository generator",
+      "sha256": "1f797eaa21487599ef3e7ed35d09d38fddd60b027f12dd920236f590e309b84c",
+      "shape": {
+        "columns": 10000,
+        "rows": 200,
+        "nonzeros": 20000,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Revised simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "6113a331d4e0ad7390d0b8e3",
+      "status": "TIME_LIMIT",
+      "objective": null,
+      "runtime_seconds": 3,
+      "turnaround_seconds": 5.557082500017714,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 1009.0000000000015,
+        "runtime_seconds": 0.03418760001659393,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Time limit reached (3 seconds).",
+      "verification": null,
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 10000,
+          "rows": 200,
+          "nonzeros": 20000,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "transport_100x100",
+      "suite": "Synthetic scale",
+      "source": "Repository generator",
+      "sha256": "1f797eaa21487599ef3e7ed35d09d38fddd60b027f12dd920236f590e309b84c",
+      "shape": {
+        "columns": 10000,
+        "rows": 200,
+        "nonzeros": 20000,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "171b7afd6ff2bf64287a7de6",
+      "status": "OPTIMAL",
+      "objective": 1009.0000000400709,
+      "runtime_seconds": 0.3638774,
+      "turnaround_seconds": 3.8928976000170223,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 1009.0000000000015,
+        "runtime_seconds": 0.03418760001659393,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 3.552713678800501e-14,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 1009.0000000400709
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 10000,
+          "rows": 200,
+          "nonzeros": 20000,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "industrial_refinery_lp",
+      "suite": "Industrial example",
+      "source": "Repository example; not a published industrial dataset",
+      "sha256": "5d4a12049d90a246d4e8bc2eb989c7d46a68d03209a5ca79f194ae0f4759fe78",
+      "shape": {
+        "columns": 4,
+        "rows": 5,
+        "nonzeros": 10,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Revised simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "dc218c2b3d7ebcbe6a5e5f4b",
+      "status": "NUMERICAL_ERROR",
+      "objective": null,
+      "runtime_seconds": 0.0002133,
+      "turnaround_seconds": 2.847958800033666,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 675000.0,
+        "runtime_seconds": 0.0009611999848857522,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Solver result did not pass verification.",
+      "verification": {
+        "is_valid": false,
+        "issues": [
+          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
+        ],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Verification skipped for non-feasible status.",
+        "recomputed_objective": 0.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 4,
+          "rows": 5,
+          "nonzeros": 10,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "industrial_refinery_lp",
+      "suite": "Industrial example",
+      "source": "Repository example; not a published industrial dataset",
+      "sha256": "5d4a12049d90a246d4e8bc2eb989c7d46a68d03209a5ca79f194ae0f4759fe78",
+      "shape": {
+        "columns": 4,
+        "rows": 5,
+        "nonzeros": 10,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "9d6da05fe962791c6732cfff",
+      "status": "OPTIMAL",
+      "objective": 674999.999966755,
+      "runtime_seconds": 0.0001494,
+      "turnaround_seconds": 3.0363094999920577,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 675000.0,
+        "runtime_seconds": 0.0009611999848857522,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 2.546585164964199e-11,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 674999.999966755
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 4,
+          "rows": 5,
+          "nonzeros": 10,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "industrial_blending_lp",
+      "suite": "Industrial example",
+      "source": "Repository example; not a published industrial dataset",
+      "sha256": "95d6e758c4e00c0eb3547430ed00a19e4c5cc8c8e1a6653c5ddc3261d331d24f",
+      "shape": {
+        "columns": 3,
+        "rows": 3,
+        "nonzeros": 7,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Revised simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "bd2dfc82cd435d6251f1f4a8",
+      "status": "OPTIMAL",
+      "objective": 7200.000000000002,
+      "runtime_seconds": 0.0009975,
+      "turnaround_seconds": 2.8021171999862418,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 7200.0,
+        "runtime_seconds": 0.0008213000255636871,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 7200.000000000002
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 3,
+          "rows": 3,
+          "nonzeros": 7,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "industrial_blending_lp",
+      "suite": "Industrial example",
+      "source": "Repository example; not a published industrial dataset",
+      "sha256": "95d6e758c4e00c0eb3547430ed00a19e4c5cc8c8e1a6653c5ddc3261d331d24f",
+      "shape": {
+        "columns": 3,
+        "rows": 3,
+        "nonzeros": 7,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "6ea3244b8bfb55aab2b728b1",
+      "status": "OPTIMAL",
+      "objective": 7200.000000026874,
+      "runtime_seconds": 0.000133,
+      "turnaround_seconds": 0.1847210000269115,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 7200.0,
+        "runtime_seconds": 0.0008213000255636871,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 7.958078640513122e-12,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 7200.000000026874
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 3,
+          "rows": 3,
+          "nonzeros": 7,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "industrial_power_dispatch_lp",
+      "suite": "Industrial example",
+      "source": "Repository example; not a published industrial dataset",
+      "sha256": "768934792378e43cef2f46b66c6fc2d6781aafda3d3562c97b61af77ff6330fc",
+      "shape": {
+        "columns": 3,
+        "rows": 1,
+        "nonzeros": 3,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Revised simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "ac156e32cff7bddefe406f19",
+      "status": "OPTIMAL",
+      "objective": 2700.0,
+      "runtime_seconds": 0.0001486,
+      "turnaround_seconds": 2.8639651000266895,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 2700.0,
+        "runtime_seconds": 0.000522000016644597,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 2700.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 3,
+          "rows": 1,
+          "nonzeros": 3,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "industrial_power_dispatch_lp",
+      "suite": "Industrial example",
+      "source": "Repository example; not a published industrial dataset",
+      "sha256": "768934792378e43cef2f46b66c6fc2d6781aafda3d3562c97b61af77ff6330fc",
+      "shape": {
+        "columns": 3,
+        "rows": 1,
+        "nonzeros": 3,
+        "integer_variables": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "e71d94bae8cf0e30271c2cfd",
+      "status": "OPTIMAL",
+      "objective": 2700.000000099279,
+      "runtime_seconds": 0.0002021,
+      "turnaround_seconds": 3.124402099987492,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 2700.0,
+        "runtime_seconds": 0.000522000016644597,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 2700.000000099279
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 3,
+          "rows": 1,
+          "nonzeros": 3,
+          "integer_variables": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "industrial_logistics_milp",
+      "suite": "Industrial example",
+      "source": "Repository example; not a published industrial dataset",
+      "sha256": "93455b90efb5696a5d2ae9c1e731e5b1bcc3a5bded23b97a8695a07a8eae4400",
+      "shape": {
+        "columns": 6,
+        "rows": 6,
+        "nonzeros": 14,
+        "integer_variables": 2,
+        "problem_type": "MILP",
+        "estimated": false
+      },
+      "profile": "Branch & cut / strong",
+      "configuration": {
+        "algorithm": "simplex",
+        "branchRule": "strong"
+      },
+      "job_id": "c00c315f210411134e8726c2",
+      "status": "NUMERICAL_ERROR",
+      "objective": null,
+      "runtime_seconds": 0.0001597,
+      "turnaround_seconds": 2.6557292999932542,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 550.0,
+        "runtime_seconds": 0.016230700013693422,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Solver result did not pass verification.",
+      "verification": {
+        "is_valid": false,
+        "issues": [
+          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
+        ],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Verification skipped for non-feasible status.",
+        "recomputed_objective": 0.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 6,
+          "rows": 6,
+          "nonzeros": 14,
+          "integer_variables": 2,
+          "problem_type": "MILP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "industrial_logistics_milp",
+      "suite": "Industrial example",
+      "source": "Repository example; not a published industrial dataset",
+      "sha256": "93455b90efb5696a5d2ae9c1e731e5b1bcc3a5bded23b97a8695a07a8eae4400",
+      "shape": {
+        "columns": 6,
+        "rows": 6,
+        "nonzeros": 14,
+        "integer_variables": 2,
+        "problem_type": "MILP",
+        "estimated": false
+      },
+      "profile": "Branch & bound / fractional",
+      "configuration": {
+        "algorithm": "simplex",
+        "milpMethod": "branch_and_bound",
+        "branchRule": "most_fractional"
+      },
+      "job_id": "b0598b0412b83c3f5576689a",
+      "status": "NUMERICAL_ERROR",
+      "objective": null,
+      "runtime_seconds": 0.0001786,
+      "turnaround_seconds": 3.074525200005155,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 550.0,
+        "runtime_seconds": 0.016230700013693422,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Solver result did not pass verification.",
+      "verification": {
+        "is_valid": false,
+        "issues": [
+          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
+        ],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Verification skipped for non-feasible status.",
+        "recomputed_objective": 0.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 6,
+          "rows": 6,
+          "nonzeros": 14,
+          "integer_variables": 2,
+          "problem_type": "MILP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "industrial_logistics_milp",
+      "suite": "Industrial example",
+      "source": "Repository example; not a published industrial dataset",
+      "sha256": "93455b90efb5696a5d2ae9c1e731e5b1bcc3a5bded23b97a8695a07a8eae4400",
+      "shape": {
+        "columns": 6,
+        "rows": 6,
+        "nonzeros": 14,
+        "integer_variables": 2,
+        "problem_type": "MILP",
+        "estimated": false
+      },
+      "profile": "Branch & cut / pseudocost",
+      "configuration": {
+        "algorithm": "ipm",
+        "branchRule": "pseudocost"
+      },
+      "job_id": "5c8ee37511416cab4f534602",
+      "status": "FEASIBLE",
+      "objective": 550.0000000003491,
+      "runtime_seconds": 0.0016375,
+      "turnaround_seconds": 3.1330566000542603,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 550.0,
+        "runtime_seconds": 0.016230700013693422,
+        "mip_gap": 0.0,
+        "version": "1.15.1"
+      },
+      "message": "Integer feasible solution found, but the search is INCOMPLETE: one or more node LPs failed, so their subtrees were dropped without being explored or proved infeasible. Optimality is NOT certified. See warnings for the per-node reason.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 550.0000000003491
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 6,
+          "rows": 6,
+          "nonzeros": 14,
+          "integer_variables": 2,
+          "problem_type": "MILP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "sample_qp",
+      "suite": "QP example",
+      "source": "Repository example; not QPLIB",
+      "sha256": "ee322459a3233cbc33a365c8db612d6e1d187c8255357c13b511a5367e0153f8",
+      "shape": {
+        "columns": 2,
+        "rows": 1,
+        "nonzeros": 2,
+        "integer_variables": 0,
+        "problem_type": "QP",
+        "estimated": false
+      },
+      "profile": "QP interior point",
+      "configuration": {
+        "qpAlgorithm": "ipm"
+      },
+      "job_id": "256a274d9a363920af8524e8",
+      "status": "OPTIMAL",
+      "objective": -2.0,
+      "runtime_seconds": 9.87e-05,
+      "turnaround_seconds": 2.8035256000002846,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -1.999999999999995,
+        "runtime_seconds": 0.003906900004949421,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal convex QP found by Mehrotra predictor-corrector IPM (Hessian in KKT (1,1) block).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -2.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2,
+          "rows": 1,
+          "nonzeros": 2,
+          "integer_variables": 0,
+          "problem_type": "QP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "sample_qp",
+      "suite": "QP example",
+      "source": "Repository example; not QPLIB",
+      "sha256": "ee322459a3233cbc33a365c8db612d6e1d187c8255357c13b511a5367e0153f8",
+      "shape": {
+        "columns": 2,
+        "rows": 1,
+        "nonzeros": 2,
+        "integer_variables": 0,
+        "problem_type": "QP",
+        "estimated": false
+      },
+      "profile": "Frank-Wolfe",
+      "configuration": {
+        "qpAlgorithm": "frank_wolfe"
+      },
+      "job_id": "b534c4c17ca02a049b69a737",
+      "status": "OPTIMAL",
+      "objective": -2.0,
+      "runtime_seconds": 0.0004591,
+      "turnaround_seconds": 3.088596799992956,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -1.999999999999995,
+        "runtime_seconds": 0.003906900004949421,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Convex QP solved by Frank-Wolfe with LP linearization oracle (earlier approach; default QP path is Mehrotra IPM \u00e2\u20ac\u201d set SOVEREIGN_QP_ALGORITHM=frank_wolfe to force this).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -2.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2,
+          "rows": 1,
+          "nonzeros": 2,
+          "integer_variables": 0,
+          "problem_type": "QP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "qp_ge",
+      "suite": "QP example",
+      "source": "Repository example; not QPLIB",
+      "sha256": "d2541fec7a7962497721fe24e7d1ad8ade312969596733b18414f2fbd025b996",
+      "shape": {
+        "columns": 2,
+        "rows": 1,
+        "nonzeros": 2,
+        "integer_variables": 0,
+        "problem_type": "QP",
+        "estimated": false
+      },
+      "profile": "QP interior point",
+      "configuration": {
+        "qpAlgorithm": "ipm"
+      },
+      "job_id": "225b12b1bbca980c2ad90151",
+      "status": "OPTIMAL",
+      "objective": 1.9999999996220788,
+      "runtime_seconds": 9.13e-05,
+      "turnaround_seconds": 2.803704399964772,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 1.9999999999999998,
+        "runtime_seconds": 0.0010131000308319926,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal convex QP found by Mehrotra predictor-corrector IPM (Hessian in KKT (1,1) block).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 1.8896062492501642e-10,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 1.9999999996220788
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2,
+          "rows": 1,
+          "nonzeros": 2,
+          "integer_variables": 0,
+          "problem_type": "QP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "qp_ge",
+      "suite": "QP example",
+      "source": "Repository example; not QPLIB",
+      "sha256": "d2541fec7a7962497721fe24e7d1ad8ade312969596733b18414f2fbd025b996",
+      "shape": {
+        "columns": 2,
+        "rows": 1,
+        "nonzeros": 2,
+        "integer_variables": 0,
+        "problem_type": "QP",
+        "estimated": false
+      },
+      "profile": "Frank-Wolfe",
+      "configuration": {
+        "qpAlgorithm": "frank_wolfe"
+      },
+      "job_id": "8802ebed43067bdd0cc864a6",
+      "status": "OPTIMAL",
+      "objective": 2.0,
+      "runtime_seconds": 9.57e-05,
+      "turnaround_seconds": 3.092898699978832,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 1.9999999999999998,
+        "runtime_seconds": 0.0010131000308319926,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Convex QP solved by Frank-Wolfe with LP linearization oracle (earlier approach; default QP path is Mehrotra IPM \u00e2\u20ac\u201d set SOVEREIGN_QP_ALGORITHM=frank_wolfe to force this).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 2.0
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2,
+          "rows": 1,
+          "nonzeros": 2,
+          "integer_variables": 0,
+          "problem_type": "QP",
+          "estimated": false
+        },
+        "policy": "structural-v1",
+        "execution_device": "cpu"
+      }
+    }
+  ],
+  "summary": {
+    "comparisons": 43,
+    "verified_optimum_matches": 23,
+    "verified_results": 24,
+    "numerical_errors": 9,
+    "time_limits": 10
+  }
+}

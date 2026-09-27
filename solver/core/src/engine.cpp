@@ -14,7 +14,7 @@ namespace {
 
 double evaluate_objective(const OptimizationModel& model,
                           const std::unordered_map<std::string, double>& x) {
-  double obj = 0.0;
+  double obj = model.objective.constant;
   for (const auto& kv : model.objective.linear) {
     auto it = x.find(kv.first);
     if (it != x.end()) obj += kv.second * it->second;
@@ -33,7 +33,7 @@ double evaluate_objective(const OptimizationModel& model,
 
 }  // namespace
 
-SolverResult OptimizationEngine::solve(const OptimizationModel& model) const {
+SolverResult OptimizationEngine::solve(const OptimizationModel& model, const EngineOptions& options) const {
   const auto t0 = std::chrono::steady_clock::now();
 
   const std::string validation = ModelValidator::validate(model);
@@ -45,7 +45,9 @@ SolverResult OptimizationEngine::solve(const OptimizationModel& model) const {
   }
 
   Presolver presolver;
-  const PresolveResult prep = presolver.run(model);
+  PresolveResult prep;
+  if (options.presolve) prep = presolver.run(model);
+  else prep.reduced = model;
 
   SolverResult result;
   if (prep.infeasible) {
@@ -65,7 +67,7 @@ SolverResult OptimizationEngine::solve(const OptimizationModel& model) const {
   } else {
     switch (prep.reduced.problem_type) {
       case ProblemType::LP:
-        result = LpSolver().solve(prep.reduced);
+        result = LpSolver().solve(prep.reduced, options.lp_algorithm);
         break;
       case ProblemType::QP:
         result = QpSolver().solve(prep.reduced);

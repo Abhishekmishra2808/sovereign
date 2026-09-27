@@ -11,13 +11,22 @@ enum class ProblemType { LP, QP, MILP };
 enum class Sense { Minimize, Maximize };
 enum class ConstraintSense { Le, Ge, Eq };
 enum class VariableType { Continuous, Integer, Binary };
+
+// A status is a *claim about the answer*, so the distinctions matter: a node
+// limit, a time limit and a numerical breakdown all mean "we do not know", but
+// for different reasons and with different remedies. Collapsing them into
+// ERROR (as earlier revisions did) hides the reason a search stopped, which is
+// exactly the information a caller needs in order to trust or reject the run.
 enum class SolverStatus {
-  Optimal,
-  Feasible,
-  Infeasible,
-  Unbounded,
-  Error,
-  NotImplemented
+  Optimal,          // proven optimal within tolerance
+  Feasible,         // feasible point found, optimality NOT proven
+  Infeasible,       // proven infeasible
+  Unbounded,        // proven unbounded
+  TimeLimit,        // wall-clock budget exhausted
+  IterationLimit,   // iteration budget exhausted
+  NumericalError,   // factorization/residual breakdown; answer not trustworthy
+  Error,            // bad input, unsupported model, internal fault
+  NotImplemented,
 };
 
 struct Variable {
@@ -28,6 +37,7 @@ struct Variable {
 };
 
 struct Objective {
+  double constant = 0.0;
   std::unordered_map<std::string, double> linear;
   // Optional quadratic terms: name -> {other_name -> coeff}. Stored sparsely.
   std::unordered_map<std::string, std::unordered_map<std::string, double>> quadratic;
@@ -54,6 +64,15 @@ struct SolverResult {
   double objective_value = 0.0;
   std::unordered_map<std::string, double> primal;
   double optimality_gap = 0.0;
+
+  // Certificates / diagnostics. `duality_gap` is the relative duality gap
+  // |c'x - b'y| / (1 + |c'x|) and is the quantity that actually justifies an
+  // OPTIMAL claim. The residuals are the relative primal/dual inf-norms. They
+  // are reported even on failure so the caller can see how far off we were.
+  double duality_gap = 0.0;
+  double primal_residual = 0.0;
+  double dual_residual = 0.0;
+
   std::int64_t iterations = 0;
   std::int64_t nodes = 0;
   double runtime_seconds = 0.0;
@@ -76,6 +95,11 @@ std::string to_string(Sense sense);
 std::string to_string(ConstraintSense sense);
 std::string to_string(VariableType type);
 std::string to_string(SolverStatus status);
+
+// OPTIMAL / INFEASIBLE / UNBOUNDED only. Every other status means the run stopped
+// without proving anything, so an objective value attached to it is a
+// *candidate*, not an answer.
+bool is_conclusive(SolverStatus status);
 
 ProblemType problem_type_from_string(const std::string& s);
 Sense sense_from_string(const std::string& s);

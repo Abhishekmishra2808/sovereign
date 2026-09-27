@@ -1,0 +1,35 @@
+{
+  "engine": "build-cloud\\solver\\Release\\sovereign.exe",
+  "model": "benchmarks\\datasets\\miplib\\official\\flugpl.json",
+  "model_sha256": "0a576bd84eeaae4950e0d36268241abfd6da79af6c7935b4fff6107ffe1e7ad4",
+  "captured_node": "tests\\data\\flugpl_infeasible_node_lp.json",
+  "captured_node_sha256": "999ef52f6e9a21d62185afe49c82a5d4317016f600665767291c338747009be9",
+  "environment": {
+    "SOVEREIGN_BRANCH_RULE": "fractional",
+    "SOVEREIGN_ENABLE_CUTS": "0",
+    "SOVEREIGN_MAX_NODES": "100"
+  },
+  "wall_seconds": 8.101725800021086,
+  "return_code": 0,
+  "response": {
+    "dual_residual": 0.0,
+    "duality_gap": 0.0,
+    "gpu_operations": 0,
+    "gpu_used": false,
+    "iterations": 819,
+    "message": "Branch-and-bound stopped at the node limit (100 nodes explored). No integer-feasible point was found, so infeasibility cannot be certified either.",
+    "nodes": 100,
+    "objective_value": null,
+    "optimality_gap": 0.0,
+    "optimality_proven": false,
+    "primal": {},
+    "primal_residual": 0.0,
+    "requested_device": "cpu",
+    "runtime_seconds": 8.0631989,
+    "status": "ITERATION_LIMIT",
+    "warnings": [
+      "nodes=100 lp_iters=819 branch_rule=most_fractional parallel_strong_lp=on"
+    ]
+  },
+  "stderr": ""
+}

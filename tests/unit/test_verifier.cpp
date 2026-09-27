@@ -40,3 +40,20 @@ TEST(VerifierTest, AcceptsFeasiblePoint) {
   EXPECT_TRUE(vr.is_valid);
   EXPECT_NEAR(vr.recomputed_objective, 15.0, 1e-9);
 }
+
+TEST(VerifierTest, RejectsProofFreeInfeasibleAndUnboundedClaims) {
+  // This bounded, unconstrained model is feasible, so either status would be
+  // false. The verifier must not treat a solver's status string as evidence.
+  OptimizationModel model;
+  model.problem_type = ProblemType::LP;
+  model.variables.push_back(Variable{"x", VariableType::Continuous, 0.0, 1.0});
+  model.objective.linear["x"] = 1.0;
+  SolutionVerifier verifier;
+  for (SolverStatus status : {SolverStatus::Infeasible, SolverStatus::Unbounded}) {
+    SolverResult result;
+    result.status = status;
+    const VerificationResult vr = verifier.verify(model, result);
+    EXPECT_FALSE(vr.is_valid);
+    EXPECT_FALSE(vr.issues.empty());
+  }
+}

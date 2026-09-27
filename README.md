@@ -1,8 +1,9 @@
+> **Online workspace:** the website now lives in the separate sibling `sovereign-frontend/` folder. This Git repository contains the backend coordinator and solver. Deploy the two projects using [Vercel with Postgres](VERCEL_DEPLOYMENT.md) or the backend on [Render](DEPLOYMENT.md). Install the worker package on your laptop or GPU server with `python -m pip install .`; the worker connects outward over HTTPS and runs the solver locally. The hosted site needs no GPU or solver binary.
 # Sovereign AI Mathematical Optimization Platform
 
 From-scratch **LP / MILP / QP** solver with an interactive agent CLI (Claude Code / Cursor-style) and optional Azure OpenAI GPT-5.6.
 
-Docs: [`solution.md`](solution.md) · [`agent.md`](agent.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+Docs: [`solution.md`](solution.md) Â· [`agent.md`](agent.md) Â· [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 ## Interactive agent CLI
 
@@ -69,7 +70,7 @@ Headline evidence (regenerate anytime):
 python benchmarks/runners/run_evidence_pack.py
 ```
 
-Reports: [`benchmarks/reports/EVIDENCE.md`](benchmarks/reports/EVIDENCE.md) · [`benchmarks/reports/HONESTY.md`](benchmarks/reports/HONESTY.md)
+Reports: [`benchmarks/reports/EVIDENCE.md`](benchmarks/reports/EVIDENCE.md) Â· [`benchmarks/reports/HONESTY.md`](benchmarks/reports/HONESTY.md)
 
 ## LP algorithms
 
@@ -86,8 +87,8 @@ pip install highspy
 python benchmarks/runners/run_benchmarks.py --suite all --timeout 180
 ```
 
-Reports: [`benchmarks/reports/EVIDENCE.md`](benchmarks/reports/EVIDENCE.md) · [`benchmarks/reports/HONESTY.md`](benchmarks/reports/HONESTY.md) · [`benchmarks/reports/latest.csv`](benchmarks/reports/latest.csv)
+Reports: [`benchmarks/reports/EVIDENCE.md`](benchmarks/reports/EVIDENCE.md) Â· [`benchmarks/reports/HONESTY.md`](benchmarks/reports/HONESTY.md) Â· [`benchmarks/reports/latest.csv`](benchmarks/reports/latest.csv)
 
 Regen: `python benchmarks/runners/run_evidence_pack.py`
 
-Headline result: **Netlib AFIRO** optimal objective **-464.753…** matches HiGHS exactly. Named degeneracy / ill-conditioned / weak-relaxation cases also match. Scale: **2500-var transport ~0.3s** and **10k-var ~3s**, both OPTIMAL (product-form basis updates).
+Headline result: **Netlib AFIRO** optimal objective **-464.753â€¦** matches HiGHS exactly. Named degeneracy / ill-conditioned / weak-relaxation cases also match. Scale: **2500-var transport ~0.3s** and **10k-var ~3s**, both OPTIMAL (product-form basis updates).

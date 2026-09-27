@@ -14,7 +14,10 @@ VerificationResult SolutionVerifier::verify(const OptimizationModel& model,
   out.message = "Verifier executed.";
 
   if (result.status == SolverStatus::NotImplemented ||
-      result.status == SolverStatus::Error) {
+      result.status == SolverStatus::Error ||
+      result.status == SolverStatus::NumericalError ||
+      result.status == SolverStatus::TimeLimit ||
+      result.status == SolverStatus::IterationLimit) {
     out.is_valid = false;
     out.issues.push_back("Solver status does not provide a feasible primal solution: " +
                          to_string(result.status));
@@ -24,8 +27,14 @@ VerificationResult SolutionVerifier::verify(const OptimizationModel& model,
 
   if (result.status == SolverStatus::Infeasible ||
       result.status == SolverStatus::Unbounded) {
-    out.is_valid = true;  // status-consistent; no primal expected
-    out.message = "Status " + to_string(result.status) + " accepted (no primal to check).";
+    // A label alone cannot prove that no feasible point exists, or that an
+    // improving ray exists. Until the solver returns checkable Farkas/ray
+    // certificates, keep these outcomes unverified instead of accepting a
+    // potentially false proof claim.
+    out.is_valid = false;
+    out.issues.push_back("Status " + to_string(result.status) +
+                         " has no independently checkable certificate.");
+    out.message = "Status claim is unverified.";
     return out;
   }
 
@@ -54,7 +63,7 @@ VerificationResult SolutionVerifier::verify(const OptimizationModel& model,
     }
   }
 
-  double obj = 0.0;
+  double obj = model.objective.constant;
   for (const auto& kv : model.objective.linear) {
     auto it = x.find(kv.first);
     if (it != x.end()) obj += kv.second * it->second;
@@ -109,6 +118,30 @@ VerificationResult SolutionVerifier::verify(const OptimizationModel& model,
   }
   if (result.status == SolverStatus::Optimal && result.optimality_gap > 1e-2) {
     out.issues.push_back("OPTIMAL status with large optimality_gap.");
+  }
+
+  // An OPTIMAL claim is a claim about DUAL feasibility, and the only objective
+  // data the verifier has is the reported gap. If the solver says "optimal" but
+  // reports a duality gap that is not actually tight, the primal check above
+  // can still pass while the answer is a merely feasible point. Catch that
+  // here rather than letting it reach a caller as a proof.
+  if (result.status == SolverStatus::Optimal && result.duality_gap > tol) {
+    std::ostringstream oss;
+    oss << "OPTIMAL status contradicted by reported relative duality gap "
+        << result.duality_gap << " (tolerance " << tol
+        << "). The point may be feasible but optimality is not established.";
+    out.issues.push_back(oss.str());
+  }
+
+  // A non-conclusive status must never carry a verified objective. If it does,
+  // a downstream consumer could read the number as an answer.
+  if (!is_conclusive(result.status) && result.status != SolverStatus::Feasible &&
+      result.has_objective_value && result.optimality_gap > 1e-2) {
+    std::ostringstream oss;
+    oss << "Status " << to_string(result.status)
+        << " is not a proof, but an objective value is attached with gap "
+        << result.optimality_gap << ".";
+    out.issues.push_back(oss.str());
   }
 
   out.is_valid = out.issues.empty();

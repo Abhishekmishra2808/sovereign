@@ -8,6 +8,7 @@ namespace sovereign {
 
 std::string ModelValidator::validate(const OptimizationModel& model) {
   std::ostringstream err;
+  if (!std::isfinite(model.objective.constant)) err << "Non-finite objective constant. ";
 
   if (model.variables.empty()) {
     err << "Model has no variables. ";
@@ -22,6 +23,7 @@ std::string ModelValidator::validate(const OptimizationModel& model) {
     if (!names.insert(v.name).second) {
       err << "Duplicate variable name: " << v.name << ". ";
     }
+    if (!std::isfinite(v.lower_bound) || !std::isfinite(v.upper_bound)) err << "Non-finite variable bound. ";
     if (v.lower_bound > v.upper_bound) {
       err << "Invalid bounds for variable " << v.name << ". ";
     }

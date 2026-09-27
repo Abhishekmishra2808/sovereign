@@ -1,0 +1,13 @@
+services:
+  coordinator:
+    build: .
+    ports:
+      - "127.0.0.1:8000:10000"
+    environment:
+      SOVEREIGN_ADMIN_TOKEN: ${SOVEREIGN_ADMIN_TOKEN:?Set a random workspace key of at least 24 characters}
+      SOVEREIGN_DB: /var/data/workspace.db
+    volumes:
+      - workspace-data:/var/data
+    restart: unless-stopped
+volumes:
+  workspace-data:

@@ -1,0 +1,21 @@
+# Secrets — NEVER COMMIT
+#
+# This directory holds the Ed25519 PRIVATE signing key for offline credentials.
+# Anyone holding this key can mint an offline credential for any user or device,
+# which completely defeats the offline authorization model in docs/auth.md.
+#
+# Losing the key means every already-activated device must re-authenticate.
+# Leaking the key means every offline credential ever issued is forgeable.
+#
+# The matching PUBLIC key lives at services/auth/keys/ and IS safe to commit.
+/services/auth/secrets/
+
+# Local environment overrides
+.env
+.env.local
+.env.*.local
+
+# Generated signing material, anywhere it may land
+*.pem
+*.key
+signing_ed25519*

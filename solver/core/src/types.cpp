@@ -60,12 +60,25 @@ std::string to_string(SolverStatus status) {
       return "INFEASIBLE";
     case SolverStatus::Unbounded:
       return "UNBOUNDED";
+    case SolverStatus::TimeLimit:
+      return "TIME_LIMIT";
+    case SolverStatus::IterationLimit:
+      return "ITERATION_LIMIT";
+    case SolverStatus::NumericalError:
+      return "NUMERICAL_ERROR";
     case SolverStatus::Error:
       return "ERROR";
     case SolverStatus::NotImplemented:
       return "NOT_IMPLEMENTED";
   }
   return "UNKNOWN";
+}
+
+// True when the status asserts nothing we can act on, so callers must not read
+// an objective value or a "proved" verdict out of it.
+bool is_conclusive(SolverStatus status) {
+  return status == SolverStatus::Optimal || status == SolverStatus::Infeasible ||
+         status == SolverStatus::Unbounded;
 }
 
 ProblemType problem_type_from_string(const std::string& s) {

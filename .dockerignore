@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+!.env.example
+build*
+api/static
+site
+.venv*
+venv
+**/__pycache__
+*.pyc
+data
+artifacts
+session-*.md

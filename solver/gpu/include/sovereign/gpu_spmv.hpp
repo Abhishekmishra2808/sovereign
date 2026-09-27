@@ -28,5 +28,8 @@ GpuSpmvResult spmv_csc_auto(std::size_t nrows, std::size_t ncols,
                             std::vector<double>& y);
 
 bool gpu_available();
+// Per-process kernel count, used by the worker CLI to report actual work.
+unsigned long long gpu_operations();
+void reset_gpu_operations();
 
 }  // namespace sovereign

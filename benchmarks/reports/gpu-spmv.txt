@@ -1,0 +1,53 @@
+Sovereign GPU Benchmark
+=======================
+
+=== SpMV Benchmark ===
+Matrix size: 1000 x 1000
+Density: 0.01
+Iterations: 100
+
+CPU SpMV...
+  Total time: 0.4713 ms
+  Avg time: 0.004713 ms
+
+GPU SpMV...
+  Total time: 123.604 ms
+  Avg time: 1.23604 ms
+
+Speedup: 0.00381299x
+Max difference: 4.85723e-16
+
+=== SpMV Benchmark ===
+Matrix size: 10000 x 10000
+Density: 0.001
+Iterations: 50
+
+CPU SpMV...
+  Total time: 2.6839 ms
+  Avg time: 0.053678 ms
+
+GPU SpMV...
+  Total time: 57.6916 ms
+  Avg time: 1.15383 ms
+
+Speedup: 0.0465215x
+Max difference: 8.88178e-16
+
+=== SpMV Benchmark ===
+Matrix size: 50000 x 50000
+Density: 0.0005
+Iterations: 10
+
+CPU SpMV...
+  Total time: 9.4436 ms
+  Avg time: 0.94436 ms
+
+GPU SpMV...
+  Total time: 150.046 ms
+  Avg time: 15.0046 ms
+
+Speedup: 0.062938x
+Max difference: 2.22045e-15
+
+
+STDERR
