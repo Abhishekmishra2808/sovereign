@@ -11,20 +11,23 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from fastapi import HTTPException, Request
-from api.cloud import app, database, admin as authorize
+from api.cloud import app, database, current_user
 
 CAPS = {"hostname": "test-host", "platform": "Linux", "cpu_threads": 4, "cuda_available": False}
 MODEL = json.dumps({"variables": [{"name": "x"}], "objective": {"linear": {"x": 1}}})
+TEST_AUTH = {"Authorization": "Bearer test-firebase-token"}
 
 
 class CloudTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
-        self.env = patch.dict(os.environ, {"SOVEREIGN_DB": str(Path(self.temp.name) / "jobs.db"),
-                                          "SOVEREIGN_ADMIN_TOKEN": "test-workspace-secret-123456789"})
+        self.env = patch.dict(os.environ, {
+            "SOVEREIGN_DB": str(Path(self.temp.name) / "jobs.db"),
+            "SOVEREIGN_TEST_AUTH": "1",
+        })
         self.env.start()
         self.client = TestClient(app)
-        self.admin = {"Authorization": "Bearer test-workspace-secret-123456789"}
+        self.admin = TEST_AUTH
 
     def tearDown(self):
         self.client.close()
@@ -55,14 +58,11 @@ class CloudTests(unittest.TestCase):
         self.assertNotIn("token", workspace)
         self.assertNotIn("modelJson", workspace)
 
-    def test_session_and_cross_origin(self):
-        response = self.client.post("/api/session", json={"token": "test-workspace-secret-123456789"})
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("HttpOnly", response.headers["set-cookie"])
-        self.assertEqual(self.client.get("/api/workspace").status_code, 200)
-        self.assertEqual(self.client.post("/api/workers", json={"name": "bad"}, headers={"Origin": "https://elsewhere.invalid"}).status_code, 403)
-        self.client.delete("/api/session")
+    def test_firebase_auth_and_cross_origin(self):
         self.assertEqual(self.client.get("/api/workspace").status_code, 401)
+        self.assertEqual(self.client.get("/api/workspace", headers=self.admin).status_code, 200)
+        self.assertEqual(self.client.post("/api/workers", json={"name": "bad"}, headers={
+            **self.admin, "Origin": "https://elsewhere.invalid"}).status_code, 403)
 
     def test_configured_frontend_origin_can_proxy_session(self):
         with patch.dict(os.environ, {"SOVEREIGN_PUBLIC_ORIGIN": "https://ui.vercel.app"}):
@@ -103,8 +103,6 @@ class CloudTests(unittest.TestCase):
                                       "SOVEREIGN_GPU_AUTO_ENABLED": "0"}):
             self.assertIsNone(self.claim(gpu, cuda_available=True))
             job_id = self.submit(modelJson=large_model)
-            # A GPU-capable machine may still claim a CPU-routed job; its
-            # executionDevice must remain CPU.
             claimed = self.claim(gpu, cuda_available=True)
             self.assertEqual(claimed["id"], job_id)
             self.assertEqual(claimed["request"]["executionDevice"], "cpu")
@@ -252,21 +250,18 @@ class CloudTests(unittest.TestCase):
         self.assertEqual(status.json()["status"], "approved")
         self.assertTrue(status.json()["token"])
 
-    def test_vercel_forwarded_origin_and_secure_cookie(self):
+    def test_vercel_forwarded_origin(self):
         headers = {**self.admin, "Host": "example.vercel.app",
                    "Origin": "https://example.vercel.app", "X-Forwarded-Proto": "https"}
         scope = {"type": "http", "scheme": "http", "server": ("testserver", 80),
                  "path": "/api/workspace", "root_path": "",
                  "headers": [(key.lower().encode(), value.encode()) for key, value in headers.items()]}
         with patch("api.cloud.VERCEL_FUNCTION", True):
-            authorize(Request(scope))
-            login = self.client.post("/api/session", headers=headers,
-                json={"token": "test-workspace-secret-123456789"})
+            current_user(Request(scope))
             scope["headers"] = [(key, b"https://elsewhere.invalid" if key == b"origin" else value)
                                 for key, value in scope["headers"]]
             with self.assertRaises(HTTPException):
-                authorize(Request(scope))
-        self.assertIn("Secure", login.headers["set-cookie"])
+                current_user(Request(scope))
 
 
 if __name__ == "__main__":

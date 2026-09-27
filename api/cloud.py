@@ -15,6 +15,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 from api.datasets import catalogue, dataset
+from api.firebase_auth import verify_firebase_token
 from api.routing import route_request
 from api.storage import open_store
 
@@ -34,24 +35,13 @@ def digest(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-def admin_secret() -> str:
-    token = os.environ.get("SOVEREIGN_ADMIN_TOKEN", "")
-    if len(token) < 24:
-        raise HTTPException(503, "Set SOVEREIGN_ADMIN_TOKEN to a random secret of at least 24 characters.")
-    return token
-
-
-def session_value() -> str:
-    return hmac.new(admin_secret().encode(), b"sovereign-browser-session-v1", hashlib.sha256).hexdigest()
-
-
 def storage_mode() -> str:
     if os.environ.get("MONGODB_URI") or os.environ.get("SOVEREIGN_MONGODB_URI"):
         return "mongodb"
     return "sqlite"
 
 
-def admin(request: Request):
+def _check_origin(request: Request) -> None:
     origin = request.headers.get("origin")
     expected_origin = str(request.base_url).rstrip("/")
     if VERCEL_FUNCTION:
@@ -63,10 +53,14 @@ def admin(request: Request):
         allowed_origins.add(public_origin)
     if origin and origin.rstrip("/") not in allowed_origins:
         raise HTTPException(403, "Cross-origin requests are not allowed.")
+
+
+def current_user(request: Request) -> str:
+    _check_origin(request)
     bearer = request.headers.get("authorization", "").removeprefix("Bearer ")
-    cookie = request.cookies.get("sovereign_session", "")
-    if not (hmac.compare_digest(bearer, admin_secret()) or hmac.compare_digest(cookie, session_value())):
-        raise HTTPException(401, "Sign in to your workspace.")
+    if not bearer:
+        raise HTTPException(401, "Sign in to continue.")
+    return verify_firebase_token(bearer)["sub"]
 
 
 def worker_auth(request: Request) -> str:
@@ -78,41 +72,20 @@ def worker_auth(request: Request) -> str:
     return worker_id
 
 
-class Login(BaseModel):
-    token: str = Field(max_length=256)
-
-
-@app.post("/api/session")
-def login(body: Login, request: Request, response: Response):
-    if not hmac.compare_digest(body.token, admin_secret()):
-        raise HTTPException(401, "That workspace key is incorrect.")
-    response.set_cookie("sovereign_session", session_value(), httponly=True,
-                        secure=VERCEL_FUNCTION or request.url.scheme == "https",
-                        samesite="strict", max_age=43200)
-    return {"authenticated": True}
-
-
-@app.delete("/api/session", dependencies=[Depends(admin)])
-def logout(response: Response):
-    response.delete_cookie("sovereign_session")
-    return {"authenticated": False}
-
-
 @app.get("/api/health")
 def health():
-    admin_secret()
     with open_store():
         pass
     return {"status": "ok", "mode": "mediator", "storage": storage_mode(),
-            "compute": "remote-workers-only"}
+            "compute": "remote-workers-only", "auth": "firebase"}
 
 
-@app.get("/api/datasets", dependencies=[Depends(admin)])
+@app.get("/api/datasets", dependencies=[Depends(current_user)])
 def datasets():
     return {"datasets": catalogue()}
 
 
-@app.get("/api/datasets/{dataset_id}", dependencies=[Depends(admin)])
+@app.get("/api/datasets/{dataset_id}", dependencies=[Depends(current_user)])
 def get_dataset(dataset_id: str):
     try:
         return dataset(dataset_id)
@@ -120,7 +93,7 @@ def get_dataset(dataset_id: str):
         raise HTTPException(404, "Dataset not found.") from exc
 
 
-@app.get("/api/benchmark-report", dependencies=[Depends(admin)])
+@app.get("/api/benchmark-report", dependencies=[Depends(current_user)])
 def benchmark_report():
     path = ROOT / "benchmarks" / "reports" / "sih-online.json"
     if not path.is_file():
@@ -147,20 +120,20 @@ def job_view(row, full=False):
     return item
 
 
-@app.get("/api/workspace", dependencies=[Depends(admin)])
-def workspace():
+@app.get("/api/workspace", dependencies=[Depends(current_user)])
+def workspace(user_id: str = Depends(current_user)):
     now = time.time()
     with open_store() as store:
         store.reap(now)
         workers = []
-        for row in store.list_workers():
+        for row in store.list_workers(user_id):
             item = dict(row)
             item["capabilities"] = json.loads(item["capabilities"])
             item["online"] = item["seen"] > now - LEASE_SECONDS
             if item.get("expires_at"):
                 item["connection_expires_at"] = item["expires_at"]
             workers.append(item)
-        jobs = [job_view(row) for row in store.list_jobs()]
+        jobs = [job_view(row) for row in store.list_jobs(user_id)]
     return {"workers": workers, "jobs": jobs}
 
 
@@ -168,18 +141,20 @@ class Pair(BaseModel):
     name: str = Field(min_length=1, max_length=80)
 
 
-@app.post("/api/workers", dependencies=[Depends(admin)], status_code=201)
-def pair(body: Pair):
+@app.post("/api/workers", dependencies=[Depends(current_user)], status_code=201)
+def pair(body: Pair, user_id: str = Depends(current_user)):
     token, worker_id = secrets.token_urlsafe(32), secrets.token_hex(12)
     with open_store() as store:
-        store.insert_worker(worker_id, body.name, digest(token))
+        store.insert_worker(worker_id, body.name, digest(token), user_id)
     return {"id": worker_id, "token": token, "name": body.name}
 
 
-@app.delete("/api/workers/{worker_id}", dependencies=[Depends(admin)])
-def revoke(worker_id: str):
+@app.delete("/api/workers/{worker_id}", dependencies=[Depends(current_user)])
+def revoke(worker_id: str, user_id: str = Depends(current_user)):
     now = time.time()
     with open_store() as store:
+        if not store.worker_exists(worker_id, user_id):
+            raise HTTPException(404, "Machine not found.")
         store.revoke_worker(worker_id, now)
         store.reap(now)
     return {"revoked": True}
@@ -237,7 +212,7 @@ class ConnectApprove(BaseModel):
     durationHours: int = Field(default=8, ge=1, le=72)
 
 
-@app.get("/api/worker/connect/pending", dependencies=[Depends(admin)])
+@app.get("/api/worker/connect/pending", dependencies=[Depends(current_user)])
 def connect_pending():
     now = time.time()
     with open_store() as store:
@@ -253,8 +228,8 @@ def connect_pending():
     return {"pending": pending}
 
 
-@app.post("/api/worker/connect/approve", dependencies=[Depends(admin)])
-def connect_approve(body: ConnectApprove):
+@app.post("/api/worker/connect/approve", dependencies=[Depends(current_user)])
+def connect_approve(body: ConnectApprove, user_id: str = Depends(current_user)):
     if body.durationHours not in ALLOWED_DURATIONS:
         raise HTTPException(422, f"Choose one of: {sorted(ALLOWED_DURATIONS)} hours.")
     now = time.time()
@@ -263,7 +238,7 @@ def connect_approve(body: ConnectApprove):
     expires_at = now + body.durationHours * 3600
     with open_store() as store:
         store.reap(now)
-        row = store.approve_pairing(body.code, worker_id, digest(token), body.durationHours, expires_at, now)
+        row = store.approve_pairing(body.code, worker_id, digest(token), body.durationHours, expires_at, now, user_id)
         if not row:
             raise HTTPException(404, "Pairing code is invalid or expired.")
         store.save_issued_token(body.code, token)
@@ -287,7 +262,7 @@ class JobRequest(BaseModel):
     timeLimitSeconds: int = Field(default=300, ge=1, le=86400)
 
 
-@app.post("/api/route", dependencies=[Depends(admin)])
+@app.post("/api/route", dependencies=[Depends(current_user)])
 def preview_route(body: JobRequest):
     try:
         return route_request(body.model_dump())
@@ -295,8 +270,8 @@ def preview_route(body: JobRequest):
         raise HTTPException(422, "The model structure could not be read. Check its format.") from exc
 
 
-@app.post("/api/jobs", dependencies=[Depends(admin)], status_code=201)
-def submit(body: JobRequest):
+@app.post("/api/jobs", dependencies=[Depends(current_user)], status_code=201)
+def submit(body: JobRequest, user_id: str = Depends(current_user)):
     if body.modelFormat == "json":
         try:
             model = json.loads(body.modelJson, parse_constant=lambda x: (_ for _ in ()).throw(ValueError(x)))
@@ -316,27 +291,27 @@ def submit(body: JobRequest):
     req = body.model_dump()
     req["routing"] = routing
     with open_store() as store:
-        if body.workerId and not store.worker_exists(body.workerId):
+        if body.workerId and not store.worker_exists(body.workerId, user_id):
             raise HTTPException(422, "Choose an existing machine.")
-        store.insert_job(job_id, body.name, now, json.dumps(req))
+        store.insert_job(job_id, body.name, now, json.dumps(req), user_id)
     return {"jobId": job_id, "state": "QUEUED"}
 
 
-@app.get("/api/jobs/{job_id}", dependencies=[Depends(admin)])
-def job(job_id: str):
+@app.get("/api/jobs/{job_id}", dependencies=[Depends(current_user)])
+def job(job_id: str, user_id: str = Depends(current_user)):
     now = time.time()
     with open_store() as store:
         store.reap(now)
-        row = store.get_job(job_id)
+        row = store.get_job(job_id, user_id)
         if not row:
             raise HTTPException(404, "Job not found.")
         return job_view(row, full=True)
 
 
-@app.post("/api/jobs/{job_id}/cancel", dependencies=[Depends(admin)])
-def cancel(job_id: str):
+@app.post("/api/jobs/{job_id}/cancel", dependencies=[Depends(current_user)])
+def cancel(job_id: str, user_id: str = Depends(current_user)):
     with open_store() as store:
-        changed = store.cancel_job(job_id, time.time())
+        changed = store.cancel_job(job_id, time.time(), user_id)
     return {"cancelled": changed}
 
 
@@ -354,10 +329,13 @@ def claim(body: Capabilities, worker_id: str = Depends(worker_auth)):
     now = time.time()
     with open_store() as store:
         store.reap(now)
+        user_id = store.worker_user_id(worker_id)
+        if not user_id:
+            raise HTTPException(401, "Worker key is invalid or revoked.")
         store.update_worker_seen(worker_id, body.model_dump_json(), now)
         if store.worker_solving_job(worker_id):
             return {"job": None}
-        for row in store.queued_jobs():
+        for row in store.queued_jobs(user_id):
             req = json.loads(row["request"])
             if req.get("workerId") not in (None, worker_id):
                 continue
@@ -372,7 +350,8 @@ def claim(body: Capabilities, worker_id: str = Depends(worker_auth)):
                         execution = "cuda"
                     else:
                         gpu_online = any(json.loads(w["capabilities"]).get("cuda_available") and
-                            req.get("workerId") in (None, w["id"]) for w in store.online_workers(now - LEASE_SECONDS))
+                            req.get("workerId") in (None, w["id"])
+                            for w in store.online_workers(now - LEASE_SECONDS, user_id))
                         if gpu_online:
                             continue
                         routing["reason"] = "Large sparse model; CPU fallback because no matching CUDA worker is online."

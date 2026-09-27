@@ -21,22 +21,25 @@ class Store:
     def reap(self, now: float) -> None:
         raise NotImplementedError
 
-    def list_workers(self) -> list[Row]:
+    def list_workers(self, user_id: str) -> list[Row]:
         raise NotImplementedError
 
-    def list_jobs(self, limit: int = 100) -> list[Row]:
+    def list_jobs(self, user_id: str, limit: int = 100) -> list[Row]:
         raise NotImplementedError
 
-    def insert_worker(self, worker_id: str, name: str, token_hash: str) -> None:
+    def insert_worker(self, worker_id: str, name: str, token_hash: str, user_id: str) -> None:
         raise NotImplementedError
 
     def revoke_worker(self, worker_id: str, now: float) -> None:
         raise NotImplementedError
 
-    def worker_exists(self, worker_id: str) -> bool:
+    def worker_exists(self, worker_id: str, user_id: str) -> bool:
         raise NotImplementedError
 
     def worker_id_for_token(self, token_hash: str) -> str | None:
+        raise NotImplementedError
+
+    def worker_user_id(self, worker_id: str) -> str | None:
         raise NotImplementedError
 
     def update_worker_seen(self, worker_id: str, capabilities: str, seen: float) -> None:
@@ -48,19 +51,19 @@ class Store:
     def worker_solving_job(self, worker_id: str) -> Row | None:
         raise NotImplementedError
 
-    def insert_job(self, job_id: str, name: str, now: float, request: str) -> None:
+    def insert_job(self, job_id: str, name: str, now: float, request: str, user_id: str) -> None:
         raise NotImplementedError
 
-    def get_job(self, job_id: str) -> Row | None:
+    def get_job(self, job_id: str, user_id: str) -> Row | None:
         raise NotImplementedError
 
-    def cancel_job(self, job_id: str, now: float) -> bool:
+    def cancel_job(self, job_id: str, now: float, user_id: str) -> bool:
         raise NotImplementedError
 
-    def queued_jobs(self) -> list[Row]:
+    def queued_jobs(self, user_id: str) -> list[Row]:
         raise NotImplementedError
 
-    def online_workers(self, since: float) -> list[Row]:
+    def online_workers(self, since: float, user_id: str | None = None) -> list[Row]:
         raise NotImplementedError
 
     def claim_job(self, job_id: str, worker_id: str, lease: str, expires: float,
@@ -91,7 +94,7 @@ class Store:
         raise NotImplementedError
 
     def approve_pairing(self, code: str, worker_id: str, token_hash: str, duration_hours: int,
-                        expires_at: float, now: float) -> Row | None:
+                        expires_at: float, now: float, user_id: str) -> Row | None:
         raise NotImplementedError
 
     def reject_pairing(self, code: str) -> None:
@@ -130,9 +133,16 @@ class SQLiteStore(Store):
         columns = {row[1] for row in self.db.execute("PRAGMA table_info(workers)")}
         if "expires_at" not in columns:
             self.db.execute("ALTER TABLE workers ADD COLUMN expires_at REAL")
+        if "user_id" not in columns:
+            self.db.execute("ALTER TABLE workers ADD COLUMN user_id TEXT")
+        job_columns = {row[1] for row in self.db.execute("PRAGMA table_info(jobs)")}
+        if "user_id" not in job_columns:
+            self.db.execute("ALTER TABLE jobs ADD COLUMN user_id TEXT")
         pair_columns = {row[1] for row in self.db.execute("PRAGMA table_info(pairings)")}
         if pair_columns and "issued_token" not in pair_columns:
             self.db.execute("ALTER TABLE pairings ADD COLUMN issued_token TEXT")
+        if pair_columns and "user_id" not in pair_columns:
+            self.db.execute("ALTER TABLE pairings ADD COLUMN user_id TEXT")
 
     def reap(self, now: float) -> None:
         self.db.execute("UPDATE workers SET revoked=1 WHERE expires_at IS NOT NULL AND expires_at<? AND revoked=0",
@@ -142,28 +152,34 @@ class SQLiteStore(Store):
             WHERE state='SOLVING' AND expires<?""", (now, now))
         self.db.execute("UPDATE pairings SET status='expired' WHERE status='pending' AND expires<?", (now,))
 
-    def list_workers(self) -> list[Row]:
+    def list_workers(self, user_id: str) -> list[Row]:
         return [Row(row) for row in self.db.execute(
-            "SELECT id,name,capabilities,seen,expires_at FROM workers WHERE revoked=0 ORDER BY name")]
+            "SELECT id,name,capabilities,seen,expires_at FROM workers WHERE revoked=0 AND user_id=? ORDER BY name",
+            (user_id,))]
 
-    def list_jobs(self, limit: int = 100) -> list[Row]:
+    def list_jobs(self, user_id: str, limit: int = 100) -> list[Row]:
         return [Row(row) for row in self.db.execute(
-            "SELECT * FROM jobs ORDER BY created DESC LIMIT ?", (limit,))]
+            "SELECT * FROM jobs WHERE user_id=? ORDER BY created DESC LIMIT ?", (user_id, limit))]
 
-    def insert_worker(self, worker_id: str, name: str, token_hash: str) -> None:
-        self.db.execute("INSERT INTO workers(id,name,token_hash) VALUES(?,?,?)",
-                        (worker_id, name, token_hash))
+    def insert_worker(self, worker_id: str, name: str, token_hash: str, user_id: str) -> None:
+        self.db.execute("INSERT INTO workers(id,name,token_hash,user_id) VALUES(?,?,?,?)",
+                        (worker_id, name, token_hash, user_id))
 
     def revoke_worker(self, worker_id: str, now: float) -> None:
         self.db.execute("UPDATE workers SET revoked=1 WHERE id=?", (worker_id,))
         self.db.execute("UPDATE jobs SET expires=0 WHERE worker_id=? AND state='SOLVING'", (worker_id,))
 
-    def worker_exists(self, worker_id: str) -> bool:
-        return bool(self.db.execute("SELECT id FROM workers WHERE id=? AND revoked=0", (worker_id,)).fetchone())
+    def worker_exists(self, worker_id: str, user_id: str) -> bool:
+        return bool(self.db.execute(
+            "SELECT id FROM workers WHERE id=? AND user_id=? AND revoked=0", (worker_id, user_id)).fetchone())
 
     def worker_id_for_token(self, token_hash: str) -> str | None:
         row = self.db.execute("SELECT id FROM workers WHERE token_hash=? AND revoked=0", (token_hash,)).fetchone()
         return row["id"] if row else None
+
+    def worker_user_id(self, worker_id: str) -> str | None:
+        row = self.db.execute("SELECT user_id FROM workers WHERE id=? AND revoked=0", (worker_id,)).fetchone()
+        return row["user_id"] if row else None
 
     def update_worker_seen(self, worker_id: str, capabilities: str, seen: float) -> None:
         self.db.execute("UPDATE workers SET capabilities=?,seen=? WHERE id=?", (capabilities, seen, worker_id))
@@ -175,23 +191,29 @@ class SQLiteStore(Store):
         row = self.db.execute("SELECT id FROM jobs WHERE worker_id=? AND state='SOLVING'", (worker_id,)).fetchone()
         return Row(row) if row else None
 
-    def insert_job(self, job_id: str, name: str, now: float, request: str) -> None:
-        self.db.execute("INSERT INTO jobs(id,name,state,created,updated,request) VALUES(?,?,'QUEUED',?,?,?)",
-                        (job_id, name, now, now, request))
+    def insert_job(self, job_id: str, name: str, now: float, request: str, user_id: str) -> None:
+        self.db.execute("INSERT INTO jobs(id,name,state,created,updated,request,user_id) VALUES(?,?,'QUEUED',?,?,?,?)",
+                        (job_id, name, now, now, request, user_id))
 
-    def get_job(self, job_id: str) -> Row | None:
-        row = self.db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+    def get_job(self, job_id: str, user_id: str) -> Row | None:
+        row = self.db.execute("SELECT * FROM jobs WHERE id=? AND user_id=?", (job_id, user_id)).fetchone()
         return Row(row) if row else None
 
-    def cancel_job(self, job_id: str, now: float) -> bool:
+    def cancel_job(self, job_id: str, now: float, user_id: str) -> bool:
         return bool(self.db.execute(
-            "UPDATE jobs SET state='CANCELLED',updated=?,lease=NULL WHERE id=? AND state IN ('QUEUED','SOLVING')",
-            (now, job_id)).rowcount)
+            """UPDATE jobs SET state='CANCELLED',updated=?,lease=NULL
+               WHERE id=? AND user_id=? AND state IN ('QUEUED','SOLVING')""",
+            (now, job_id, user_id)).rowcount)
 
-    def queued_jobs(self) -> list[Row]:
-        return [Row(row) for row in self.db.execute("SELECT * FROM jobs WHERE state='QUEUED' ORDER BY created")]
+    def queued_jobs(self, user_id: str) -> list[Row]:
+        return [Row(row) for row in self.db.execute(
+            "SELECT * FROM jobs WHERE state='QUEUED' AND user_id=? ORDER BY created", (user_id,))]
 
-    def online_workers(self, since: float) -> list[Row]:
+    def online_workers(self, since: float, user_id: str | None = None) -> list[Row]:
+        if user_id:
+            return [Row(row) for row in self.db.execute(
+                "SELECT id,capabilities FROM workers WHERE revoked=0 AND seen>? AND user_id=?",
+                (since, user_id))]
         return [Row(row) for row in self.db.execute(
             "SELECT id,capabilities FROM workers WHERE revoked=0 AND seen>?", (since,))]
 
@@ -234,17 +256,17 @@ class SQLiteStore(Store):
         return Row(row) if row else None
 
     def approve_pairing(self, code: str, worker_id: str, token_hash: str, duration_hours: int,
-                        expires_at: float, now: float) -> Row | None:
+                        expires_at: float, now: float, user_id: str) -> Row | None:
         row = self.get_pairing_by_code(code)
         if not row or row["status"] != "pending" or row["expires"] < now:
             return None
-        self.db.execute("""UPDATE pairings SET status='approved', worker_id=?, token_hash=?,
+        self.db.execute("""UPDATE pairings SET status='approved', worker_id=?, token_hash=?, user_id=?,
             duration_hours=?, approved_at=?, connection_expires=? WHERE code=?""",
-                        (worker_id, token_hash, duration_hours, now, expires_at, code))
-        self.db.execute("""INSERT INTO workers(id,name,token_hash,seen,expires_at) VALUES(?,?,?,?,?)
+                        (worker_id, token_hash, user_id, duration_hours, now, expires_at, code))
+        self.db.execute("""INSERT INTO workers(id,name,token_hash,seen,expires_at,user_id) VALUES(?,?,?,?,?,?)
             ON CONFLICT(id) DO UPDATE SET name=excluded.name, token_hash=excluded.token_hash,
-            revoked=0, seen=excluded.seen, expires_at=excluded.expires_at""",
-                        (worker_id, row["name"], token_hash, now, expires_at))
+            revoked=0, seen=excluded.seen, expires_at=excluded.expires_at, user_id=excluded.user_id""",
+                        (worker_id, row["name"], token_hash, now, expires_at, user_id))
         return self.get_pairing_by_code(code)
 
     def reject_pairing(self, code: str) -> None:
@@ -285,26 +307,30 @@ class MongoStore(Store):
         self.pairings.update_many({"status": "pending", "expires": {"$lt": now}},
                                   {"$set": {"status": "expired"}})
 
-    def list_workers(self) -> list[Row]:
-        return [Row(doc) for doc in self.workers.find({"revoked": 0}, sort=[("name", 1)])]
+    def list_workers(self, user_id: str) -> list[Row]:
+        return [Row(doc) for doc in self.workers.find({"revoked": 0, "user_id": user_id}, sort=[("name", 1)])]
 
-    def list_jobs(self, limit: int = 100) -> list[Row]:
-        return [Row(doc) for doc in self.jobs.find({}, sort=[("created", -1)], limit=limit)]
+    def list_jobs(self, user_id: str, limit: int = 100) -> list[Row]:
+        return [Row(doc) for doc in self.jobs.find({"user_id": user_id}, sort=[("created", -1)], limit=limit)]
 
-    def insert_worker(self, worker_id: str, name: str, token_hash: str) -> None:
-        self.workers.insert_one({"id": worker_id, "name": name, "token_hash": token_hash,
+    def insert_worker(self, worker_id: str, name: str, token_hash: str, user_id: str) -> None:
+        self.workers.insert_one({"id": worker_id, "name": name, "token_hash": token_hash, "user_id": user_id,
                                  "capabilities": "{}", "seen": 0.0, "revoked": 0, "expires_at": None})
 
     def revoke_worker(self, worker_id: str, now: float) -> None:
         self.workers.update_one({"id": worker_id}, {"$set": {"revoked": 1}})
         self.jobs.update_many({"worker_id": worker_id, "state": "SOLVING"}, {"$set": {"expires": 0}})
 
-    def worker_exists(self, worker_id: str) -> bool:
-        return self.workers.find_one({"id": worker_id, "revoked": 0}) is not None
+    def worker_exists(self, worker_id: str, user_id: str) -> bool:
+        return self.workers.find_one({"id": worker_id, "user_id": user_id, "revoked": 0}) is not None
 
     def worker_id_for_token(self, token_hash: str) -> str | None:
         row = self.workers.find_one({"token_hash": token_hash, "revoked": 0})
         return row["id"] if row else None
+
+    def worker_user_id(self, worker_id: str) -> str | None:
+        row = self.workers.find_one({"id": worker_id, "revoked": 0})
+        return row.get("user_id") if row else None
 
     def update_worker_seen(self, worker_id: str, capabilities: str, seen: float) -> None:
         self.workers.update_one({"id": worker_id}, {"$set": {"capabilities": capabilities, "seen": seen}})
@@ -316,25 +342,28 @@ class MongoStore(Store):
         row = self.jobs.find_one({"worker_id": worker_id, "state": "SOLVING"})
         return Row(row) if row else None
 
-    def insert_job(self, job_id: str, name: str, now: float, request: str) -> None:
+    def insert_job(self, job_id: str, name: str, now: float, request: str, user_id: str) -> None:
         self.jobs.insert_one({"id": job_id, "name": name, "state": "QUEUED", "created": now, "updated": now,
-                              "request": request, "worker_id": None, "lease": None, "expires": None,
-                              "attempts": 0, "result": None, "message": None})
+                              "request": request, "user_id": user_id, "worker_id": None, "lease": None,
+                              "expires": None, "attempts": 0, "result": None, "message": None})
 
-    def get_job(self, job_id: str) -> Row | None:
-        row = self.jobs.find_one({"id": job_id})
+    def get_job(self, job_id: str, user_id: str) -> Row | None:
+        row = self.jobs.find_one({"id": job_id, "user_id": user_id})
         return Row(row) if row else None
 
-    def cancel_job(self, job_id: str, now: float) -> bool:
-        result = self.jobs.update_one({"id": job_id, "state": {"$in": ["QUEUED", "SOLVING"]}},
+    def cancel_job(self, job_id: str, now: float, user_id: str) -> bool:
+        result = self.jobs.update_one({"id": job_id, "user_id": user_id, "state": {"$in": ["QUEUED", "SOLVING"]}},
                                       {"$set": {"state": "CANCELLED", "updated": now, "lease": None}})
         return result.modified_count > 0
 
-    def queued_jobs(self) -> list[Row]:
-        return [Row(doc) for doc in self.jobs.find({"state": "QUEUED"}, sort=[("created", 1)])]
+    def queued_jobs(self, user_id: str) -> list[Row]:
+        return [Row(doc) for doc in self.jobs.find({"state": "QUEUED", "user_id": user_id}, sort=[("created", 1)])]
 
-    def online_workers(self, since: float) -> list[Row]:
-        return [Row(doc) for doc in self.workers.find({"revoked": 0, "seen": {"$gt": since}})]
+    def online_workers(self, since: float, user_id: str | None = None) -> list[Row]:
+        query: dict[str, Any] = {"revoked": 0, "seen": {"$gt": since}}
+        if user_id:
+            query["user_id"] = user_id
+        return [Row(doc) for doc in self.workers.find(query)]
 
     def claim_job(self, job_id: str, worker_id: str, lease: str, expires: float,
                   now: float, request: str) -> None:
@@ -380,16 +409,16 @@ class MongoStore(Store):
         return Row(row) if row else None
 
     def approve_pairing(self, code: str, worker_id: str, token_hash: str, duration_hours: int,
-                        expires_at: float, now: float) -> Row | None:
+                        expires_at: float, now: float, user_id: str) -> Row | None:
         row = self.get_pairing_by_code(code)
         if not row or row["status"] != "pending" or row["expires"] < now:
             return None
         self.pairings.update_one({"code": code}, {"$set": {
-            "status": "approved", "worker_id": worker_id, "token_hash": token_hash,
+            "status": "approved", "worker_id": worker_id, "token_hash": token_hash, "user_id": user_id,
             "duration_hours": duration_hours, "approved_at": now, "connection_expires": expires_at,
         }})
         self.workers.replace_one({"id": worker_id}, {
-            "id": worker_id, "name": row["name"], "token_hash": token_hash,
+            "id": worker_id, "name": row["name"], "token_hash": token_hash, "user_id": user_id,
             "capabilities": row["capabilities"], "seen": now, "revoked": 0, "expires_at": expires_at,
         }, upsert=True)
         return self.get_pairing_by_code(code)
