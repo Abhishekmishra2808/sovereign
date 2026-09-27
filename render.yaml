@@ -9,6 +9,10 @@ services:
     envVars:
       - key: SOVEREIGN_ADMIN_TOKEN
         generateValue: true
+      - key: SOVEREIGN_PUBLIC_ORIGIN
+        sync: false
+      - key: MONGODB_URI
+        sync: false
       - key: SOVEREIGN_DB
         value: /var/data/workspace.db
     disk:

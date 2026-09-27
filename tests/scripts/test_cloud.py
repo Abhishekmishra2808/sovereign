@@ -111,8 +111,8 @@ class CloudTests(unittest.TestCase):
             self.assertEqual(claimed["request"]["routing"]["policy"], "cpu-baseline-v2")
 
     def test_experimental_auto_routing_prefers_online_gpu_and_falls_back(self):
-        _, cpu = self.pair("CPU")
-        _, gpu = self.pair("GPU")
+        cpu_id, cpu = self.pair("CPU")
+        gpu_id, gpu = self.pair("GPU")
         large_model = json.dumps({"variables": [{"name": "x"}],
             "constraints": [{"name": "row", "linear": {"x": 1}, "sense": "<=", "rhs": 2}],
             "objective": {"linear": {"x": 1}}})
@@ -125,8 +125,8 @@ class CloudTests(unittest.TestCase):
             self.assertEqual(claimed["id"], job_id)
             self.assertEqual(claimed["request"]["executionDevice"], "cuda")
             second = self.submit(modelJson=large_model, workerId=None)
-            with database() as db:
-                db.execute("UPDATE workers SET seen=0 WHERE name='GPU'")
+            with database() as store:
+                store.touch_worker(gpu_id, 0)
             fallback = self.claim(cpu)
             self.assertEqual(fallback["id"], second)
             self.assertEqual(fallback["request"]["executionDevice"], "cpu")
@@ -181,8 +181,8 @@ class CloudTests(unittest.TestCase):
         _, worker = self.pair()
         job_id = self.submit()
         old = self.claim(worker)
-        with database() as db:
-            db.execute("UPDATE jobs SET expires=0 WHERE id=?", (job_id,))
+        with database() as store:
+            store.force_expire_job(job_id)
         fresh = self.claim(worker)
         self.assertNotEqual(old["lease"], fresh["lease"])
         response = self.client.post("/api/worker/complete", headers=worker,
@@ -218,52 +218,39 @@ class CloudTests(unittest.TestCase):
         job_id = self.submit()
         for _ in range(3):
             self.assertIsNotNone(self.claim(worker))
-            with database() as db:
-                db.execute("UPDATE jobs SET expires=0 WHERE id=?", (job_id,))
+            with database() as store:
+                store.force_expire_job(job_id)
         self.assertIsNone(self.claim(worker))
         self.assertEqual(self.client.get(f"/api/jobs/{job_id}", headers=self.admin).json()["state"], "FAILED")
 
     def test_vercel_requires_persistent_database(self):
         with patch("api.cloud.VERCEL_FUNCTION", True), patch.dict(os.environ,
-                {"DATABASE_URL": "", "SOVEREIGN_DATABASE_URL": ""}):
+                {"VERCEL": "1", "MONGODB_URI": "", "SOVEREIGN_MONGODB_URI": ""}, clear=False):
             response = self.client.get("/api/workspace", headers=self.admin)
             health = self.client.get("/api/health")
         self.assertEqual(response.status_code, 503)
-        self.assertIn("DATABASE_URL", response.json()["detail"])
+        self.assertIn("MONGODB_URI", response.json()["detail"])
         self.assertEqual(health.status_code, 503)
 
-    def test_postgres_adapter_uses_transaction_lock_and_parameters(self):
-        class FakeConnection:
-            def __init__(self):
-                self.commands = []
-                self.committed = self.closed = False
-
-            def execute(self, sql, params=()):
-                self.commands.append((sql, params))
-
-            def commit(self):
-                self.committed = True
-
-            def rollback(self):
-                raise AssertionError("Successful transaction rolled back")
-
-            def close(self):
-                self.closed = True
-
-        connection = FakeConnection()
-        psycopg = ModuleType("psycopg")
-        rows = ModuleType("psycopg.rows")
-        rows.dict_row = object()
-        psycopg.connect = lambda *args, **kwargs: connection
-        with patch.dict(sys.modules, {"psycopg": psycopg, "psycopg.rows": rows}), \
-                patch.dict(os.environ, {"SOVEREIGN_DATABASE_URL": "postgresql://test"}):
-            with database() as db:
-                db.execute("SELECT id FROM workers WHERE token_hash=?", ("abc",))
-        self.assertIn("pg_advisory_xact_lock", connection.commands[0][0])
-        self.assertEqual(connection.commands[-1],
-                         ("SELECT id FROM workers WHERE token_hash=%s", ("abc",)))
-        self.assertTrue(connection.committed)
-        self.assertTrue(connection.closed)
+    def test_connect_pairing_flow(self):
+        request = self.client.post("/api/worker/connect/request", json={
+            "deviceId": "device-test-001",
+            "name": "Laptop",
+            "capabilities": CAPS,
+            "requestedDurationHours": 8,
+        })
+        self.assertEqual(request.status_code, 200)
+        code = request.json()["code"]
+        pending = self.client.get("/api/worker/connect/pending", headers=self.admin)
+        self.assertEqual(pending.status_code, 200)
+        self.assertEqual(pending.json()["pending"][0]["code"], code)
+        approved = self.client.post("/api/worker/connect/approve", headers=self.admin,
+                                    json={"code": code, "durationHours": 8})
+        self.assertEqual(approved.status_code, 200)
+        status = self.client.get("/api/worker/connect/status", params={"deviceId": "device-test-001"})
+        self.assertEqual(status.status_code, 200)
+        self.assertEqual(status.json()["status"], "approved")
+        self.assertTrue(status.json()["token"])
 
     def test_vercel_forwarded_origin_and_secure_cookie(self):
         headers = {**self.admin, "Host": "example.vercel.app",
