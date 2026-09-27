@@ -43,15 +43,27 @@ def storage_mode() -> str:
 
 def _check_origin(request: Request) -> None:
     origin = request.headers.get("origin")
-    expected_origin = str(request.base_url).rstrip("/")
-    if VERCEL_FUNCTION:
-        scheme = request.headers.get("x-forwarded-proto", "https").split(",", 1)[0].strip()
-        expected_origin = f"{scheme}://{request.headers.get('host', '')}"
-    allowed_origins = {expected_origin}
+    if not origin:
+        return
+    origin = origin.rstrip("/")
+    allowed_origins = {str(request.base_url).rstrip("/")}
     public_origin = os.environ.get("SOVEREIGN_PUBLIC_ORIGIN", "").rstrip("/")
     if public_origin:
         allowed_origins.add(public_origin)
-    if origin and origin.rstrip("/") not in allowed_origins:
+    host = request.headers.get("host", "").split(",", 1)[0].strip()
+    forwarded_proto = request.headers.get("x-forwarded-proto", request.url.scheme).split(",", 1)[0].strip()
+    if host:
+        allowed_origins.add(f"{forwarded_proto}://{host}")
+    forwarded_host = request.headers.get("x-forwarded-host", "").split(",", 1)[0].strip()
+    if forwarded_host:
+        allowed_origins.add(f"{forwarded_proto}://{forwarded_host}")
+    referer = request.headers.get("referer", "")
+    if referer:
+        from urllib.parse import urlparse
+        parsed = urlparse(referer)
+        if parsed.scheme and parsed.netloc:
+            allowed_origins.add(f"{parsed.scheme}://{parsed.netloc}")
+    if origin not in allowed_origins:
         raise HTTPException(403, "Cross-origin requests are not allowed.")
 
 
