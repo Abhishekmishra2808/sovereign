@@ -7,10 +7,12 @@ services:
     healthCheckPath: /api/health
     numInstances: 1
     envVars:
-      - key: SOVEREIGN_ADMIN_TOKEN
-        generateValue: true
       - key: SOVEREIGN_PUBLIC_ORIGIN
-        sync: false
+        value: https://sovereign-genomex.vercel.app
+      - key: SOVEREIGN_FRONTEND_URL
+        value: https://sovereign-genomex.vercel.app
+      - key: FIREBASE_PROJECT_ID
+        value: sovereign-76855
       - key: MONGODB_URI
         sync: false
       - key: SOVEREIGN_DB

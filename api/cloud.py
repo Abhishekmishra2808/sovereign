@@ -41,13 +41,27 @@ def storage_mode() -> str:
     return "sqlite"
 
 
+LOCAL_FRONTEND_ORIGINS = {
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
+}
+
+
+def frontend_origin() -> str | None:
+    for key in ("SOVEREIGN_PUBLIC_ORIGIN", "SOVEREIGN_FRONTEND_URL"):
+        origin = os.environ.get(key, "").strip().rstrip("/")
+        if origin:
+            return origin
+    return None
+
+
 def _check_origin(request: Request) -> None:
     origin = request.headers.get("origin")
     if not origin:
         return
     origin = origin.rstrip("/")
-    allowed_origins = {str(request.base_url).rstrip("/")}
-    public_origin = os.environ.get("SOVEREIGN_PUBLIC_ORIGIN", "").rstrip("/")
+    allowed_origins = {str(request.base_url).rstrip("/")} | LOCAL_FRONTEND_ORIGINS
+    public_origin = frontend_origin()
     if public_origin:
         allowed_origins.add(public_origin)
     host = request.headers.get("host", "").split(",", 1)[0].strip()
@@ -88,8 +102,17 @@ def worker_auth(request: Request) -> str:
 def health():
     with open_store():
         pass
-    return {"status": "ok", "mode": "mediator", "storage": storage_mode(),
-            "compute": "remote-workers-only", "auth": "firebase"}
+    payload = {
+        "status": "ok",
+        "mode": "mediator",
+        "storage": storage_mode(),
+        "compute": "remote-workers-only",
+        "auth": "firebase",
+    }
+    frontend = frontend_origin()
+    if frontend:
+        payload["frontend"] = frontend
+    return payload
 
 
 @app.get("/api/datasets", dependencies=[Depends(current_user)])

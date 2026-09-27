@@ -8,10 +8,13 @@ Set these on `https://sovereign-we6b.onrender.com`:
 
 | Variable | Value |
 |---|---|
-| `SOVEREIGN_ADMIN_TOKEN` | your workspace sign-in key (24+ chars) |
-| `SOVEREIGN_PUBLIC_ORIGIN` | `http://127.0.0.1:5173` for local preview, or your Vercel URL when deployed |
+| `SOVEREIGN_PUBLIC_ORIGIN` | `https://sovereign-genomex.vercel.app` (production frontend) |
+| `SOVEREIGN_FRONTEND_URL` | same as `SOVEREIGN_PUBLIC_ORIGIN` (optional alias) |
+| `FIREBASE_PROJECT_ID` | `sovereign-76855` |
 | `MONGODB_URI` | your Atlas connection string (see below) |
 | `SOVEREIGN_MONGODB_DB` | `sovereign` (optional; this is the default) |
+
+For local Vite preview, `http://127.0.0.1:5173` is always allowed even when the production frontend URL is set.
 
 ## Your MongoDB connection string
 
