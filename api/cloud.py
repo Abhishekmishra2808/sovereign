@@ -143,16 +143,27 @@ def benchmark_report():
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def parse_json_value(value, default=None):
+    if value is None:
+        return default
+    if isinstance(value, (dict, list)):
+        return value
+    if value == "":
+        return default
+    return json.loads(value)
+
+
 def job_view(row, full=False):
     item = dict(row)
-    req = json.loads(item.pop("request"))
+    item.pop("_id", None)
+    req = parse_json_value(item.pop("request"), {})
     item.pop("lease", None)
     item.pop("expires", None)
-    item["device"] = req["device"]
+    item["device"] = req.get("device", "auto")
     item["target"] = req.get("workerId")
     item["routing"] = req.get("routing")
     item["algorithm"] = req.get("algorithm", "auto")
-    result = json.loads(item.pop("result") or "null")
+    result = parse_json_value(item.pop("result", None), None)
     if full:
         item["result"] = result
     elif result:
@@ -170,7 +181,8 @@ def workspace(user_id: str = Depends(current_user)):
         workers = []
         for row in store.list_workers(user_id):
             item = dict(row)
-            item["capabilities"] = json.loads(item["capabilities"])
+            item.pop("_id", None)
+            item["capabilities"] = parse_json_value(item.get("capabilities"), {})
             item["online"] = item["seen"] > now - LEASE_SECONDS
             if item.get("expires_at"):
                 item["connection_expires_at"] = item["expires_at"]
@@ -263,7 +275,7 @@ def connect_pending():
             "code": row["code"],
             "name": row["name"],
             "deviceId": row["device_id"],
-            "capabilities": json.loads(row["capabilities"]),
+            "capabilities": parse_json_value(row["capabilities"], {}),
             "requestedDurationHours": row.get("requested_hours"),
             "expiresInSeconds": max(0, int(row["expires"] - now)),
         } for row in store.list_pending_pairings(now)]
@@ -378,7 +390,7 @@ def claim(body: Capabilities, worker_id: str = Depends(worker_auth)):
         if store.worker_solving_job(worker_id):
             return {"job": None}
         for row in store.queued_jobs(user_id):
-            req = json.loads(row["request"])
+            req = parse_json_value(row["request"], {})
             if req.get("workerId") not in (None, worker_id):
                 continue
             if req["device"] == "cuda" and not body.cuda_available:
@@ -391,7 +403,7 @@ def claim(body: Capabilities, worker_id: str = Depends(worker_auth)):
                     if body.cuda_available:
                         execution = "cuda"
                     else:
-                        gpu_online = any(json.loads(w["capabilities"]).get("cuda_available") and
+                        gpu_online = any(parse_json_value(w["capabilities"], {}).get("cuda_available") and
                             req.get("workerId") in (None, w["id"])
                             for w in store.online_workers(now - LEASE_SECONDS, user_id))
                         if gpu_online:

@@ -17,6 +17,12 @@ class Row(dict):
         return super().get(key)
 
 
+def mongo_row(doc: dict[str, Any] | None) -> Row | None:
+    if not doc:
+        return None
+    return Row({key: value for key, value in doc.items() if key != "_id"})
+
+
 class Store:
     def reap(self, now: float) -> None:
         raise NotImplementedError
@@ -308,10 +314,13 @@ class MongoStore(Store):
                                   {"$set": {"status": "expired"}})
 
     def list_workers(self, user_id: str) -> list[Row]:
-        return [Row(doc) for doc in self.workers.find({"revoked": 0, "user_id": user_id}, sort=[("name", 1)])]
+        projection = {"_id": 0, "id": 1, "name": 1, "capabilities": 1, "seen": 1, "expires_at": 1}
+        return [mongo_row(doc) for doc in self.workers.find(
+            {"revoked": 0, "user_id": user_id}, projection, sort=[("name", 1)]) if doc]
 
     def list_jobs(self, user_id: str, limit: int = 100) -> list[Row]:
-        return [Row(doc) for doc in self.jobs.find({"user_id": user_id}, sort=[("created", -1)], limit=limit)]
+        return [mongo_row(doc) for doc in self.jobs.find(
+            {"user_id": user_id}, sort=[("created", -1)], limit=limit) if doc]
 
     def insert_worker(self, worker_id: str, name: str, token_hash: str, user_id: str) -> None:
         self.workers.insert_one({"id": worker_id, "name": name, "token_hash": token_hash, "user_id": user_id,
@@ -340,7 +349,7 @@ class MongoStore(Store):
 
     def worker_solving_job(self, worker_id: str) -> Row | None:
         row = self.jobs.find_one({"worker_id": worker_id, "state": "SOLVING"})
-        return Row(row) if row else None
+        return mongo_row(row)
 
     def insert_job(self, job_id: str, name: str, now: float, request: str, user_id: str) -> None:
         self.jobs.insert_one({"id": job_id, "name": name, "state": "QUEUED", "created": now, "updated": now,
@@ -349,7 +358,7 @@ class MongoStore(Store):
 
     def get_job(self, job_id: str, user_id: str) -> Row | None:
         row = self.jobs.find_one({"id": job_id, "user_id": user_id})
-        return Row(row) if row else None
+        return mongo_row(row)
 
     def cancel_job(self, job_id: str, now: float, user_id: str) -> bool:
         result = self.jobs.update_one({"id": job_id, "user_id": user_id, "state": {"$in": ["QUEUED", "SOLVING"]}},
@@ -357,13 +366,15 @@ class MongoStore(Store):
         return result.modified_count > 0
 
     def queued_jobs(self, user_id: str) -> list[Row]:
-        return [Row(doc) for doc in self.jobs.find({"state": "QUEUED", "user_id": user_id}, sort=[("created", 1)])]
+        return [mongo_row(doc) for doc in self.jobs.find(
+            {"state": "QUEUED", "user_id": user_id}, sort=[("created", 1)]) if doc]
 
     def online_workers(self, since: float, user_id: str | None = None) -> list[Row]:
         query: dict[str, Any] = {"revoked": 0, "seen": {"$gt": since}}
         if user_id:
             query["user_id"] = user_id
-        return [Row(doc) for doc in self.workers.find(query)]
+        projection = {"_id": 0, "id": 1, "capabilities": 1}
+        return [mongo_row(doc) for doc in self.workers.find(query, projection) if doc]
 
     def claim_job(self, job_id: str, worker_id: str, lease: str, expires: float,
                   now: float, request: str) -> None:
@@ -376,7 +387,7 @@ class MongoStore(Store):
         row = self.jobs.find_one({"id": job_id})
         if not row or row.get("worker_id") != worker_id or row.get("lease") != lease:
             raise ValueError("lease")
-        return Row(row)
+        return mongo_row(row)
 
     def extend_job_lease(self, job_id: str, expires: float) -> None:
         self.jobs.update_one({"id": job_id}, {"$set": {"expires": expires}})
@@ -402,11 +413,11 @@ class MongoStore(Store):
 
     def get_pairing_by_device(self, device_id: str) -> Row | None:
         row = self.pairings.find_one({"device_id": device_id})
-        return Row(row) if row else None
+        return mongo_row(row)
 
     def get_pairing_by_code(self, code: str) -> Row | None:
         row = self.pairings.find_one({"code": code})
-        return Row(row) if row else None
+        return mongo_row(row)
 
     def approve_pairing(self, code: str, worker_id: str, token_hash: str, duration_hours: int,
                         expires_at: float, now: float, user_id: str) -> Row | None:
@@ -431,8 +442,8 @@ class MongoStore(Store):
                                   {"$set": {"status": "expired"}})
 
     def list_pending_pairings(self, now: float) -> list[Row]:
-        return [Row(doc) for doc in self.pairings.find({"status": "pending", "expires": {"$gt": now}},
-                                                        sort=[("created", -1)])]
+        return [mongo_row(doc) for doc in self.pairings.find(
+            {"status": "pending", "expires": {"$gt": now}}, sort=[("created", -1)]) if doc]
 
     def save_issued_token(self, code: str, token: str) -> None:
         self.pairings.update_one({"code": code}, {"$set": {"issued_token": token}})
