@@ -81,9 +81,16 @@ def _check_origin(request: Request) -> None:
         raise HTTPException(403, "Cross-origin requests are not allowed.")
 
 
+def _bearer_token(request: Request) -> str:
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        return auth_header[7:].strip()
+    return auth_header.strip()
+
+
 def current_user(request: Request) -> str:
     _check_origin(request)
-    bearer = request.headers.get("authorization", "").removeprefix("Bearer ")
+    bearer = _bearer_token(request)
     if not bearer:
         raise HTTPException(401, "Sign in to continue.")
     return verify_firebase_token(bearer)["sub"]
