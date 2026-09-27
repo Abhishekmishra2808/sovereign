@@ -369,6 +369,19 @@ def cancel(job_id: str, user_id: str = Depends(current_user)):
     return {"cancelled": changed}
 
 
+@app.delete("/api/jobs/{job_id}", dependencies=[Depends(current_user)])
+def delete_job(job_id: str, user_id: str = Depends(current_user)):
+    with open_store() as store:
+        store.reap(time.time())
+        row = store.get_job(job_id, user_id)
+        if not row:
+            raise HTTPException(404, "Job not found.")
+        if row["state"] == "SOLVING":
+            raise HTTPException(409, "Cancel the job before deleting it; a machine is still solving it.")
+        store.delete_job(job_id, user_id)
+    return {"deleted": True}
+
+
 class Capabilities(BaseModel):
     hostname: str = Field(max_length=120)
     platform: str = Field(max_length=120)

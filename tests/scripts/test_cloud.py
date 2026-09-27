@@ -197,6 +197,23 @@ class CloudTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/worker/complete", headers=worker, json={**lease, "result": {"status": "OPTIMAL"}}).status_code, 409)
         self.assertEqual(self.client.get(f"/api/jobs/{job_id}", headers=self.admin).json()["state"], "CANCELLED")
 
+    def test_delete_job_requires_owner_and_not_running(self):
+        _, worker = self.pair()
+        job_id = self.submit()
+        self.assertEqual(self.client.delete(f"/api/jobs/{job_id}").status_code, 401)
+        self.claim(worker)
+        running = self.client.delete(f"/api/jobs/{job_id}", headers=self.admin)
+        self.assertEqual(running.status_code, 409)
+        self.assertIn("Cancel", running.json()["detail"])
+        self.client.post(f"/api/jobs/{job_id}/cancel", headers=self.admin)
+        self.assertEqual(self.client.delete(f"/api/jobs/{job_id}", headers=self.admin).status_code, 200)
+        self.assertEqual(self.client.get(f"/api/jobs/{job_id}", headers=self.admin).status_code, 404)
+        self.assertEqual(self.client.delete(f"/api/jobs/{job_id}", headers=self.admin).status_code, 404)
+        queued = self.submit()
+        self.assertEqual(self.client.delete(f"/api/jobs/{queued}", headers=self.admin).status_code, 200)
+        jobs = self.client.get("/api/workspace", headers=self.admin).json()["jobs"]
+        self.assertEqual(jobs, [])
+
     def test_revocation_and_invalid_model(self):
         worker_id, worker = self.pair()
         self.client.delete(f"/api/workers/{worker_id}", headers=self.admin)

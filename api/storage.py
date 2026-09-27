@@ -66,6 +66,9 @@ class Store:
     def cancel_job(self, job_id: str, now: float, user_id: str) -> bool:
         raise NotImplementedError
 
+    def delete_job(self, job_id: str, user_id: str) -> bool:
+        raise NotImplementedError
+
     def queued_jobs(self, user_id: str) -> list[Row]:
         raise NotImplementedError
 
@@ -210,6 +213,10 @@ class SQLiteStore(Store):
             """UPDATE jobs SET state='CANCELLED',updated=?,lease=NULL
                WHERE id=? AND user_id=? AND state IN ('QUEUED','SOLVING')""",
             (now, job_id, user_id)).rowcount)
+
+    def delete_job(self, job_id: str, user_id: str) -> bool:
+        return bool(self.db.execute(
+            "DELETE FROM jobs WHERE id=? AND user_id=? AND state!='SOLVING'", (job_id, user_id)).rowcount)
 
     def queued_jobs(self, user_id: str) -> list[Row]:
         return [Row(row) for row in self.db.execute(
@@ -364,6 +371,10 @@ class MongoStore(Store):
         result = self.jobs.update_one({"id": job_id, "user_id": user_id, "state": {"$in": ["QUEUED", "SOLVING"]}},
                                       {"$set": {"state": "CANCELLED", "updated": now, "lease": None}})
         return result.modified_count > 0
+
+    def delete_job(self, job_id: str, user_id: str) -> bool:
+        result = self.jobs.delete_one({"id": job_id, "user_id": user_id, "state": {"$ne": "SOLVING"}})
+        return result.deleted_count > 0
 
     def queued_jobs(self, user_id: str) -> list[Row]:
         return [mongo_row(doc) for doc in self.jobs.find(
