@@ -15,6 +15,12 @@ struct InteriorPointOptions {
   double optimality_tol = 1e-9;
   double fraction_to_boundary = 0.999;
   bool enable_scaling = true;
+
+  // Normal equations M = A D A^T. When true, always use the sparse LDL^T
+  // (a numerical breakdown is retried with dense LU while it fits). When
+  // false, SOVEREIGN_IPM_NORMAL_EQUATIONS decides (auto by default, which
+  // picks sparse or dense per model).
+  bool use_sparse_normal_equations = false;
 };
 
 // Mehrotra predictor-corrector primal-dual interior-point method for LP.

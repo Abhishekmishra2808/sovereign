@@ -199,6 +199,15 @@ TEST(IpmAccuracy, SparseAndDenseNormalEquationsAgree) {
   // 360 rows on the CPU: automatic selection takes the sparse path.
   const SolverResult automatic = InteriorPointSolver(InteriorPointOptions()).solve(build_staircase(8, 40));
   EXPECT_TRUE(automatic.message.find("sparse LDL^T") != std::string::npos);
+
+  // The option forces sparse even where the environment asks for dense.
+  InteriorPointOptions forced;
+  forced.use_sparse_normal_equations = true;
+  set_normal_equations("dense");
+  const SolverResult sparse = InteriorPointSolver(forced).solve(build_transport(40));
+  set_normal_equations("");
+  EXPECT_EQ(sparse.status, SolverStatus::Optimal);
+  EXPECT_TRUE(sparse.message.find("sparse LDL^T") != std::string::npos);
 }
 
 TEST(IpmAccuracy, OptimalClaimIsBackedByResiduals) {

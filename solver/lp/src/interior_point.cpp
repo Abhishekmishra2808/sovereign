@@ -112,9 +112,9 @@ std::size_t env_size(const char* name, std::size_t fallback) {
 //     faster at 5.1e8, hence the 2e8 default.
 class NormalEquations {
  public:
-  explicit NormalEquations(const SparseMatrixCSC& A) : A_(A), m_(A.nrows) {
+  NormalEquations(const SparseMatrixCSC& A, bool force_sparse) : A_(A), m_(A.nrows) {
     const char* raw = std::getenv("SOVEREIGN_IPM_NORMAL_EQUATIONS");
-    const std::string mode = raw && *raw ? raw : "auto";
+    const std::string mode = force_sparse ? "sparse" : raw && *raw ? raw : "auto";
     if (mode == "dense" || m_ == 0) return;
     const double dense_entries = 0.5 * static_cast<double>(m_) * static_cast<double>(m_ + 1);
     const bool dense_fits = m_ <= kDenseMaxRows;
@@ -446,7 +446,7 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
   std::vector<double> x(static_cast<std::size_t>(n), 1.0);
   std::vector<double> s(static_cast<std::size_t>(n), 1.0);
   std::vector<double> y(static_cast<std::size_t>(m), 0.0);
-  NormalEquations normal(lp.A);
+  NormalEquations normal(lp.A, opt.use_sparse_normal_equations);
 
   // Mehrotra-like starting point from least-squares residual push
   {
