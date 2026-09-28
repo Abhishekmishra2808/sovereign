@@ -13,6 +13,11 @@ elseif(MSVC OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_STANDARD 17)
 endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# The engine is copied to worker machines on its own, without the compiler's
+# runtime DLLs (libstdc++, libgcc), so MinGW builds link them statically.
+if(MINGW)
+  add_link_options(-static)
+endif()
 
 option(SOVEREIGN_BUILD_TESTS "Build unit tests" ON)
 

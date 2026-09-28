@@ -83,6 +83,7 @@ target_link_libraries(sovereign PRIVATE sovereign_core)
 
 if(WIN32)
   set_target_properties(sovereign PROPERTIES WIN32_EXECUTABLE FALSE)
+  target_link_libraries(sovereign PRIVATE psapi)
 endif()
 
 # ---------------------------------------------------------------------------

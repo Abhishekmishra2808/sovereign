@@ -18,32 +18,52 @@ bool is_fixed(const Variable& v, double tol) {
   return nearly_equal(v.lower_bound, v.upper_bound, tol);
 }
 
-int find_var(OptimizationModel& model, const std::string& name) {
+std::unordered_map<std::string, int> variable_index(const OptimizationModel& model) {
+  std::unordered_map<std::string, int> index;
+  index.reserve(model.variables.size() * 2);
   for (std::size_t i = 0; i < model.variables.size(); ++i) {
-    if (model.variables[i].name == name) return static_cast<int>(i);
+    index.emplace(model.variables[i].name, static_cast<int>(i));
   }
-  return -1;
+  return index;
 }
 
-void remove_variable_at(OptimizationModel& model, int idx) {
-  const std::string name = model.variables[static_cast<std::size_t>(idx)].name;
-  model.variables.erase(model.variables.begin() + idx);
-  model.objective.linear.erase(name);
-  for (auto it = model.objective.quadratic.begin();
-       it != model.objective.quadratic.end();) {
-    if (it->first == name) {
+// Drops the constraints marked in `drop`, keeping the order of the rest.
+void compact_constraints(OptimizationModel& model, const std::vector<char>& drop) {
+  std::size_t out = 0;
+  for (std::size_t i = 0; i < model.constraints.size(); ++i) {
+    if (drop[i]) continue;
+    if (out != i) model.constraints[out] = std::move(model.constraints[i]);
+    ++out;
+  }
+  model.constraints.resize(out);
+}
+
+// Removes the named variables from the variable list, the objective and every
+// constraint in one pass each.
+void remove_variables(OptimizationModel& model, const std::unordered_set<std::string>& names) {
+  if (names.empty()) return;
+  std::size_t out = 0;
+  for (std::size_t i = 0; i < model.variables.size(); ++i) {
+    if (names.count(model.variables[i].name)) continue;
+    if (out != i) model.variables[out] = std::move(model.variables[i]);
+    ++out;
+  }
+  model.variables.resize(out);
+  for (const auto& name : names) model.objective.linear.erase(name);
+  for (auto it = model.objective.quadratic.begin(); it != model.objective.quadratic.end();) {
+    if (names.count(it->first)) {
       it = model.objective.quadratic.erase(it);
       continue;
     }
-    it->second.erase(name);
-    if (it->second.empty()) {
-      it = model.objective.quadratic.erase(it);
-    } else {
-      ++it;
-    }
+    for (const auto& name : names) it->second.erase(name);
+    if (it->second.empty()) it = model.objective.quadratic.erase(it);
+    else ++it;
   }
   for (auto& c : model.constraints) {
-    c.linear.erase(name);
+    for (auto it = c.linear.begin(); it != c.linear.end();) {
+      if (names.count(it->first)) it = c.linear.erase(it);
+      else ++it;
+    }
   }
 }
 
@@ -74,10 +94,13 @@ bool tighten_bound(Variable& v, double lb, double ub, double tol, int* tightened
   return changed;
 }
 
-// Substitute name = coeff * other + offset into the model (name still present until removed).
+// Substitute name = coeff * other + offset into the objective and into the
+// constraints listed for `name` in `rows_of` (a column index of the
+// constraints, kept up to date as `other` enters new rows).
 void apply_affine_substitution(OptimizationModel& model, const std::string& name,
                                const std::string& other, double coeff, double offset,
-                               double* objective_offset, Sense sense) {
+                               double* objective_offset,
+                               std::unordered_map<std::string, std::vector<int>>& rows_of) {
   // Objective: c_name * (coeff*other + offset) + ...
   const double cn = obj_coef(model, name);
   if (cn != 0.0) {
@@ -86,20 +109,28 @@ void apply_affine_substitution(OptimizationModel& model, const std::string& name
     if (objective_offset) {
       *objective_offset += cn * offset;
     }
-    (void)sense;
     model.objective.linear.erase(name);
   }
 
-  for (auto& c : model.constraints) {
+  auto rows = rows_of.find(name);
+  if (rows == rows_of.end()) return;
+  // References survive the rehash that rows_of[other] may trigger; iterators do not.
+  const std::vector<int>& name_rows = rows->second;
+  std::vector<int>& other_rows = rows_of[other];
+  for (int r : name_rows) {
+    Constraint& c = model.constraints[static_cast<std::size_t>(r)];
     auto it = c.linear.find(name);
     if (it == c.linear.end()) continue;
     const double a = it->second;
     c.linear.erase(it);
     if (std::abs(a * coeff) > 0.0) {
-      c.linear[other] += a * coeff;
+      auto ins = c.linear.emplace(other, 0.0);
+      if (ins.second) other_rows.push_back(r);
+      ins.first->second += a * coeff;
     }
     c.rhs -= a * offset;
   }
+  rows_of.erase(name);
 }
 
 bool remove_empty_and_redundant(OptimizationModel& model, PresolveResult& out,
@@ -107,13 +138,9 @@ bool remove_empty_and_redundant(OptimizationModel& model, PresolveResult& out,
   bool changed = false;
   std::vector<Constraint> kept;
   kept.reserve(model.constraints.size());
-  std::unordered_map<std::string, int> var_index;
-  var_index.reserve(model.variables.size() * 2);
-  for (std::size_t i = 0; i < model.variables.size(); ++i) {
-    var_index.emplace(model.variables[i].name, static_cast<int>(i));
-  }
+  const std::unordered_map<std::string, int> var_index = variable_index(model);
 
-  for (const auto& c : model.constraints) {
+  for (auto& c : model.constraints) {
     double min_act = 0.0;
     double max_act = 0.0;
     bool has_terms = false;
@@ -205,7 +232,7 @@ bool remove_empty_and_redundant(OptimizationModel& model, PresolveResult& out,
       }
     }
 
-    kept.push_back(c);
+    kept.push_back(std::move(c));
   }
 
   model.constraints.swap(kept);
@@ -274,21 +301,31 @@ bool singleton_rows(OptimizationModel& model, PresolveResult& out, double tol,
                     bool enable_substitution) {
   bool changed = false;
 
+  // Every pass handles all singleton rows in one sweep (then, if there were
+  // none, all two-variable equalities), so the work per pass is linear in the
+  // model instead of one full rescan per reduction.
   for (;;) {
     bool progress = false;
+    std::unordered_map<std::string, int> index = variable_index(model);
+    std::vector<char> drop_row(model.constraints.size(), 0);
+    std::vector<std::size_t> pairs;  // two-term equalities, for substitution
     for (std::size_t ci = 0; ci < model.constraints.size(); ++ci) {
       Constraint& c = model.constraints[ci];
-      std::vector<std::pair<std::string, double>> terms;
+      const std::pair<const std::string, double>* term = nullptr;
+      int count = 0;
       for (const auto& kv : c.linear) {
-        if (std::abs(kv.second) > tol) terms.push_back(kv);
+        if (std::abs(kv.second) <= tol) continue;
+        if (++count > 2) break;
+        if (!term) term = &kv;
       }
-      if (terms.size() != 1) continue;
+      if (count == 2 && c.sense == ConstraintSense::Eq) pairs.push_back(ci);
+      if (count != 1) continue;
 
-      const std::string name = terms[0].first;
-      const double a = terms[0].second;
-      const int vi = find_var(model, name);
-      if (vi < 0) continue;
-      Variable& v = model.variables[static_cast<std::size_t>(vi)];
+      const std::string name = term->first;
+      const double a = term->second;
+      const auto found = index.find(name);
+      if (found == index.end()) continue;
+      Variable& v = model.variables[static_cast<std::size_t>(found->second)];
 
       if (c.sense == ConstraintSense::Eq) {
         if (std::abs(a) <= tol) continue;
@@ -306,11 +343,10 @@ bool singleton_rows(OptimizationModel& model, PresolveResult& out, double tol,
         drop.name = c.name;
         drop.note = "singleton equality";
         out.actions.push_back(drop);
-        model.constraints.erase(model.constraints.begin() +
-                                static_cast<std::ptrdiff_t>(ci));
+        drop_row[ci] = 1;
         ++out.stats.removed_constraints;
         progress = true;
-        break;
+        continue;
       }
 
       // Inequality singleton => bound tightening
@@ -355,22 +391,34 @@ bool singleton_rows(OptimizationModel& model, PresolveResult& out, double tol,
       drop.name = c.name;
       drop.note = "singleton inequality absorbed into bounds";
       out.actions.push_back(drop);
-      model.constraints.erase(model.constraints.begin() +
-                              static_cast<std::ptrdiff_t>(ci));
+      drop_row[ci] = 1;
       ++out.stats.removed_constraints;
       progress = true;
-      break;
     }
+    if (progress) compact_constraints(model, drop_row);
 
     // Two-variable equality substitution: a x + b y = rhs => x = (-b/a) y + rhs/a
-    if (enable_substitution && !progress) {
+    if (enable_substitution && !progress && !pairs.empty()) {
+      // Column index restricted to the variables of two-term equalities: only
+      // those are substituted or receive the substituted terms.
+      std::unordered_map<std::string, std::vector<int>> rows_of;
+      for (std::size_t ci : pairs) {
+        for (const auto& kv : model.constraints[ci].linear) rows_of.emplace(kv.first, std::vector<int>());
+      }
       for (std::size_t ci = 0; ci < model.constraints.size(); ++ci) {
+        for (const auto& kv : model.constraints[ci].linear) {
+          const auto found = rows_of.find(kv.first);
+          if (found != rows_of.end()) found->second.push_back(static_cast<int>(ci));
+        }
+      }
+      std::unordered_set<std::string> eliminated;
+      for (std::size_t ci : pairs) {
         Constraint& c = model.constraints[ci];
-        if (c.sense != ConstraintSense::Eq) continue;
         std::vector<std::pair<std::string, double>> terms;
         for (const auto& kv : c.linear) {
           if (std::abs(kv.second) > tol) terms.push_back(kv);
         }
+        // An earlier substitution in this sweep may have changed the row.
         if (terms.size() != 2) continue;
         // Prefer substituting the variable with smaller |obj| impact / abs coeff
         std::string elim = terms[0].first;
@@ -387,11 +435,11 @@ bool singleton_rows(OptimizationModel& model, PresolveResult& out, double tol,
         const double offset = c.rhs / a_elim;
 
         // Transfer bounds of eliminated variable onto the kept variable.
-        const int eidx_bounds = find_var(model, elim);
-        const int kidx_bounds = find_var(model, keep);
-        if (eidx_bounds >= 0 && kidx_bounds >= 0) {
-          const Variable& ev = model.variables[static_cast<std::size_t>(eidx_bounds)];
-          Variable& kv = model.variables[static_cast<std::size_t>(kidx_bounds)];
+        const auto eidx_bounds = index.find(elim);
+        const auto kidx_bounds = index.find(keep);
+        if (eidx_bounds != index.end() && kidx_bounds != index.end()) {
+          const Variable& ev = model.variables[static_cast<std::size_t>(eidx_bounds->second)];
+          Variable& kv = model.variables[static_cast<std::size_t>(kidx_bounds->second)];
           // elim = coeff * keep + offset
           // lb_e <= coeff*keep + offset <= ub_e
           if (std::abs(coeff) > tol) {
@@ -408,7 +456,7 @@ bool singleton_rows(OptimizationModel& model, PresolveResult& out, double tol,
         }
 
         apply_affine_substitution(model, elim, keep, coeff, offset,
-                                  &out.objective_offset, model.sense);
+                                  &out.objective_offset, rows_of);
 
         PresolveAction sub;
         sub.type = PresolveActionType::SubstituteVariable;
@@ -420,19 +468,20 @@ bool singleton_rows(OptimizationModel& model, PresolveResult& out, double tol,
         out.actions.push_back(sub);
         ++out.stats.substituted_variables;
 
-        const int eidx = find_var(model, elim);
-        if (eidx >= 0) remove_variable_at(model, eidx);
+        if (index.count(elim)) eliminated.insert(elim);
 
         PresolveAction drop;
         drop.type = PresolveActionType::DropConstraint;
         drop.name = c.name;
         drop.note = "substituted equality";
         out.actions.push_back(drop);
-        model.constraints.erase(model.constraints.begin() +
-                                static_cast<std::ptrdiff_t>(ci));
+        drop_row[ci] = 1;
         ++out.stats.removed_constraints;
         progress = true;
-        break;
+      }
+      if (progress) {
+        compact_constraints(model, drop_row);
+        remove_variables(model, eliminated);
       }
     }
 
@@ -476,31 +525,64 @@ bool bound_tighten_from_rows(OptimizationModel& model, PresolveResult& out, doub
     }
     if (terms.size() < 2) continue;
 
+    // Row activity bounds: the finite part of each sum and how many terms are
+    // unbounded. The rest of the row for term t is the total minus t's own
+    // contribution, so a row costs O(length) instead of O(length^2); totals are
+    // updated whenever a bound in the row is tightened.
+    struct Contribution {
+      double min = 0.0, max = 0.0;
+      int min_inf = 0, max_inf = 0;
+    };
+    auto contribution = [&](const Variable& ov, double b) {
+      Contribution k;
+      const bool lb_ok = finite_lb(ov), ub_ok = finite_ub(ov);
+      if (b > 0) {
+        if (lb_ok) k.min = b * ov.lower_bound; else k.min_inf = 1;
+        if (ub_ok) k.max = b * ov.upper_bound; else k.max_inf = 1;
+      } else {
+        if (ub_ok) k.min = b * ov.upper_bound; else k.min_inf = 1;
+        if (lb_ok) k.max = b * ov.lower_bound; else k.max_inf = 1;
+      }
+      return k;
+    };
+    Contribution total;
+    double magnitude = 0.0;
+    for (const auto& term : terms) {
+      const Contribution k = contribution(model.variables[static_cast<std::size_t>(term.first)], term.second);
+      total.min += k.min;
+      total.max += k.max;
+      total.min_inf += k.min_inf;
+      total.max_inf += k.max_inf;
+      magnitude += std::abs(k.min) + std::abs(k.max);
+    }
+    // total - own cancels badly when some finite bound is huge, so such rows
+    // sum the rest term by term (and very long ones are left alone).
+    const bool exact = magnitude > 1e5;
+    if (exact && terms.size() > 2000) continue;
+
     for (std::size_t t = 0; t < terms.size(); ++t) {
       const int vi = terms[t].first;
       const double a = terms[t].second;
       Variable& v = model.variables[static_cast<std::size_t>(vi)];
 
-      double rest_min = 0.0;
-      double rest_max = 0.0;
-      bool rest_min_ok = true;
-      bool rest_max_ok = true;
-      for (std::size_t u = 0; u < terms.size(); ++u) {
-        if (u == t) continue;
-        const Variable& ov = model.variables[static_cast<std::size_t>(terms[u].first)];
-        const double b = terms[u].second;
-        if (b > 0) {
-          if (!finite_lb(ov)) rest_min_ok = false;
-          else rest_min += b * ov.lower_bound;
-          if (!finite_ub(ov)) rest_max_ok = false;
-          else rest_max += b * ov.upper_bound;
-        } else {
-          if (!finite_ub(ov)) rest_min_ok = false;
-          else rest_min += b * ov.upper_bound;
-          if (!finite_lb(ov)) rest_max_ok = false;
-          else rest_max += b * ov.lower_bound;
+      const Contribution own = contribution(v, a);
+      Contribution rest{total.min - own.min, total.max - own.max, total.min_inf - own.min_inf,
+                        total.max_inf - own.max_inf};
+      if (exact) {
+        rest = Contribution();
+        for (std::size_t u = 0; u < terms.size(); ++u) {
+          if (u == t) continue;
+          const Contribution k = contribution(model.variables[static_cast<std::size_t>(terms[u].first)], terms[u].second);
+          rest.min += k.min;
+          rest.max += k.max;
+          rest.min_inf += k.min_inf;
+          rest.max_inf += k.max_inf;
         }
       }
+      const double rest_min = rest.min;
+      const double rest_max = rest.max;
+      const bool rest_min_ok = rest.min_inf == 0;
+      const bool rest_max_ok = rest.max_inf == 0;
 
       if (c.sense == ConstraintSense::Le || c.sense == ConstraintSense::Eq) {
         // a x <= rhs - rest_min  (needs finite rest_min)
@@ -532,6 +614,11 @@ bool bound_tighten_from_rows(OptimizationModel& model, PresolveResult& out, doub
         out.message = "Bound tightening proved infeasible on " + v.name;
         return true;
       }
+      const Contribution now = contribution(v, a);
+      total.min += now.min - own.min;
+      total.max += now.max - own.max;
+      total.min_inf += now.min_inf - own.min_inf;
+      total.max_inf += now.max_inf - own.max_inf;
     }
   }
   return changed;
@@ -555,19 +642,21 @@ bool dual_fix_unconstrained(OptimizationModel& model, PresolveResult& out, doubl
   // minimize: if c>0 fix at lb; if c<0 unbounded (unless ub finite then fix ub);
   // maximize: opposite.
   bool changed = false;
-  std::unordered_set<std::string> appears;
+  const std::unordered_map<std::string, int> index = variable_index(model);
+  std::vector<char> appears(model.variables.size(), 0);
   for (const auto& c : model.constraints) {
     for (const auto& kv : c.linear) {
-      if (std::abs(kv.second) > tol) appears.insert(kv.first);
+      if (std::abs(kv.second) <= tol) continue;
+      const auto found = index.find(kv.first);
+      if (found != index.end()) appears[static_cast<std::size_t>(found->second)] = 1;
     }
   }
 
-  for (std::size_t i = 0; i < model.variables.size();) {
+  // Fixing a variable that is in no constraint cannot change where any other
+  // variable appears, so all of them are fixed in one sweep and folded out once.
+  for (std::size_t i = 0; i < model.variables.size(); ++i) {
     Variable& v = model.variables[i];
-    if (appears.count(v.name)) {
-      ++i;
-      continue;
-    }
+    if (appears[i] || is_fixed(v, tol)) continue;
     const double c = obj_coef(model, v.name);
     const bool maximize = (model.sense == Sense::Maximize);
     double fix = v.lower_bound;
@@ -601,15 +690,10 @@ bool dual_fix_unconstrained(OptimizationModel& model, PresolveResult& out, doubl
     v.lower_bound = fix;
     v.upper_bound = fix;
     changed = true;
+  }
+  if (changed) {
     fix_fixed_variables(model, out, tol);
     if (out.infeasible || out.unbounded) return true;
-    i = 0;  // restart; indices changed
-    appears.clear();
-    for (const auto& c : model.constraints) {
-      for (const auto& kv : c.linear) {
-        if (std::abs(kv.second) > tol) appears.insert(kv.first);
-      }
-    }
   }
   return changed;
 }

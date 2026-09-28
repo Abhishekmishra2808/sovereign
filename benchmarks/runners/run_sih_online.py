@@ -43,7 +43,7 @@ def write_report(report):
               "- Synthetic robustness: degeneracy, ill-conditioning, weak relaxation. Synthetic transport: 400, 2,500, and 10,000 variables.",
               "- Repository industrial examples: refinery, blending, power dispatch, logistics. These are not claimed as published or proprietary industrial data.",
               "- QP examples compared with HiGHS using the quadratic Hessian, not an LP relaxation.",
-              "- Mittelmann and QPLIB instances are not bundled or tested. Million-variable scale, full GPU acceleration, and GPU speedups are not established.",
+              "- Mittelmann and QPLIB instances are not bundled or tested. Million-variable scale is shown only on synthetic structured LP/QP (scale-ladder.md); full GPU acceleration and GPU speedups are not established.",
               "- GPU runs are not claimed when no CUDA-enabled engine is available. Auto-routing policy tests are separate from GPU performance evidence.",
               "- Only OPTIMAL + independent verification + reference OPTIMAL + objective tolerance agreement counts as a match. Failed verification and timeouts remain visible.",
               "- HiGHS is used only in this benchmark harness, never to solve production jobs."]

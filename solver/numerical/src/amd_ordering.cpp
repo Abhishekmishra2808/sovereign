@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <set>
 #include <utility>
 #include <vector>
@@ -40,13 +41,56 @@ bool AMDOrdering::compute(
     list.erase(std::unique(list.begin(), list.end()), list.end());
   }
 
+  // Dense nodes (a budget row touching every variable, say) are taken out of
+  // the graph and ordered last, as in AMD: kept in, each elimination would
+  // rewrite their adjacency lists and the ordering would cost O(n^2).
+  const double dense_degree = std::max(16.0, 10.0 * std::sqrt(static_cast<double>(n)));
+  std::vector<char> dense(static_cast<std::size_t>(n), 0);
+  std::vector<std::pair<int, int>> dense_nodes;  // (degree, node)
+  for (int i = 0; i < n; ++i) {
+    const auto degree = adj[static_cast<std::size_t>(i)].size();
+    if (static_cast<double>(degree) > dense_degree) {
+      dense[static_cast<std::size_t>(i)] = 1;
+      dense_nodes.push_back({static_cast<int>(degree), i});
+    }
+  }
+  if (!dense_nodes.empty()) {
+    for (int i = 0; i < n; ++i) {
+      auto& list = adj[static_cast<std::size_t>(i)];
+      if (dense[static_cast<std::size_t>(i)]) {
+        std::vector<int>().swap(list);
+        continue;
+      }
+      list.erase(std::remove_if(list.begin(), list.end(),
+                                [&](int w) { return dense[static_cast<std::size_t>(w)] != 0; }),
+                 list.end());
+    }
+    std::sort(dense_nodes.begin(), dense_nodes.end());
+  }
+  const int n_sparse = n - static_cast<int>(dense_nodes.size());
+
   std::set<std::pair<int, int>> queue;  // (degree, node)
-  for (int i = 0; i < n; ++i) queue.insert({static_cast<int>(adj[static_cast<std::size_t>(i)].size()), i});
+  for (int i = 0; i < n; ++i) {
+    if (!dense[static_cast<std::size_t>(i)]) queue.insert({static_cast<int>(adj[static_cast<std::size_t>(i)].size()), i});
+  }
+
+  // Among the sparse nodes, fill is exactly the clique sizes below (dense
+  // nodes come later, so they create no fill between earlier nodes); the
+  // dense rows add to that, so this count is a lower bound on nnz(L) and the
+  // exact figure comes from the symbolic analysis.
+  const std::size_t n_dense = dense_nodes.size();
+  predicted_factor_nnz_ = n_dense * (n_dense - (n_dense > 0 ? 1 : 0)) / 2;
 
   std::vector<int> mark(static_cast<std::size_t>(n), -1);
   int stamp = 0;
 
-  for (int k = 0; k < n; ++k) {
+  for (int k = n_sparse; k < n; ++k) {
+    const int node = dense_nodes[static_cast<std::size_t>(k - n_sparse)].second;
+    perm[static_cast<std::size_t>(k)] = node;
+    iperm[static_cast<std::size_t>(node)] = k;
+  }
+
+  for (int k = 0; k < n_sparse; ++k) {
     const int node = queue.begin()->second;
     queue.erase(queue.begin());
     perm[static_cast<std::size_t>(k)] = node;

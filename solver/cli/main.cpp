@@ -5,13 +5,43 @@
 #include "sovereign/gpu_spmv.hpp"
 #include "sovereign/cuda_driver.hpp"
 #include <nlohmann/json.hpp>
+#include <chrono>
 #include <cstdlib>
 
 #include <fstream>
 #include <iostream>
 #include <string>
 
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <psapi.h>
+#else
+#include <sys/resource.h>
+#endif
+
 namespace {
+
+// Peak resident memory of this process so far, in MB (0 if unavailable).
+double peak_memory_mb() {
+#if defined(_WIN32)
+  PROCESS_MEMORY_COUNTERS pmc;
+  if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+    return static_cast<double>(pmc.PeakWorkingSetSize) / (1024.0 * 1024.0);
+  }
+  return 0.0;
+#else
+  rusage usage{};
+  if (getrusage(RUSAGE_SELF, &usage) != 0) return 0.0;
+#if defined(__APPLE__)
+  return static_cast<double>(usage.ru_maxrss) / (1024.0 * 1024.0);
+#else
+  return static_cast<double>(usage.ru_maxrss) / 1024.0;
+#endif
+#endif
+}
 
 void print_usage() {
   std::cerr << "Usage:\n"
@@ -56,7 +86,10 @@ int cmd_solve(int argc, char** argv) {
     // Dispatch on the file extension so .mps and .json both work. Reading an
     // MPS file through the JSON reader produced a raw nlohmann parse exception,
     // which told the user nothing about what was actually wrong.
+    const auto load_start = std::chrono::steady_clock::now();
     const auto model = sovereign::load_model_from_file(model_path);
+    const double load_seconds =
+        std::chrono::duration<double>(std::chrono::steady_clock::now() - load_start).count();
     sovereign::OptimizationEngine engine;
     sovereign::EngineOptions options;
     const char* presolve = std::getenv("SOVEREIGN_PRESOLVE");
@@ -67,6 +100,8 @@ int cmd_solve(int argc, char** argv) {
     payload["gpu_operations"] = sovereign::gpu_operations();
     payload["gpu_factorizations"] = sovereign::gpu_factorizations();
     payload["gpu_used"] = sovereign::gpu_operations() > 0;
+    payload["load_seconds"] = load_seconds;
+    payload["peak_memory_mb"] = peak_memory_mb();
     const std::string result_json = payload.dump(2);
     std::cout << result_json << "\n";
 

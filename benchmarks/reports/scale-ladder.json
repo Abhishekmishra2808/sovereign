@@ -1,0 +1,142 @@
+{
+  "generated_at": "2026-09-29T00:59:31+0530",
+  "engine": "build64\\solver\\sovereign.exe",
+  "machine": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "cpu_threads": 12,
+    "python": "3.11.9",
+    "ram_gb": 15.7
+  },
+  "rows": [
+    {
+      "model": {
+        "name": "lp_staircase_100k",
+        "problem_type": "LP",
+        "variables": 100000,
+        "constraints": 50500,
+        "nonzeros": 199900,
+        "quadratic_terms": 0,
+        "bytes": 16274551,
+        "sha256": "8cfff79dd6dbc2c9cdf7caaa8cea75e5dcbffb40591d83cad11ae12d55bbb287",
+        "generator": "benchmarks/tools/generate_scale_ladder.py"
+      },
+      "engine": {
+        "status": "OPTIMAL",
+        "objective": 529526.1334857155,
+        "iterations": 16,
+        "wall_seconds": 3.169181999983266,
+        "solver_seconds": 1.951523600029759,
+        "load_seconds": 0.6424497,
+        "peak_memory_mb": 151.79296875,
+        "algorithm": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: sparse LDL^T with minimum-degree ordering (nnz(L) = 515159, dense triangle 1270105200).",
+        "verified": true,
+        "max_constraint_violation": 1.9113599591946695e-12,
+        "max_bound_violation": 0.0,
+        "return_code": 0
+      },
+      "highs": {
+        "status": "OPTIMAL",
+        "objective": 529526.1334848738,
+        "runtime_seconds": 2.4768081000074744,
+        "version": "1.15.1"
+      },
+      "relative_gap": 1.5895018651289697e-12
+    },
+    {
+      "model": {
+        "name": "qp_portfolio_100k",
+        "problem_type": "QP",
+        "variables": 100000,
+        "constraints": 2001,
+        "nonzeros": 200000,
+        "quadratic_terms": 670266,
+        "bytes": 23706987,
+        "sha256": "1adde9ba8728554fa4deaa5fd017e9c93623ead89494bf0e9b7c2a3624bee22b",
+        "generator": "benchmarks/tools/generate_scale_ladder.py"
+      },
+      "engine": {
+        "status": "OPTIMAL",
+        "objective": -0.19869445054518525,
+        "iterations": 15,
+        "wall_seconds": 5.77617409999948,
+        "solver_seconds": 3.0939891999587417,
+        "load_seconds": 1.7000037,
+        "peak_memory_mb": 253.9296875,
+        "algorithm": "Optimal convex QP found by Mehrotra predictor-corrector IPM. KKT system: sparse quasi-definite LDL^T with minimum-degree ordering (order 104001, nnz(L) = 989944, dense triangle 5408156001).",
+        "verified": true,
+        "max_constraint_violation": 9.072393947207047e-10,
+        "max_bound_violation": 0.0,
+        "return_code": 0
+      },
+      "highs": {
+        "status": "OPTIMAL",
+        "objective": -0.1986944505272935,
+        "runtime_seconds": 202.98798979993444,
+        "version": "1.15.1"
+      },
+      "relative_gap": 1.789174364219548e-11
+    },
+    {
+      "model": {
+        "name": "lp_staircase_1m",
+        "problem_type": "LP",
+        "variables": 1000000,
+        "constraints": 501000,
+        "nonzeros": 1999500,
+        "quadratic_terms": 0,
+        "bytes": 166969738,
+        "sha256": "c07184bcd0707cfecb469f1a4602ddd95d51b5dbe9c3d212b767adb9aa45ee78",
+        "generator": "benchmarks/tools/generate_scale_ladder.py"
+      },
+      "engine": {
+        "status": "OPTIMAL",
+        "objective": 5297439.672733613,
+        "iterations": 20,
+        "wall_seconds": 93.27508289995603,
+        "solver_seconds": 76.5262337999884,
+        "load_seconds": 8.402723,
+        "peak_memory_mb": 1451.51953125,
+        "algorithm": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: sparse LDL^T with minimum-degree ordering (nnz(L) = 5911616, dense triangle 125250375250).",
+        "verified": true,
+        "max_constraint_violation": 1.1525003174028825e-11,
+        "max_bound_violation": 0.0,
+        "return_code": 0
+      },
+      "highs": {
+        "status": "OPTIMAL",
+        "objective": 5297439.672726953,
+        "runtime_seconds": 70.89437210001051,
+        "version": "1.15.1"
+      },
+      "relative_gap": 1.2571899148493726e-12
+    },
+    {
+      "model": {
+        "name": "qp_portfolio_1m",
+        "problem_type": "QP",
+        "variables": 1000000,
+        "constraints": 20001,
+        "nonzeros": 2000000,
+        "quadratic_terms": 6702560,
+        "bytes": 248791456,
+        "sha256": "c9902682c6c1399d430fa773f6eb9ebe59ca286b6b6ce1acd132e4a061214502",
+        "generator": "benchmarks/tools/generate_scale_ladder.py"
+      },
+      "engine": {
+        "status": "OPTIMAL",
+        "objective": -0.1995718961251015,
+        "iterations": 14,
+        "wall_seconds": 75.59868150006514,
+        "solver_seconds": 46.248612199909985,
+        "load_seconds": 18.4150804,
+        "peak_memory_mb": 2473.6328125,
+        "algorithm": "Optimal convex QP found by Mehrotra predictor-corrector IPM. KKT system: sparse quasi-definite LDL^T with minimum-degree ordering (order 1040001, nnz(L) = 9896877, dense triangle 540801560001).",
+        "verified": true,
+        "max_constraint_violation": 9.898682096221023e-09,
+        "max_bound_violation": 0.0,
+        "return_code": 0
+      }
+    }
+  ]
+}

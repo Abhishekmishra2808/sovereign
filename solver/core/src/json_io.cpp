@@ -15,7 +15,9 @@ OptimizationModel parse_model(const json& j) {
   model.problem_type = problem_type_from_string(j.at("problem_type").get<std::string>());
   model.sense = sense_from_string(j.value("sense", "minimize"));
 
-  for (const auto& vj : j.at("variables")) {
+  const auto& variables = j.at("variables");
+  model.variables.reserve(variables.size());
+  for (const auto& vj : variables) {
     Variable v;
     v.name = vj.at("name").get<std::string>();
     v.type = variable_type_from_string(vj.value("type", "continuous"));
@@ -25,38 +27,48 @@ OptimizationModel parse_model(const json& j) {
       v.lower_bound = vj.value("lower_bound", 0.0);
       v.upper_bound = vj.value("upper_bound", 1.0);
     }
-    model.variables.push_back(v);
+    model.variables.push_back(std::move(v));
   }
 
   if (j.contains("objective")) {
     const auto& oj = j.at("objective");
     model.objective.constant = oj.value("constant", 0.0);
     if (oj.contains("linear")) {
-      for (auto it = oj.at("linear").begin(); it != oj.at("linear").end(); ++it) {
+      const auto& linear = oj.at("linear");
+      model.objective.linear.reserve(linear.size());
+      for (auto it = linear.begin(); it != linear.end(); ++it) {
         model.objective.linear[it.key()] = it.value().get<double>();
       }
     }
     if (oj.contains("quadratic")) {
-      for (auto it = oj.at("quadratic").begin(); it != oj.at("quadratic").end(); ++it) {
+      const auto& quadratic = oj.at("quadratic");
+      model.objective.quadratic.reserve(quadratic.size());
+      for (auto it = quadratic.begin(); it != quadratic.end(); ++it) {
+        auto& row = model.objective.quadratic[it.key()];
+        row.reserve(it.value().size());
         for (auto jt = it.value().begin(); jt != it.value().end(); ++jt) {
-          model.objective.quadratic[it.key()][jt.key()] = jt.value().get<double>();
+          row[jt.key()] = jt.value().get<double>();
         }
       }
     }
   }
 
   if (j.contains("constraints")) {
-    for (const auto& cj : j.at("constraints")) {
+    const auto& constraints = j.at("constraints");
+    model.constraints.reserve(constraints.size());
+    for (const auto& cj : constraints) {
       Constraint c;
       c.name = cj.value("name", "");
       c.sense = constraint_sense_from_string(cj.at("sense").get<std::string>());
       c.rhs = cj.at("rhs").get<double>();
       if (cj.contains("linear")) {
-        for (auto it = cj.at("linear").begin(); it != cj.at("linear").end(); ++it) {
+        const auto& linear = cj.at("linear");
+        c.linear.reserve(linear.size());
+        for (auto it = linear.begin(); it != linear.end(); ++it) {
           c.linear[it.key()] = it.value().get<double>();
         }
       }
-      model.constraints.push_back(c);
+      model.constraints.push_back(std::move(c));
     }
   }
 
@@ -98,12 +110,22 @@ json model_to_json(const OptimizationModel& model) {
 }  // namespace
 
 OptimizationModel load_model_from_json_file(const std::string& path) {
-  std::ifstream in(path);
+  std::ifstream in(path, std::ios::binary);
   if (!in) {
     throw std::runtime_error("Failed to open model file: " + path);
   }
-  json j;
-  in >> j;
+  // Parsing a contiguous buffer is several times faster than nlohmann's
+  // character-by-character stream adapter on files of hundreds of MB.
+  std::string text;
+  in.seekg(0, std::ios::end);
+  const auto size = in.tellg();
+  if (size > 0) {
+    text.resize(static_cast<std::size_t>(size));
+    in.seekg(0, std::ios::beg);
+    in.read(&text[0], static_cast<std::streamsize>(text.size()));
+  }
+  json j = json::parse(text);
+  std::string().swap(text);
   return parse_model(j);
 }
 

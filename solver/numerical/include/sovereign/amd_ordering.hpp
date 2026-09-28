@@ -13,9 +13,12 @@ namespace sovereign {
 // P M P^T has fewer nonzeros than the factorization of M.
 //
 // Algorithm: greedy minimum degree on the explicit elimination graph
-// (ties broken by lowest index). Degrees are exact, so the sum of degrees at
-// elimination equals nnz(L) for the resulting order. Quotient-graph AMD with
-// aggressive absorption and mass elimination can replace this later.
+// (ties broken by lowest index). Nodes of degree above max(16, 10 sqrt(n))
+// are removed from the graph and ordered last, as AMD does with dense rows.
+// Degrees are exact, so without dense nodes the sum of degrees at elimination
+// equals nnz(L) for the resulting order; with them it is a lower bound.
+// Quotient-graph AMD with aggressive absorption and mass elimination can
+// replace this later.
 //
 // Returns:
 //   perm[k] = original column that is k-th in elimination order
@@ -34,7 +37,8 @@ class AMDOrdering {
       std::vector<int>& iperm
   );
 
-  // Give up once nnz(L) (strictly lower part) would exceed this; 0 = no limit.
+  // Give up once the nnz(L) (strictly lower part) predicted so far exceeds
+  // this; 0 = no limit.
   void set_fill_limit(std::size_t limit) { fill_limit_ = limit; }
   bool fill_limit_exceeded() const { return fill_limit_exceeded_; }
   std::size_t predicted_factor_nnz() const { return predicted_factor_nnz_; }

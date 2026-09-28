@@ -776,6 +776,42 @@ TEST(SparseLDLT, FillLimitStopsDenseFactorizations) {
   EXPECT_EQ(ldlt.factor_nnz(), 15);
 }
 
+TEST(SparseLDLT, DenseRowIsOrderedLastWithoutFill) {
+  // A chain 1-2-...-(n-1) plus a hub (node 0) joined to every other node, like
+  // a budget row in a KKT system. The hub exceeds the dense threshold, is
+  // ordered last, and the factor has no fill beyond the input off-diagonals.
+  const int n = 3000;
+  SparseSymmetricPattern pattern;
+  pattern.n = n;
+  std::vector<double> values;
+  pattern.col_ptr.push_back(0);
+  for (int j = 0; j < n; ++j) {
+    pattern.row_idx.push_back(j);
+    values.push_back(j == 0 ? static_cast<double>(n) : 4.0);
+    if (j == 0) {
+      for (int i = 1; i < n; ++i) {
+        pattern.row_idx.push_back(i);
+        values.push_back(1.0);
+      }
+    } else if (j + 1 < n) {
+      pattern.row_idx.push_back(j + 1);
+      values.push_back(-1.0);
+    }
+    pattern.col_ptr.push_back(static_cast<int>(pattern.row_idx.size()));
+  }
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_EQ(ldlt.perm()[static_cast<std::size_t>(n - 1)], 0);
+  EXPECT_EQ(ldlt.factor_nnz(), static_cast<std::size_t>((n - 1) + (n - 2)));
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+  std::vector<double> b(static_cast<std::size_t>(n));
+  for (int i = 0; i < n; ++i) b[static_cast<std::size_t>(i)] = std::sin(0.1 * i);
+  std::vector<double> x = b;
+  EXPECT_TRUE(ldlt.solve(x));
+  EXPECT_TRUE(compute_residual(pattern, values, x, b) < 1e-10);
+}
+
 TEST(SparseLDLT, PredictedNonzeroCount) {
   // Verify that symbolic analysis predicts nnz(L) correctly
   // Use a simple banded matrix where we can predict fill

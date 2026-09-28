@@ -79,6 +79,14 @@ bool SparseLDLT::symbolic_analyze(const SparseSymmetricPattern& pattern, std::si
       }
     }
   }
+  std::size_t factor_nnz = 0;
+  for (int k = 0; k < n; ++k) factor_nnz += static_cast<std::size_t>(l_len_[static_cast<std::size_t>(k)]);
+  // l_ptr_ holds int offsets.
+  if ((max_factor_nnz > 0 && factor_nnz > max_factor_nnz) ||
+      factor_nnz > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+    fill_limit_exceeded_ = true;
+    return false;
+  }
   l_ptr_.assign(n_ + 1, 0);
   for (int k = 0; k < n; ++k) {
     l_ptr_[static_cast<std::size_t>(k) + 1] = l_ptr_[static_cast<std::size_t>(k)] + l_len_[static_cast<std::size_t>(k)];

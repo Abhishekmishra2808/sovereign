@@ -69,8 +69,11 @@ SolverResult OptimizationEngine::solve(const OptimizationModel& model, const Eng
 
   Presolver presolver;
   PresolveResult prep;
-  if (options.presolve) prep = presolver.run(model);
-  else prep.reduced = model;
+  // Presolve only reduces LPs; other models are solved in place rather than
+  // copied, which matters at millions of variables.
+  const bool presolved = options.presolve && model.problem_type == ProblemType::LP;
+  if (presolved) prep = presolver.run(model);
+  const OptimizationModel& to_solve = presolved ? prep.reduced : model;
 
   SolverResult result;
   if (prep.infeasible) {
@@ -79,7 +82,7 @@ SolverResult OptimizationEngine::solve(const OptimizationModel& model, const Eng
   } else if (prep.unbounded) {
     result.status = SolverStatus::Unbounded;
     result.message = prep.message.empty() ? "Unbounded (presolve)." : prep.message;
-  } else if (prep.reduced.variables.empty()) {
+  } else if (to_solve.variables.empty()) {
     result.status = SolverStatus::Optimal;
     result.has_objective_value = true;
     result.objective_value = 0.0;
@@ -88,18 +91,18 @@ SolverResult OptimizationEngine::solve(const OptimizationModel& model, const Eng
     result.objective_value = evaluate_objective(model, result.primal);
     result.has_objective_value = true;
   } else {
-    switch (prep.reduced.problem_type) {
+    switch (to_solve.problem_type) {
       case ProblemType::LP:
-        result = LpSolver().solve(prep.reduced, options.lp_algorithm);
+        result = LpSolver().solve(to_solve, options.lp_algorithm);
         break;
       case ProblemType::QP:
-        result = QpSolver().solve(prep.reduced);
+        result = QpSolver().solve(to_solve);
         break;
       case ProblemType::MILP:
-        result = MilpSolver().solve(prep.reduced);
+        result = MilpSolver().solve(to_solve);
         break;
     }
-    result = presolver.recover(result, prep, model.sense);
+    if (presolved) result = presolver.recover(result, prep, model.sense);
     if (result.status == SolverStatus::Optimal ||
         result.status == SolverStatus::Feasible) {
       result.objective_value = evaluate_objective(model, result.primal);

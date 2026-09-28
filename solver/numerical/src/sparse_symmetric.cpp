@@ -53,51 +53,49 @@ SparseSymmetricPattern build_normal_eq_pattern(const SparseMatrixCSC& A) {
   //   For each pair (i, k) in rows × rows where i >= k:
   //     Mark M[i,k] as structurally nonzero
 
-  // Use sets to track unique entries per column of M
-  std::vector<std::unordered_set<int>> m_cols(static_cast<std::size_t>(m));
-
+  // Column k of M is the union, over the columns j of A with A[k,j] != 0, of
+  // the rows i >= k of column j. The rows of A (a transpose of its column
+  // structure) and a marker array give each column in time proportional to
+  // its contributions, without hashing.
+  std::vector<int> row_ptr(static_cast<std::size_t>(m) + 1, 0);
   for (int j = 0; j < n; ++j) {
-    // Collect rows with nonzeros in column j of A
-    std::vector<int> rows;
-    for (int p = A.col_ptr[static_cast<std::size_t>(j)];
-         p < A.col_ptr[static_cast<std::size_t>(j) + 1]; ++p) {
-      rows.push_back(A.row_idx[static_cast<std::size_t>(p)]);
+    for (int p = A.col_ptr[static_cast<std::size_t>(j)]; p < A.col_ptr[static_cast<std::size_t>(j) + 1]; ++p) {
+      ++row_ptr[static_cast<std::size_t>(A.row_idx[static_cast<std::size_t>(p)]) + 1];
     }
-
-    // For each pair (i, k) where both appear in this column
-    for (std::size_t a = 0; a < rows.size(); ++a) {
-      const int i = rows[a];
-      for (std::size_t b = 0; b < rows.size(); ++b) {
-        const int k = rows[b];
-        if (i >= k) {
-          // M[i,k] is structurally nonzero (lower triangle)
-          m_cols[static_cast<std::size_t>(k)].insert(i);
-        }
+  }
+  for (int k = 0; k < m; ++k) row_ptr[static_cast<std::size_t>(k) + 1] += row_ptr[static_cast<std::size_t>(k)];
+  std::vector<int> row_cols(static_cast<std::size_t>(row_ptr[static_cast<std::size_t>(m)]));
+  {
+    std::vector<int> next(row_ptr.begin(), row_ptr.end() - 1);
+    for (int j = 0; j < n; ++j) {
+      for (int p = A.col_ptr[static_cast<std::size_t>(j)]; p < A.col_ptr[static_cast<std::size_t>(j) + 1]; ++p) {
+        row_cols[static_cast<std::size_t>(next[static_cast<std::size_t>(A.row_idx[static_cast<std::size_t>(p)])]++)] = j;
       }
     }
   }
 
-  // Ensure diagonal is always present (needed for regularization)
+  std::vector<int> mark(static_cast<std::size_t>(m), -1);
+  std::vector<int> col_rows;
   for (int k = 0; k < m; ++k) {
-    m_cols[static_cast<std::size_t>(k)].insert(k);
-  }
-
-  // Convert sets to sorted CSC format
-  int nnz = 0;
-  for (int k = 0; k < m; ++k) {
-    pattern.col_ptr[static_cast<std::size_t>(k)] = nnz;
-
-    // Extract and sort row indices
-    std::vector<int> col_rows(m_cols[static_cast<std::size_t>(k)].begin(),
-                               m_cols[static_cast<std::size_t>(k)].end());
-    std::sort(col_rows.begin(), col_rows.end());
-
-    for (int i : col_rows) {
-      pattern.row_idx.push_back(i);
-      ++nnz;
+    pattern.col_ptr[static_cast<std::size_t>(k)] = static_cast<int>(pattern.row_idx.size());
+    col_rows.clear();
+    // Diagonal always present (needed for regularization).
+    mark[static_cast<std::size_t>(k)] = k;
+    col_rows.push_back(k);
+    for (int q = row_ptr[static_cast<std::size_t>(k)]; q < row_ptr[static_cast<std::size_t>(k) + 1]; ++q) {
+      const int j = row_cols[static_cast<std::size_t>(q)];
+      for (int p = A.col_ptr[static_cast<std::size_t>(j)]; p < A.col_ptr[static_cast<std::size_t>(j) + 1]; ++p) {
+        const int i = A.row_idx[static_cast<std::size_t>(p)];
+        if (i > k && mark[static_cast<std::size_t>(i)] != k) {
+          mark[static_cast<std::size_t>(i)] = k;
+          col_rows.push_back(i);
+        }
+      }
     }
+    std::sort(col_rows.begin(), col_rows.end());
+    pattern.row_idx.insert(pattern.row_idx.end(), col_rows.begin(), col_rows.end());
   }
-  pattern.col_ptr[static_cast<std::size_t>(m)] = nnz;
+  pattern.col_ptr[static_cast<std::size_t>(m)] = static_cast<int>(pattern.row_idx.size());
 
   return pattern;
 }

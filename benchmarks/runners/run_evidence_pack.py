@@ -454,6 +454,10 @@ def build_honesty_md(
         "(see `miplib_official.json`: LP-relax matches; full MILP not yet competitive)",
         "- Named robustness cases (Kuhn degeneracy, ill-conditioned) run under **both** simplex and IPM",
         "- Scale through 10k-var transport LPs; **headline path is `auto` (IPM-first)**",
+        "- Scale ladder (`scale-ladder.md`, 64-bit build, single-threaded, 15.7 GB laptop): 1M-variable structured "
+        "LP (501k rows) and 1M-variable convex QP both reach verified optimality, in about 93 s and 76 s wall "
+        "(including JSON load) with peak memory 1.5 GB and 2.5 GB; the LP matches HiGHS to 1.3e-12 relative. "
+        "These are synthetic staircase and sector-portfolio models, not industrial instances",
         "- Branch-and-cut with tree cuts + strong/pseudo-cost branching, with ablation table",
         "- Plain B&B and B&C+strong return the same HiGHS-matching optima (102/133/6) on **synthetic** multi-knapsacks",
         "",
@@ -547,7 +551,9 @@ def build_honesty_md(
             "- Official MIPLIB **full MILP** solves: converter + LP-relax match HiGHS, but B&B is not yet competitive "
             "(TIMEOUT / node-limit on flugpl/gt2/b-ball within tens of seconds; HiGHS solves some in <1s)",
             "- Synthetic multi-knapsack / set-partition under `datasets/miplib/` are ablation fixtures, **not** official MIPLIB IDs",
-            "- Million-variable industrial scale not claimed",
+            "- Million-variable scale is shown only on synthetic structured LP/QP (`scale-ladder.md`); real instances "
+            "of that size (Mittelmann, QPLIB) are untested, and HiGHS was not run on the 1M QP (its QP solver took "
+            "203 s at 100k)",
             "",
             "## Pitch discipline",
             "",

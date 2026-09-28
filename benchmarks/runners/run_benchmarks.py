@@ -399,8 +399,9 @@ def write_markdown(rows: List[Dict[str, Any]], path: Path, notes: List[str]) -> 
             "",
             "## Still open vs problem statement",
             "",
-            "- Million-variable industrial scale — not claimed; 10k-var transport demonstrated",
-            "- Sparse IPM linear algebra (current IPM uses dense normal equations) — future speed work",
+            "- Million-variable scale — shown only on synthetic structured LP/QP (`scale-ladder.md`: 1M variables, "
+            "verified, about 93 s LP / 76 s QP single-threaded); real industrial instances of that size untested",
+            "- Supernodal or multithreaded sparse LDLᵀ — numeric factorization dominates the 1M-variable LP",
             "",
         ]
     )

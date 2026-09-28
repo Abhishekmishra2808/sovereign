@@ -9,6 +9,7 @@ Keep this file aligned with measured evidence — not aspirational pitch languag
 - Official MIPLIB 2017 instances via the same MPS→JSON path as AFIRO: **LP relaxations match HiGHS** on flugpl/gt2/pk1/b-ball/gen-ip016; full MILP not yet competitive (TIMEOUT @30s where HiGHS often finishes in <1s)
 - Named robustness cases (Kuhn degeneracy, ill-conditioned) run under **both** simplex and IPM
 - Scale through 10k-var transport LPs; **headline path is `auto` (IPM-first)**
+- Scale ladder (`scale-ladder.md`, 64-bit build, single-threaded, 15.7 GB laptop): 1M-variable structured LP (501k rows) and 1M-variable convex QP both reach verified optimality, in about 93 s and 76 s wall (including JSON load) with peak memory 1.5 GB and 2.5 GB; the LP matches HiGHS to 1.3e-12 relative. These are synthetic staircase and sector-portfolio models, not industrial instances
 - Branch-and-cut with tree cuts + strong/pseudo-cost branching, with ablation table
 - Plain B&B and B&C+strong return the same HiGHS-matching optima (102/133/6) on **synthetic** multi-knapsacks
 
@@ -67,7 +68,7 @@ strong-branch decision. Measured times:
 - Iterative (Krylov) KKT solvers for IPM. Both IPMs factor sparse systems directly (LP: `A D Aᵀ`; QP: quasi-definite augmented KKT) with a single-threaded, non-supernodal LDLᵀ and exact minimum-degree ordering; dense LU is used for small or dense systems
 - Official MIPLIB **full MILP** competitiveness (converter + LP-relax are solid; B&B search is not yet)
 - Synthetic multi-knapsack / set-partition under `datasets/miplib/` are ablation fixtures, **not** official MIPLIB IDs
-- Million-variable industrial scale not claimed
+- Million-variable scale is shown only on synthetic structured LP/QP (scale ladder); real instances of that size (Mittelmann, QPLIB) are untested, and HiGHS was not run on the 1M QP (its QP solver took 203 s at 100k)
 
 ## Pitch discipline
 
