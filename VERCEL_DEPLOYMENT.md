@@ -39,16 +39,17 @@ No Git repository is required for that path.
 ## 3. Connect your GPU computer
 
 On the GPU computer, clone the backend repository and install Python 3.10+, CMake,
-the NVIDIA driver, CUDA Toolkit, and a compatible C++ compiler. In that repository:
+the NVIDIA driver, and a C++ compiler. The CUDA Toolkit is not needed: the engine
+loads the driver at run time. In that repository:
 
 ```powershell
 python -m pip install .
-cmake -S . -B build-gpu -A x64 -DSOVEREIGN_USE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=native -DSOVEREIGN_BUILD_TESTS=OFF
+cmake -S . -B build-gpu -A x64 -DSOVEREIGN_BUILD_TESTS=OFF
 cmake --build build-gpu --config Release --target sovereign -j 8
 .\build-gpu\solver\Release\sovereign.exe capabilities
 ```
 
-`cuda_available` must be `true`. Linux builds omit `-A x64` and use
+`cuda_available` must be `true`; if not, `cuda_reason` explains why. Linux builds omit `-A x64` and use
 `-DCMAKE_BUILD_TYPE=Release`; the executable is `./build-gpu/solver/sovereign`.
 In the website's **Machines** view, create a worker key. Start the connector with
 the **frontend** URL and the built solver path:

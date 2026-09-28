@@ -3,6 +3,7 @@
 #include "sovereign/mps_io.hpp"
 #include "sovereign/verifier.hpp"
 #include "sovereign/gpu_spmv.hpp"
+#include "sovereign/cuda_driver.hpp"
 #include <nlohmann/json.hpp>
 #include <cstdlib>
 
@@ -47,10 +48,9 @@ int cmd_solve(int argc, char** argv) {
   }
 
   try {
-    const char* requested = std::getenv("SOVEREIGN_DEVICE");
-    const std::string device = requested ? requested : "cpu";
+    const std::string device = sovereign::requested_device();
     if (device == "cuda" && !sovereign::gpu_available()) {
-      throw std::runtime_error("CUDA requested but unavailable. Build with SOVEREIGN_USE_CUDA=ON and check the NVIDIA driver.");
+      throw std::runtime_error("CUDA requested but unavailable: " + sovereign::cuda::device_info().reason);
     }
     sovereign::reset_gpu_operations();
     // Dispatch on the file extension so .mps and .json both work. Reading an
@@ -65,6 +65,7 @@ int cmd_solve(int argc, char** argv) {
     auto payload = nlohmann::json::parse(sovereign::result_to_json_string(result));
     payload["requested_device"] = device;
     payload["gpu_operations"] = sovereign::gpu_operations();
+    payload["gpu_factorizations"] = sovereign::gpu_factorizations();
     payload["gpu_used"] = sovereign::gpu_operations() > 0;
     const std::string result_json = payload.dump(2);
     std::cout << result_json << "\n";
@@ -102,8 +103,23 @@ int main(int argc, char** argv) {
 
   const std::string cmd = argv[1];
   if (cmd == "capabilities") {
-    std::cout << nlohmann::json{{"version", "1.1.0"},
-      {"cuda_available", sovereign::gpu_available()}, {"gpu_acceleration", "sparse-matrix-vector"}}.dump() << "\n";
+    const auto& gpu = sovereign::cuda::device_info();
+    nlohmann::json caps = {{"version", "1.2.0"},
+                           {"cuda_available", gpu.available},
+                           {"cuda_backend", "driver-api"},
+                           {"cuda_reason", gpu.reason},
+                           {"gpu_acceleration", "dense-lu,sparse-matrix-vector"}};
+    if (!gpu.name.empty()) {
+      caps["gpu_name"] = gpu.name;
+      caps["gpu_compute_capability"] =
+          std::to_string(gpu.compute_major) + "." + std::to_string(gpu.compute_minor);
+      caps["gpu_memory_mb"] = static_cast<unsigned long long>(gpu.memory_bytes >> 20);
+    }
+    if (gpu.driver_version > 0) {
+      caps["cuda_driver_version"] =
+          std::to_string(gpu.driver_version / 1000) + "." + std::to_string(gpu.driver_version % 1000 / 10);
+    }
+    std::cout << caps.dump() << "\n";
     return 0;
   }
   if (cmd == "version") {

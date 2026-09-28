@@ -21,37 +21,21 @@ This is a private, single-workspace product. The workspace key controls all jobs
 
 Install Python 3.10+, CMake 3.24+, Git, and a C++17 compiler. Windows: Visual Studio 2022 with Desktop development with C++. Linux: GCC or Clang. Clone this repository on the compute machine.
 
-### NVIDIA GPU on Windows
+### One build for CPU and NVIDIA GPU machines
 
-Install a current NVIDIA driver and a CUDA Toolkit compatible with your GPU and compiler. The RTX 5050 requires a recent toolkit supporting Blackwell (CUDA 12.8 or newer); use the toolkit's supported compiler version. A driver alone does not provide `nvcc`.
-
-From a Developer PowerShell for Visual Studio, in the repository root:
+The engine loads the NVIDIA driver (`nvcuda.dll` / `libcuda.so.1`) at run time and ships its GPU kernels as PTX that the driver compiles for the installed card. No CUDA Toolkit or `nvcc` is needed; an NVIDIA driver is enough.
 
 ```powershell
-cmake -S . -B build-gpu -A x64 -DSOVEREIGN_USE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=native -DSOVEREIGN_BUILD_TESTS=OFF
-cmake --build build-gpu --config Release --target sovereign -j 8
-.\build-gpu\solver\Release\sovereign.exe capabilities
-```
-
-`cuda_available` must be `true`. If compiler detection fails, check that `nvcc --version` works and use a toolkit-supported Visual Studio compiler. GPU jobs stay queued when only CPU workers are connected.
-
-### NVIDIA GPU on Linux
-
-```bash
-cmake -S . -B build-gpu -DCMAKE_BUILD_TYPE=Release -DSOVEREIGN_USE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=native -DSOVEREIGN_BUILD_TESTS=OFF
-cmake --build build-gpu --target sovereign -j 8
-./build-gpu/solver/sovereign capabilities
-```
-
-### CPU machine (also works without CUDA)
-
-```powershell
-cmake -S . -B build-cloud -A x64 -DSOVEREIGN_USE_CUDA=OFF
+cmake -S . -B build-cloud -A x64
 cmake --build build-cloud --config Release --target sovereign -j 8
 .\build-cloud\solver\Release\sovereign.exe capabilities
 ```
 
-On Linux/macOS omit `-A x64`, add `-DCMAKE_BUILD_TYPE=Release`, and use `./build-cloud/solver/sovereign`. Apple's GPUs are not CUDA devices; macOS workers currently run on CPU.
+On a GPU machine `cuda_available` is `true` and `gpu_name` names the card. Otherwise `cuda_reason` says why (no driver, driver too old, no device, or a failed kernel self-test). Set `SOVEREIGN_DISABLE_CUDA=1` to force CPU. GPU jobs stay queued when only CPU workers are connected.
+
+On Linux/macOS omit `-A x64`, add `-DCMAKE_BUILD_TYPE=Release`, and use `./build-cloud/solver/sovereign`. Apple's GPUs are not CUDA devices; macOS workers run on CPU.
+
+CUDA accelerates the dense factorization in LP and QP interior point. Automatic routing sends those jobs to a CUDA worker once the factorized system reaches 400 rows (`SOVEREIGN_GPU_MIN_ROWS` on the coordinator; `SOVEREIGN_GPU_AUTO_ENABLED=0` turns it off). Simplex, Frank-Wolfe and branch-and-bound run on CPU.
 
 ## 3. Connect a worker
 

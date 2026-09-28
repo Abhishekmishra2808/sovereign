@@ -93,29 +93,54 @@ class CloudTests(unittest.TestCase):
         self.assertEqual(qp.status_code, 422)
         self.assertIn("CPU", qp.json()["detail"])
 
-    def test_auto_routing_defaults_to_cpu_after_measured_gpu_trials(self):
+    def test_cuda_rejects_milp(self):
+        milp = json.dumps({"problem_type": "MILP", "variables": [{"name": "x", "type": "integer"}],
+            "objective": {"linear": {"x": 1}}})
+        response = self.client.post("/api/jobs", headers=self.admin,
+            json={"modelJson": milp, "device": "cuda"})
+        self.assertEqual(response.status_code, 422)
+        self.assertIn("dual simplex", response.json()["detail"])
+
+    def test_auto_routing_uses_dense_system_size(self):
+        small = json.dumps({"variables": [{"name": "x"}],
+            "constraints": [{"name": "row", "linear": {"x": 1}, "sense": "<=", "rhs": 2}],
+            "objective": {"linear": {"x": 1}}})
+        route = self.client.post("/api/route", headers=self.admin, json={"modelJson": small}).json()
+        self.assertEqual(route["preferred_device"], "cpu")
+        self.assertEqual(route["policy"], "measured-dense-v3")
+        self.assertIn("Small", route["reason"])
+        variables = [{"name": f"x{j}", "upper_bound": 5} for j in range(250)]
+        rows = [{"name": f"r{i}", "linear": {f"x{i}": 1}, "sense": "<=", "rhs": 2} for i in range(200)]
+        large = json.dumps({"variables": variables, "constraints": rows, "objective": {"linear": {"x0": 1}}})
+        route = self.client.post("/api/route", headers=self.admin, json={"modelJson": large}).json()
+        self.assertEqual(route["dense_order"], 450)
+        self.assertEqual(route["preferred_device"], "cuda")
+        simplex = self.client.post("/api/route", headers=self.admin,
+            json={"modelJson": large, "algorithm": "simplex"}).json()
+        self.assertEqual(simplex["preferred_device"], "cpu")
+
+    def test_auto_routing_can_be_disabled(self):
         self.pair("CPU")
         _, gpu = self.pair("GPU")
         large_model = json.dumps({"variables": [{"name": "x"}],
             "constraints": [{"name": "row", "linear": {"x": 1}, "sense": "<=", "rhs": 2}],
             "objective": {"linear": {"x": 1}}})
-        with patch.dict(os.environ, {"SOVEREIGN_GPU_MIN_NONZEROS": "1",
+        with patch.dict(os.environ, {"SOVEREIGN_GPU_MIN_ROWS": "1",
                                       "SOVEREIGN_GPU_AUTO_ENABLED": "0"}):
             self.assertIsNone(self.claim(gpu, cuda_available=True))
             job_id = self.submit(modelJson=large_model)
             claimed = self.claim(gpu, cuda_available=True)
             self.assertEqual(claimed["id"], job_id)
             self.assertEqual(claimed["request"]["executionDevice"], "cpu")
-            self.assertEqual(claimed["request"]["routing"]["policy"], "cpu-baseline-v2")
+            self.assertIn("turned off", claimed["request"]["routing"]["reason"])
 
-    def test_experimental_auto_routing_prefers_online_gpu_and_falls_back(self):
+    def test_auto_routing_prefers_online_gpu_and_falls_back(self):
         cpu_id, cpu = self.pair("CPU")
         gpu_id, gpu = self.pair("GPU")
         large_model = json.dumps({"variables": [{"name": "x"}],
             "constraints": [{"name": "row", "linear": {"x": 1}, "sense": "<=", "rhs": 2}],
             "objective": {"linear": {"x": 1}}})
-        with patch.dict(os.environ, {"SOVEREIGN_GPU_MIN_NONZEROS": "1",
-                                      "SOVEREIGN_GPU_AUTO_ENABLED": "1"}):
+        with patch.dict(os.environ, {"SOVEREIGN_GPU_MIN_ROWS": "1"}):
             self.assertIsNone(self.claim(gpu, cuda_available=True))
             job_id = self.submit(modelJson=large_model)
             self.assertIsNone(self.claim(cpu))

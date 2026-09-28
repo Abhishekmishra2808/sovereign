@@ -1,14 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(sovereign_mono C)
 
-# CUDA support option
-option(SOVEREIGN_USE_CUDA "Enable CUDA GPU acceleration" OFF)
-
-if(SOVEREIGN_USE_CUDA)
-  enable_language(CUDA)
-  find_package(CUDAToolkit REQUIRED)
-  add_definitions(-DSOVEREIGN_USE_CUDA)
-endif()
+# CUDA needs no build option: gpu/src/cuda_driver.cpp loads the NVIDIA driver
+# at run time, so every build can use a GPU when one is installed.
 
 # ---------------------------------------------------------------------------
 # Monocypher: Ed25519 verification + SHA-256.
@@ -58,25 +52,8 @@ add_library(sovereign_core
   heuristics/src/heuristics.cpp
   presolve/src/presolve.cpp
   gpu/src/gpu_spmv.cpp
+  gpu/src/cuda_driver.cpp
 )
-
-# Add CUDA source if enabled
-if(SOVEREIGN_USE_CUDA)
-  add_library(sovereign_cuda
-    gpu/src/cuda_spmv.cu
-  )
-  set_target_properties(sovereign_cuda PROPERTIES
-    CUDA_STANDARD 17
-    CUDA_STANDARD_REQUIRED ON
-    CUDA_SEPARABLE_COMPILATION OFF
-  )
-  target_include_directories(sovereign_cuda
-    PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/gpu/include
-  )
-  target_link_libraries(sovereign_core PUBLIC sovereign_cuda)
-  target_link_libraries(sovereign_core PUBLIC CUDA::cudart)
-endif()
 
 target_include_directories(sovereign_core
   PUBLIC
@@ -96,6 +73,7 @@ find_package(Threads REQUIRED)
 target_link_libraries(sovereign_core PUBLIC nlohmann_json::nlohmann_json)
 target_link_libraries(sovereign_core PUBLIC Threads::Threads)
 target_link_libraries(sovereign_core PUBLIC monocypher)
+target_link_libraries(sovereign_core PUBLIC ${CMAKE_DL_LIBS})
 
 add_executable(sovereign cli/main.cpp)
 target_link_libraries(sovereign PRIVATE sovereign_core)

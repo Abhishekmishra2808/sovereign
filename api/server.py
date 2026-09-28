@@ -94,7 +94,7 @@ def _engine_build_info() -> dict[str, Any]:
         "path": str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path),
         "version": version,
         "compiler": platform.python_version() and _compiler_name(),
-        "cuda": _has_cuda(),
+        "cuda": _has_cuda(path),
     }
 
 
@@ -104,11 +104,15 @@ def _compiler_name() -> str:
     return f"{system} {platform.release()} ({platform.machine()})"
 
 
-def _has_cuda() -> bool:
-    """CUDA is opt-in at build time; report honestly rather than guessing."""
-    return (ROOT / "build" / "CMakeCache.txt").is_file() and "SOVEREIGN_USE_CUDA=ON" in (
-        ROOT / "build" / "CMakeCache.txt"
-    ).read_text(errors="ignore")
+def _has_cuda(path: Path) -> bool:
+    """Ask the engine: it probes the NVIDIA driver and self-tests its kernels."""
+    try:
+        proc = subprocess.run(
+            [str(path), "capabilities"], capture_output=True, text=True, timeout=30, check=False
+        )
+        return bool(json.loads(proc.stdout).get("cuda_available"))
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return False
 
 
 # --------------------------------------------------------------------------- #

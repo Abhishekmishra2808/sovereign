@@ -56,18 +56,33 @@ def highs_version():
 
 
 def capabilities(engine):
-    info = json.loads(subprocess.check_output([engine, "capabilities"], text=True, timeout=15))
-    gpu_name = ""
-    try:
-        gpu_name = subprocess.check_output(["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
-                                           text=True, timeout=10).strip()[:250]
-    except (OSError, subprocess.SubprocessError):
-        pass
+    info = json.loads(subprocess.check_output([engine, "capabilities"], text=True, timeout=30))
+    gpu_name = info.get("gpu_name", "")
+    if not gpu_name:
+        try:
+            gpu_name = subprocess.check_output(["nvidia-smi", "--query-gpu=name", "--format=csv,noheader"],
+                                               text=True, timeout=10).strip().splitlines()[0]
+        except (OSError, subprocess.SubprocessError, IndexError):
+            pass
+    cuda = bool(info.get("cuda_available"))
+    reason = "" if cuda else info.get("cuda_reason") or (
+        "This engine build cannot use CUDA; update it to 1.2.0 or later." if gpu_name else "")
     highs = highs_version()
     return {"hostname": socket.gethostname(), "platform": platform.system(), "cpu_threads": os.cpu_count() or 1,
-            "cuda_available": bool(info.get("cuda_available")), "gpu_name": gpu_name,
+            "cuda_available": cuda, "gpu_name": gpu_name[:250], "cuda_reason": reason[:500],
+            "cuda_driver_version": str(info.get("cuda_driver_version", ""))[:20],
+            "gpu_compute_capability": str(info.get("gpu_compute_capability", ""))[:20],
+            "gpu_memory_mb": int(info.get("gpu_memory_mb", 0) or 0),
             "engine_version": info.get("version", "unknown"),
             "reference_solvers": ["highs"] if highs else [], "highs_version": highs}
+
+
+def describe_gpu(caps):
+    if caps["cuda_available"]:
+        return f"CUDA ready on {caps['gpu_name']} ({caps['gpu_memory_mb']} MB, driver CUDA {caps['cuda_driver_version']})"
+    if caps["gpu_name"]:
+        return f"{caps['gpu_name']} found but CUDA is unavailable: {caps['cuda_reason']}"
+    return "CPU only (no NVIDIA GPU found)"
 
 
 def highs_reference(path, limit):
@@ -279,8 +294,19 @@ def fit_completion(completion):
 
 def run(client, engine, once=False):
     caps = capabilities(engine)
-    print(f"Connected worker: {caps['hostname']} | CUDA {'ready' if caps['cuda_available'] else 'unavailable'}", flush=True)
+    print(f"Connected worker: {caps['hostname']} | {describe_gpu(caps)}", flush=True)
+    refreshed = time.monotonic()
     while True:
+        # Re-probe so a rebuilt engine or a driver update shows up without re-pairing.
+        if time.monotonic() - refreshed > 300:
+            try:
+                fresh = capabilities(engine)
+                if fresh != caps:
+                    print(f"Capabilities changed: {describe_gpu(fresh)}", flush=True)
+                caps = fresh
+            except (OSError, subprocess.SubprocessError, ValueError):
+                pass
+            refreshed = time.monotonic()
         try:
             job = client.post("/api/worker/claim", caps)["job"]
             if job:

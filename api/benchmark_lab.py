@@ -26,7 +26,9 @@ PROFILES = {
     "qp_ipm": {"label": "QP interior point", "kind": "QP", "config": {"qpAlgorithm": "ipm"}},
     "qp_fw": {"label": "Frank-Wolfe", "kind": "QP", "config": {"qpAlgorithm": "frank_wolfe"}},
 }
-CPU_ONLY_PROFILES = {"lp_simplex", "qp_fw"}
+# Branch and bound solves node LPs with the dual simplex, so MILP never reaches
+# the GPU interior-point factorization.
+CPU_ONLY_PROFILES = {"lp_simplex", "qp_fw", "milp_bc", "milp_bb"}
 
 PRESETS = [
     {"id": "quick", "label": "Quick demo", "description": "One model from every family. About a minute on a laptop.",
