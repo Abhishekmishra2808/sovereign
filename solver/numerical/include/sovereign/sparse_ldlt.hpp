@@ -75,11 +75,16 @@ class SparseLDLT {
 
   // Numerical diagnostics
   double min_pivot() const { return min_pivot_; }
+  double max_pivot() const { return max_pivot_; }
   double regularization_used() const { return regularization_used_; }
 
  private:
   std::size_t n_ = 0;
   bool ok_ = false;
+
+  // Input pattern (stored during symbolic analysis)
+  std::vector<int> input_col_ptr_;  // Original unpermuted pattern
+  std::vector<int> input_row_idx_;
 
   // Symbolic phase results
   std::vector<int> perm_;      // AMD permutation: perm[k] = original col
@@ -102,6 +107,7 @@ class SparseLDLT {
   double numeric_time_ = 0.0;
   mutable double solve_time_ = 0.0;
   double min_pivot_ = 0.0;
+  double max_pivot_ = 0.0;
   double regularization_used_ = 0.0;
   std::size_t input_nnz_ = 0;  // nnz of input pattern for fill ratio
 };

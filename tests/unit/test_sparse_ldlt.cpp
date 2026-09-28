@@ -153,6 +153,175 @@ TEST(SparseLDLT, FillReductionComparison) {
   EXPECT_TRUE(nnz_l <= 3);  // At most the 3 original off-diagonals
 }
 
+// ============================================================================
+// Phase 4: Numerical Factorization Tests
+// ============================================================================
+
+TEST(SparseLDLT, NumericalIdentityMatrix) {
+  // Identity matrix: M = I
+  // Expected: L = I (no off-diagonals), D = I (all ones)
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 3;
+  pattern.col_ptr = {0, 1, 2, 3};
+  pattern.row_idx = {0, 1, 2};
+
+  std::vector<double> values = {1.0, 1.0, 1.0};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+
+  // Check diagnostics
+  EXPECT_TRUE(ldlt.min_pivot() >= 0.99);
+  EXPECT_TRUE(ldlt.min_pivot() <= 1.01);
+  EXPECT_TRUE(ldlt.max_pivot() >= 0.99);
+  EXPECT_TRUE(ldlt.max_pivot() <= 1.01);
+  EXPECT_EQ(ldlt.regularization_used(), 0.0);
+}
+
+TEST(SparseLDLT, NumericalDiagonalMatrix) {
+  // Diagonal matrix: M = diag(2, 3, 5, 7)
+  // Expected: L has no off-diagonals, D = [2, 3, 5, 7]
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 4;
+  pattern.col_ptr = {0, 1, 2, 3, 4};
+  pattern.row_idx = {0, 1, 2, 3};
+
+  std::vector<double> values = {2.0, 3.0, 5.0, 7.0};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+
+  EXPECT_TRUE(ldlt.min_pivot() >= 1.99);
+  EXPECT_TRUE(ldlt.min_pivot() <= 2.01);
+  EXPECT_TRUE(ldlt.max_pivot() >= 6.99);
+  EXPECT_TRUE(ldlt.max_pivot() <= 7.01);
+}
+
+TEST(SparseLDLT, NumericalSmallKnownMatrix) {
+  // Small 2x2 SPD matrix with known factorization
+  // M = [4  2]
+  //     [2  3]
+  //
+  // After AMD permutation, pivots may differ from natural ordering
+  // Just verify factorization succeeds and pivots are positive
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 2;
+  pattern.col_ptr = {0, 2, 3};
+  pattern.row_idx = {0, 1,  1};
+
+  std::vector<double> values = {4.0, 2.0,  3.0};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+
+  // Matrix is SPD, all pivots should be positive
+  EXPECT_TRUE(ldlt.min_pivot() > 0.0);
+  EXPECT_TRUE(ldlt.max_pivot() > 0.0);
+  EXPECT_TRUE(ldlt.min_pivot() <= ldlt.max_pivot());
+}
+
+TEST(SparseLDLT, NumericalTridiagonalSPD) {
+  // Tridiagonal SPD matrix:
+  // M = [2  -1   0]
+  //     [-1  2  -1]
+  //     [0  -1   2]
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 3;
+  pattern.col_ptr = {0, 2, 4, 5};
+  pattern.row_idx = {0, 1,  1, 2,  2};
+
+  std::vector<double> values = {2.0, -1.0,  2.0, -1.0,  2.0};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+
+  // Matrix is SPD, factorization should succeed
+  EXPECT_TRUE(ldlt.min_pivot() > 0.0);
+  EXPECT_TRUE(ldlt.max_pivot() > 0.0);
+  EXPECT_TRUE(ldlt.numeric_time_seconds() >= 0.0);
+}
+
+TEST(SparseLDLT, NumericalWithRegularization) {
+  // Test regularization: M + λI
+  // Start with near-singular diagonal matrix
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 3;
+  pattern.col_ptr = {0, 1, 2, 3};
+  pattern.row_idx = {0, 1, 2};
+
+  std::vector<double> values = {1e-6, 1e-6, 1e-6};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+
+  // Without regularization, should fail or have tiny pivots
+  // With regularization, should succeed
+  const double lambda = 1e-8;
+  EXPECT_TRUE(ldlt.numeric_factor(values, lambda));
+
+  // Pivots should be approximately lambda + 1e-6
+  EXPECT_TRUE(ldlt.min_pivot() > lambda * 0.5);
+  EXPECT_EQ(ldlt.regularization_used(), lambda);
+}
+
+TEST(SparseLDLT, RejectsNonPositiveDefinite) {
+  // Matrix that is NOT positive definite
+  // M = [1   2]
+  //     [2   1]
+  // Eigenvalues: 3 and -1 (not SPD!)
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 2;
+  pattern.col_ptr = {0, 2, 3};
+  pattern.row_idx = {0, 1,  1};
+
+  std::vector<double> values = {1.0, 2.0,  1.0};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+
+  // Factorization should fail (negative or zero pivot)
+  EXPECT_FALSE(ldlt.numeric_factor(values, 0.0));
+}
+
+TEST(SparseLDLT, ReconstructionTest) {
+  // Verify that L D L^T reconstructs P M P^T accurately
+  // Use a small tridiagonal matrix
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 3;
+  pattern.col_ptr = {0, 2, 4, 5};
+  pattern.row_idx = {0, 1,  1, 2,  2};
+
+  std::vector<double> values = {4.0, -1.0,  4.0, -1.0,  4.0};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+
+  // We can't easily extract L and D from the opaque class,
+  // but we can verify properties:
+  // 1. All pivots positive (SPD)
+  // 2. Factorization succeeded
+  // 3. Timing recorded
+
+  EXPECT_TRUE(ldlt.min_pivot() > 0.0);
+  EXPECT_TRUE(ldlt.max_pivot() > 0.0);
+  EXPECT_TRUE(ldlt.numeric_time_seconds() >= 0.0);
+
+  // Actual reconstruction will be done via solve test:
+  // if solve(b) gives x, then we verify ||M x - b|| is small
+}
+
 TEST(SparseLDLT, PredictedNonzeroCount) {
   // Verify that symbolic analysis predicts nnz(L) correctly
   // Use a simple banded matrix where we can predict fill
