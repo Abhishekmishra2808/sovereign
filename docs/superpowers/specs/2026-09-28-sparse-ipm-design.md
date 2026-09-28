@@ -1,7 +1,7 @@
 # Sparse IPM Linear Algebra - Detailed Design
 **Date:** 2026-09-28  
 **Status:** Design Phase  
-**Target:** Replace dense m×m normal equations with sparse Cholesky factorization
+**Target:** Replace dense m×m normal equations with sparse LDL^T factorization
 
 ---
 
@@ -18,46 +18,72 @@ M dy = rhs    where M = A D A^T
 
 1. **D is strictly positive diagonal:**
    ```cpp
-   d[j] = x[j] / s[j]    where x[j], s[j] > 1e-16
+   const double xj = std::max(x[j], 1e-16);
+   const double sj = std::max(s[j], 1e-16);
+   d[j] = xj / sj;
    ```
    - IPM maintains x > 0, s > 0 (interior point constraint)
    - Code floors both at 1e-16
-   - Therefore d[j] ≥ 1e-16 / 1e-16 = 1.0
+   - **Therefore d[j] > 0** (strictly positive, but NOT bounded below by 1.0)
+   - Example: xj = 1e-16, sj = 100 → d[j] = 1e-18
 
-2. **M is symmetric positive semi-definite:**
+2. **M = A D A^T is symmetric positive semi-definite:**
+   
+   For any vector v:
    ```
-   v^T M v = v^T A D A^T v = (A^T v)^T D (A^T v) = ||D^{1/2} A^T v||^2 ≥ 0
+   v^T M v = v^T (A D A^T) v
+          = (A^T v)^T D (A^T v)
+          ≥ 0
    ```
+   
+   Because every diagonal entry d[j] > 0, the quadratic form is non-negative.
+   
+   Therefore **M is symmetric positive semi-definite**.
 
-3. **M becomes positive definite with regularization:**
+3. **Rank and positive-definiteness:**
+   - If rank(A) = m (full row rank): M is positive definite
+   - If rank(A) < m: M is singular (positive semi-definite but not definite)
+
+4. **Regularization:**
+   
+   Current code adds regularization:
+   ```cpp
+   M_col_major[i * m + i] += 1e-12;  // Line 79 of interior_point.cpp
    ```
-   M_reg = M + ε I    where ε = 1e-12 (current hardcoded value)
+   
+   This produces:
    ```
+   M_reg = A D A^T + λ I    where λ = 1e-12
+   ```
+   
+   For λ > 0, M_reg is **strictly positive definite** regardless of rank(A).
 
-4. **Rank considerations:**
-   - If rank(A) = m: M is positive definite (no regularization needed)
-   - If rank(A) < m: M is singular → regularization essential
+**Design decision: Sparse LDL^T factorization for symmetric positive-definite systems**
 
-**Design decision: Use sparse Cholesky factorization**
-
-Since M is guaranteed symmetric positive semi-definite and regularization makes it positive definite, we use:
+The regularized matrix M_reg is symmetric positive-definite. We factor it as:
 
 ```
-M_reg = L D L^T
+P M_reg P^T = L D L^T
 ```
 
 Where:
-- L is unit lower triangular
-- D is positive diagonal
+- P is a fill-reducing permutation (from AMD ordering)
+- L is unit lower triangular (diagonal entries = 1)
+- D is strictly positive diagonal
 
-This is **not** the indefinite LDL^T with 2×2 pivots. It's the symmetric positive-definite LDL^T (equivalent to Cholesky LL^T but without square roots).
+**This is LDL^T factorization for symmetric positive-definite matrices, NOT:**
+- Cholesky LL^T (which uses L L^T = M with non-unit diagonal L)
+- Indefinite LDL^T (which requires 1×1 and 2×2 pivot blocks)
 
-**Rationale:**
-- ✅ Exploits positive-definiteness guaranteed by IPM
-- ✅ No square roots (more stable than LL^T)
-- ✅ Simple diagonal pivoting (check D[k] > 0)
-- ✅ No 2×2 indefinite blocks needed
-- ✅ ~500 lines simpler than indefinite factorization
+**Algorithm:**
+- Left-looking LDL^T with diagonal pivoting
+- Check D[k] > 0 at each step (guaranteed for SPD matrix)
+- If D[k] ≤ ε_pivot: increase regularization or fail
+
+**Why LDL^T instead of Cholesky LL^T:**
+- Avoids square roots (L D L^T extracts diagonal explicitly)
+- Numerically equivalent for SPD systems
+- Slightly easier to implement and debug
 
 ---
 
@@ -221,10 +247,16 @@ class AMDOrdering {
 3. Elimination order = permutation
 
 **Implementation notes:**
-- Use degree heap for O(n log n) complexity
+- Use degree heap for efficient minimum-degree selection
 - Approximate degree (includes elements, not exact)
 - Aggressive absorption to reduce graph size
 - ~300-400 lines
+
+**Complexity:**
+- Theoretical worst-case can be O(n³) for dense graphs
+- Practical performance depends on sparsity structure
+- Measure `ordering_time` empirically for target problems
+- Typically sub-second for m ≤ 10k sparse matrices
 
 **Alternatives NOT implemented initially:**
 - COLAMD (for rectangular A)
@@ -234,16 +266,16 @@ class AMDOrdering {
 
 ---
 
-### 3.3 Sparse Cholesky LDL^T
+### 3.3 Sparse LDL^T Factorization
 
-**File:** `solver/numerical/include/sovereign/sparse_cholesky.hpp`
+**File:** `solver/numerical/include/sovereign/sparse_ldlt.hpp`
 
 ```cpp
 namespace sovereign {
 
 // Sparse symmetric positive-definite factorization: M = L D L^T
 // where L is unit lower triangular, D is positive diagonal
-class SparseCholesky {
+class SparseLDLT {
  public:
   // Two-phase factorization
   
@@ -347,16 +379,45 @@ Apply inverse permutation: x_orig = P^T x
 
 **Regularization:**
 
-If numeric_factor fails (D[k] ≤ 0 or very small):
+The factorization operates on:
 ```
-M_reg = M + λ I
+M_reg = M + λ I    where M = A D A^T
 ```
 
-Retry with λ = 1e-12, 1e-10, 1e-8, 1e-6
+**Initial regularization:** λ = 1e-12 (matches current dense implementation)
 
-If still fails → return error, caller falls back to dense
+**Adaptive strategy if factorization fails:**
+1. Try λ = 1e-12
+2. If D[k] ≤ ε_pivot (e.g., 1e-14), increase λ
+3. Retry sequence: λ = 1e-10, 1e-8, 1e-6
+4. If all fail → return error, caller falls back to dense
 
-**Key invariant:** Diagonal D[k] checked > epsilon (e.g., 1e-14) for numerical safety
+**Diagnostics to record:**
+```cpp
+struct RegularizationInfo {
+  double lambda_used;           // Final regularization value
+  int num_attempts;             // Number of factorization attempts
+  bool succeeded;               // Whether factorization succeeded
+  double min_pivot;             // Minimum diagonal D[k] encountered
+  int pivot_failures;           // Number of pivots that violated D[k] > 0
+};
+```
+
+**Residual tracking:**
+
+After solving `M_reg dy = rhs`, compute:
+```
+factorization_residual = ||M_reg dy - rhs|| / ||rhs||
+```
+
+If λ > 0, also compute (when feasible):
+```
+original_residual = ||M dy - rhs|| / ||rhs||
+```
+
+Note: `original_residual` may be large if M is singular (expected).
+
+**Critical:** Do not silently modify the system. Record λ explicitly in solver output.
 
 ---
 
@@ -375,7 +436,7 @@ struct IpmLinearSolverState {
   // Sparse state
   struct SparseState {
     SparseSymmetricPattern pattern;
-    SparseCholesky cholesky;
+    SparseLDLT ldlt;
     bool symbolic_done = false;
     std::vector<double> m_values;
   };
@@ -442,7 +503,7 @@ bool solve_newton_with_backend(
     // First iteration: symbolic analysis
     if (!state.sparse->symbolic_done) {
       state.sparse->pattern = build_normal_eq_pattern(lp.A);
-      if (!state.sparse->cholesky.symbolic_analyze(state.sparse->pattern)) {
+      if (!state.sparse->ldlt.symbolic_analyze(state.sparse->pattern)) {
         // Fall back to dense
         return solve_newton_dense(lp, ...);
       }
@@ -454,9 +515,9 @@ bool solve_newton_with_backend(
     
     // Add regularization
     const double reg = 1e-12;
-    if (!state.sparse->cholesky.numeric_factor(state.sparse->m_values, reg)) {
+    if (!state.sparse->ldlt.numeric_factor(state.sparse->m_values, reg)) {
       // Try stronger regularization
-      if (!state.sparse->cholesky.numeric_factor(state.sparse->m_values, 1e-10)) {
+      if (!state.sparse->ldlt.numeric_factor(state.sparse->m_values, 1e-10)) {
         // Fall back to dense
         return solve_newton_dense(lp, ...);
       }
@@ -464,7 +525,7 @@ bool solve_newton_with_backend(
     
     // Solve
     dy = rhs;
-    if (!state.sparse->cholesky.solve(dy)) {
+    if (!state.sparse->ldlt.solve(dy)) {
       return false;
     }
     
@@ -545,32 +606,32 @@ TEST(AMD, PermutationInverse) {
 }
 ```
 
-### 4.3 Unit Tests - Sparse Cholesky
+### 4.3 Unit Tests - Sparse LDL^T
 
-**File:** `tests/unit/test_sparse_cholesky.cpp`
+**File:** `tests/unit/test_sparse_ldlt.cpp`
 
 ```cpp
-TEST(SparseCholesky, SmallSPD) {
+TEST(SparseLDLT, SmallSPD) {
   // 5×5 SPD matrix
   // Factor, solve, verify ||Mx - b|| < 1e-12
 }
 
-TEST(SparseCholesky, CompareAgainstDense) {
-  // Same matrix through SparseCholesky and DenseLU
+TEST(SparseLDLT, CompareAgainstDense) {
+  // Same matrix through SparseLDLT and DenseLU
   // Solutions should agree within 1e-10
 }
 
-TEST(SparseCholesky, Regularization) {
+TEST(SparseLDLT, Regularization) {
   // Near-singular matrix
   // Verify regularization recovers factorization
 }
 
-TEST(SparseCholesky, LargerSparse) {
+TEST(SparseLDLT, LargerSparse) {
   // 100×100 sparse SPD
   // Measure fill ratio
 }
 
-TEST(SparseCholesky, NegativePivot) {
+TEST(SparseLDLT, NegativePivot) {
   // Non-SPD matrix (should fail)
   // Verify returns false, not crash
 }
@@ -686,20 +747,31 @@ def main():
 
 ## 6. Success Criteria
 
-### Phase 1: Correctness
+### Phase 1: Correctness (Required)
 - ✅ All existing LP tests pass with sparse backend
 - ✅ Dense vs sparse objectives agree within 1e-7
-- ✅ Residuals match within 1e-9
+- ✅ Primal/dual residuals agree within 1e-9
+- ✅ Complementarity gaps agree within 1e-9
 - ✅ No crashes, memory leaks, or undefined behavior
+- ✅ Factorization diagnostics (regularization λ, pivot magnitudes) recorded
 
-### Phase 2: Memory
-- ✅ Sparse backend does NOT allocate m×m dense storage
-- ✅ Memory usage < 10% of dense for m=10k sparse problems
+### Phase 2: Memory (Required)
+- ✅ Sparse backend does NOT allocate m×m dense storage for normal equations
+- ✅ Pattern construction uses O(nnz(M)) storage, not O(m²)
+- ✅ Factorization uses O(nnz(L)) storage, not O(m²)
 
-### Phase 3: Performance
-- ✅ Sparse faster than dense for m ≥ 500 on typical sparse LPs
-- ✅ Can solve m=10k problem (currently impossible with dense)
-- ✅ Overhead < 20% for small problems (m < 200)
+### Phase 3: Benchmarking (Required)
+- ✅ Record all metrics from section 5.2 for m = {100, 500, 1k, 5k, 10k}
+- ✅ Dense vs sparse time comparison documented
+- ✅ Fill ratios measured and reported
+- ✅ Memory usage compared
+- ✅ Scaling trends analyzed (does not require proving specific speedup thresholds)
+
+### Phase 4: Performance (Measured, not required)
+- 📊 Determine empirically where sparse becomes faster than dense
+- 📊 Measure overhead for small problems
+- 📊 Verify m=10k problems can be solved (dense cannot)
+- 📊 Document performance characteristics, do not claim "faster" without data
 
 ---
 
@@ -734,13 +806,13 @@ solver/
 │   ├── include/sovereign/
 │   │   ├── sparse_symmetric.hpp       # NEW: Pattern + value assembly
 │   │   ├── amd_ordering.hpp           # NEW: AMD implementation
-│   │   ├── sparse_cholesky.hpp        # NEW: LDL^T factorization
+│   │   ├── sparse_ldlt.hpp            # NEW: LDL^T factorization
 │   │   ├── dense_lu.hpp               # UNCHANGED
 │   │   └── sparse_lu.hpp              # UNCHANGED
 │   └── src/
 │       ├── sparse_symmetric.cpp       # NEW
 │       ├── amd_ordering.cpp           # NEW
-│       ├── sparse_cholesky.cpp        # NEW
+│       ├── sparse_ldlt.cpp            # NEW
 │       ├── dense_lu.cpp               # UNCHANGED
 │       └── sparse_lu.cpp              # UNCHANGED
 └── lp/
@@ -753,7 +825,7 @@ tests/
 ├── unit/
 │   ├── test_sparse_symmetric.cpp      # NEW
 │   ├── test_amd.cpp                   # NEW
-│   ├── test_sparse_cholesky.cpp       # NEW
+│   ├── test_sparse_ldlt.cpp           # NEW
 │   ├── test_dense_lu.cpp              # UNCHANGED
 │   └── test_sparse_lu.cpp             # UNCHANGED
 └── lp/
@@ -768,14 +840,83 @@ benchmarks/
 **Estimated LOC:**
 - sparse_symmetric.cpp: ~400 lines
 - amd_ordering.cpp: ~350 lines
-- sparse_cholesky.cpp: ~600 lines
+- sparse_ldlt.cpp: ~600 lines
 - interior_point.cpp modifications: ~200 lines
 - Tests: ~600 lines
 - **Total new code: ~2150 lines**
 
+**Note:** This is an estimate. The actual implementation should remain focused on correctness, not artificially matching a line count target.
+
 ---
 
-## 9. Implementation Order
+## 9. Pre-Implementation Verification
+
+Before writing code, verify the exact matrix being factorized:
+
+### Step 1: Inspect current dense implementation
+
+From `interior_point.cpp` lines 54-81:
+
+```cpp
+void build_normal_eq(const SparseMatrixCSC& A, const std::vector<double>& d,
+                     std::vector<double>& M_col_major) {
+  // M = A diag(d) A^T
+  const int m = static_cast<int>(A.nrows);
+  M_col_major.assign(m * m, 0.0);
+  
+  // Triple loop computes M[i,k] = Σ_j A[i,j] * d[j] * A[k,j]
+  for (int j = 0; j < n; ++j) {
+    const double dj = d[j];
+    if (dj == 0.0) continue;
+    for (int p = A.col_ptr[j]; p < A.col_ptr[j+1]; ++p) {
+      const int r = A.row_idx[p];
+      const double ar = A.values[p] * dj;
+      for (int q = A.col_ptr[j]; q < A.col_ptr[j+1]; ++q) {
+        const int c = A.row_idx[q];
+        const double ac = A.values[q];
+        M_col_major[c * m + r] += ar * ac;
+      }
+    }
+  }
+  
+  // Regularization
+  for (int i = 0; i < m; ++i) {
+    M_col_major[i * m + i] += 1e-12;
+  }
+}
+```
+
+**The matrix being factorized is:**
+```
+M_reg = A D A^T + λ I    where λ = 1e-12
+```
+
+### Step 2: Verify mathematical properties
+
+Given:
+- A is m × n constraint matrix (sparse)
+- D is n × n diagonal with d[j] = x[j] / s[j] > 0
+- λ = 1e-12 > 0
+
+Then:
+- M = A D A^T is symmetric positive semi-definite
+- M_reg = M + λ I is symmetric positive definite
+
+**Conclusion:** Sparse LDL^T factorization is mathematically valid for M_reg.
+
+### Step 3: Design consistency check
+
+- ✅ Factorization: P M_reg P^T = L D L^T (SPD algorithm)
+- ✅ No indefinite pivoting needed (M_reg is positive definite)
+- ✅ Diagonal check: D[k] > 0 (guaranteed for SPD after regularization)
+- ✅ No square roots (LDL^T form)
+- ✅ Terminology: "Sparse LDL^T factorization" (NOT "Cholesky")
+
+**Verified: Design is internally consistent.**
+
+---
+
+## 10. Implementation Order
 
 1. **Sparse symmetric pattern** (1 day)
    - Pattern construction from A
@@ -786,12 +927,12 @@ benchmarks/
    - Classic AMD algorithm
    - Unit tests
 
-3. **Sparse Cholesky - symbolic** (1-2 days)
+3. **Sparse LDL^T - symbolic** (1-2 days)
    - Elimination tree
    - Column counts
    - Sparsity pattern of L
 
-4. **Sparse Cholesky - numerical** (1-2 days)
+4. **Sparse LDL^T - numerical** (1-2 days)
    - Left-looking factorization
    - Regularization
    - Solve
@@ -815,12 +956,12 @@ benchmarks/
 
 ---
 
-## 10. Next Steps
+## 11. Next Steps
 
 After design approval:
 1. Implement sparse_symmetric.cpp
 2. Implement amd_ordering.cpp
-3. Implement sparse_cholesky.cpp
+3. Implement sparse_ldlt.cpp
 4. Integrate into interior_point.cpp
 5. Write tests
 6. Benchmark
