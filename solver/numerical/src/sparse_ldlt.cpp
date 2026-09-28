@@ -71,6 +71,7 @@ void symbolic_count(
   for (int k = 0; k < n; ++k) {
     const int j = perm[static_cast<std::size_t>(k)];
 
+    // Scan column j of original pattern (entries M[i,j] where i >= j)
     const int p_start = pattern.col_ptr[static_cast<std::size_t>(j)];
     const int p_end = pattern.col_ptr[static_cast<std::size_t>(j) + 1];
 
@@ -88,6 +89,31 @@ void symbolic_count(
         flag[static_cast<std::size_t>(curr)] = k;
         l_col_count[static_cast<std::size_t>(k)]++;
         curr = parent[static_cast<std::size_t>(curr)];
+      }
+    }
+
+    // Also scan row j (entries M[j,col] where col < j, stored as M[col,j] in column col)
+    for (int col = 0; col < j; ++col) {
+      const int col_start = pattern.col_ptr[static_cast<std::size_t>(col)];
+      const int col_end = pattern.col_ptr[static_cast<std::size_t>(col) + 1];
+
+      // Look for M[j,col] stored in column col
+      for (int p = col_start; p < col_end; ++p) {
+        const int row = pattern.row_idx[static_cast<std::size_t>(p)];
+        if (row == j) {
+          // Found entry M[j,col] - contributes to permuted structure
+          const int pcol = iperm[static_cast<std::size_t>(col)];
+          if (pcol <= k) continue;  // Only lower triangle
+
+          // Mark this row and traverse up elimination tree
+          int curr = pcol;
+          while (curr != -1 && flag[static_cast<std::size_t>(curr)] != k) {
+            flag[static_cast<std::size_t>(curr)] = k;
+            l_col_count[static_cast<std::size_t>(k)]++;
+            curr = parent[static_cast<std::size_t>(curr)];
+          }
+          break;
+        }
       }
     }
   }
@@ -155,11 +181,12 @@ bool SparseLDLT::symbolic_analyze(const SparseSymmetricPattern& pattern) {
   for (int k = 0; k < n; ++k) {
     const int j = perm_[static_cast<std::size_t>(k)];
 
-    const int p_start = pattern.col_ptr[static_cast<std::size_t>(j)];
-    const int p_end = pattern.col_ptr[static_cast<std::size_t>(j) + 1];
-
     // Collect rows in this column
     std::vector<int> rows;
+
+    // Scan column j of original pattern (entries M[i,j] where i >= j)
+    const int p_start = pattern.col_ptr[static_cast<std::size_t>(j)];
+    const int p_end = pattern.col_ptr[static_cast<std::size_t>(j) + 1];
 
     for (int p = p_start; p < p_end; ++p) {
       const int i = pattern.row_idx[static_cast<std::size_t>(p)];
@@ -175,6 +202,31 @@ bool SparseLDLT::symbolic_analyze(const SparseSymmetricPattern& pattern) {
         flag[static_cast<std::size_t>(curr)] = k;
         rows.push_back(curr);
         curr = parent_[static_cast<std::size_t>(curr)];
+      }
+    }
+
+    // Also scan row j (entries M[j,col] where col < j, stored as M[col,j] in column col)
+    for (int col = 0; col < static_cast<int>(j); ++col) {
+      const int col_start = pattern.col_ptr[static_cast<std::size_t>(col)];
+      const int col_end = pattern.col_ptr[static_cast<std::size_t>(col) + 1];
+
+      // Look for M[j,col] stored in column col
+      for (int p = col_start; p < col_end; ++p) {
+        const int row = pattern.row_idx[static_cast<std::size_t>(p)];
+        if (row == static_cast<int>(j)) {
+          // Found entry M[j,col] - contributes to permuted structure
+          const int pcol = iperm_[static_cast<std::size_t>(col)];
+          if (pcol <= k) continue;
+
+          // Traverse elimination tree and collect rows
+          int curr = pcol;
+          while (curr != -1 && flag[static_cast<std::size_t>(curr)] != k) {
+            flag[static_cast<std::size_t>(curr)] = k;
+            rows.push_back(curr);
+            curr = parent_[static_cast<std::size_t>(curr)];
+          }
+          break;
+        }
       }
     }
 

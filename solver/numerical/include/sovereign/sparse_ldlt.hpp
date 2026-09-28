@@ -78,6 +78,14 @@ class SparseLDLT {
   double max_pivot() const { return max_pivot_; }
   double regularization_used() const { return regularization_used_; }
 
+  // Debug accessors
+  const std::vector<int>& perm() const { return perm_; }
+  const std::vector<int>& iperm() const { return iperm_; }
+  const std::vector<int>& l_ptr() const { return l_ptr_; }
+  const std::vector<int>& l_idx() const { return l_idx_; }
+  const std::vector<double>& l_val() const { return l_val_; }
+  const std::vector<double>& d() const { return d_; }
+
  private:
   std::size_t n_ = 0;
   bool ok_ = false;
