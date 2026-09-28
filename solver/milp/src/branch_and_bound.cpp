@@ -173,7 +173,20 @@ SolverResult solve_node_lp(const OptimizationModel& node_model,
   }
   // Route through LpSolver so SOVEREIGN_LP_ALGORITHM=auto|ipm|simplex applies
   // to MILP node relaxations (not just standalone LPs).
-  return presolver.recover(LpSolver().solve(prep.reduced), prep, relax.sense);
+  SolverResult result = presolver.recover(LpSolver().solve(prep.reduced), prep, relax.sense);
+
+  // Retry with pure simplex if auto mode returns NUMERICAL_ERROR
+  // Sometimes IPM warmstart corrupts the simplex solve; pure simplex can succeed
+  if (result.status == SolverStatus::NumericalError) {
+    SolverResult simplex_result = presolver.recover(
+        LpSolver().solve(prep.reduced, "simplex"), prep, relax.sense);
+    if (simplex_result.status == SolverStatus::Optimal ||
+        simplex_result.status == SolverStatus::Feasible) {
+      return simplex_result;
+    }
+  }
+
+  return result;
 }
 
 #if defined(_WIN32)
