@@ -418,6 +418,11 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
   RevisedSimplexOptions lp_opt;
   lp_opt.feasibility_tol = options_.feasibility_tol;
   lp_opt.enable_scaling = true;
+  // PART 2: Reduce refactor frequency for B&B node LPs
+  // Node LPs are small and warm-started. Shorter eta chains (refactor every 20
+  // pivots instead of 64) reduce numerical drift and prevent cycling from
+  // accumulated rounding errors in product-form updates.
+  lp_opt.refactor_every = 20;
 
   const Sense sense = model.sense;
   const bool parallel_strong = options_.parallel_workers != 1;
