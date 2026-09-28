@@ -542,7 +542,26 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
       }
       continue;
     }
-    if (!lp.has_objective_value) continue;
+
+    // FEASIBLE status may have valid primal solution to check for integrality,
+    // even without proven objective. Extract objective from primal if needed.
+    const bool has_proven_bound = lp.has_objective_value;
+    double node_obj = 0.0;
+    if (has_proven_bound) {
+      node_obj = lp.objective_value;
+    } else if (!lp.primal.empty()) {
+      // FEASIBLE without proven objective - compute from primal
+      node_obj = node.model.objective.constant;
+      for (const auto& kv : node.model.objective.linear) {
+        auto it = lp.primal.find(kv.first);
+        if (it != lp.primal.end()) {
+          node_obj += kv.second * it->second;
+        }
+      }
+    } else {
+      // No primal solution at all - skip this node
+      continue;
+    }
 
     // Tree-wide branch-and-cut
     const bool cut_here = options_.enable_cuts &&
@@ -596,22 +615,25 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
       }
     }
 
-    node.bound = lp.objective_value;
-    if (!found_finite_bound) {
-      best_bound = lp.objective_value;
-      found_finite_bound = true;
-    } else if (sense == Sense::Minimize) {
-      best_bound = std::min(best_bound, lp.objective_value);
-    } else {
-      best_bound = std::max(best_bound, lp.objective_value);
+    node.bound = node_obj;
+    // Only update global bounds if we have a proven bound
+    if (has_proven_bound) {
+      if (!found_finite_bound) {
+        best_bound = node_obj;
+        found_finite_bound = true;
+      } else if (sense == Sense::Minimize) {
+        best_bound = std::min(best_bound, node_obj);
+      } else {
+        best_bound = std::max(best_bound, node_obj);
+      }
+      if (sense == Sense::Minimize && !pq_min.empty()) {
+        best_bound = std::min(best_bound, pq_min.top().bound);
+      } else if (sense == Sense::Maximize && !pq_max.empty()) {
+        best_bound = std::max(best_bound, pq_max.top().bound);
+      }
+      best_bound = (sense == Sense::Minimize) ? std::min(best_bound, node_obj)
+                                              : std::max(best_bound, node_obj);
     }
-    if (sense == Sense::Minimize && !pq_min.empty()) {
-      best_bound = std::min(best_bound, pq_min.top().bound);
-    } else if (sense == Sense::Maximize && !pq_max.empty()) {
-      best_bound = std::max(best_bound, pq_max.top().bound);
-    }
-    best_bound = (sense == Sense::Minimize) ? std::min(best_bound, lp.objective_value)
-                                            : std::max(best_bound, lp.objective_value);
 
     // Accept integer-feasible nodes BEFORE bound pruning. Pruning on
     // relative_gap <= mip_gap when the LP objective is within mip_gap of the
@@ -622,22 +644,24 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
     if (is_integer_feasible(node.model, lp.primal, options_.integer_tol)) {
       auto x = lp.primal;
       snap_integer_primal(node.model, x, options_.integer_tol);
-      if (better_incumbent(sense, lp.objective_value, incumbent, has_incumbent)) {
+      if (better_incumbent(sense, node_obj, incumbent, has_incumbent)) {
         has_incumbent = true;
-        incumbent = lp.objective_value;
+        incumbent = node_obj;
         incumbent_x = x;
       }
       continue;
     }
 
-    if (can_prune_by_bound(sense, lp.objective_value, incumbent, has_incumbent,
+    // Only prune by bound if we have a proven objective
+    if (has_proven_bound &&
+        can_prune_by_bound(sense, node_obj, incumbent, has_incumbent,
                            options_.mip_gap)) {
       continue;
     }
 
     int bvar = -1;
     if (options_.branch_rule == BranchRule::StrongBranching) {
-      bvar = pick_strong_branch(node.model, lp.primal, lp.objective_value,
+      bvar = pick_strong_branch(node.model, lp.primal, node_obj,
                                 options_.integer_tol, options_.strong_branch_candidates,
                                 lp_opt, parallel_strong, &pseudo);
     } else if (options_.branch_rule == BranchRule::PseudoCost) {
@@ -649,9 +673,9 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
     if (bvar < 0) {
       auto x = lp.primal;
       snap_integer_primal(node.model, x, options_.integer_tol);
-      if (better_incumbent(sense, lp.objective_value, incumbent, has_incumbent)) {
+      if (better_incumbent(sense, node_obj, incumbent, has_incumbent)) {
         has_incumbent = true;
-        incumbent = lp.objective_value;
+        incumbent = node_obj;
         incumbent_x = x;
       }
       continue;
