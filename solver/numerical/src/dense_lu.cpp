@@ -1,4 +1,5 @@
 #include "sovereign/dense_lu.hpp"
+#include "sovereign/gpu_spmv.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -10,6 +11,11 @@ bool DenseLU::factorize(std::vector<double> a_col_major, std::size_t n) {
   ok_ = false;
   if (a_col_major.size() != n * n) return false;
   lu_ = std::move(a_col_major);
+  bool nonsingular = false;
+  if (gpu_dense_lu(n, lu_, piv_, nonsingular)) {
+    ok_ = nonsingular;
+    return ok_;
+  }
   piv_.resize(n);
   for (std::size_t i = 0; i < n; ++i) piv_[i] = static_cast<int>(i);
 

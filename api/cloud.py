@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 from api import benchmark_lab
 from api.datasets import catalogue, dataset
 from api.firebase_auth import verify_firebase_token
-from api.routing import route_request
+from api.routing import gpu_ineligible_reason, route_request
 from api.storage import open_store
 
 database = open_store  # Backward compatibility for tests and older imports.
@@ -336,12 +336,9 @@ def submit(body: JobRequest, user_id: str = Depends(current_user)):
             raise HTTPException(422, f"Invalid model: {exc}") from exc
     routing = preview_route(body)
     if body.device == "cuda":
-        shape = routing["shape"]
-        kind = shape["problem_type"].upper()
-        if kind in ("LP", "MILP") and body.algorithm == "simplex":
-            raise HTTPException(422, "CUDA jobs need LP interior point or automatic LP selection; the simplex currently runs on CPU.")
-        if kind == "QP" and body.qpAlgorithm == "frank_wolfe":
-            raise HTTPException(422, "CUDA jobs need QP interior point or automatic QP selection; Frank-Wolfe currently runs on CPU.")
+        reason = gpu_ineligible_reason(body.model_dump(), routing["shape"])
+        if reason:
+            raise HTTPException(422, f"CUDA accelerates interior point for LP and QP. {reason} Choose CPU or Automatic.")
     job_id, now = secrets.token_hex(12), time.time()
     req = body.model_dump()
     req["routing"] = routing
@@ -516,6 +513,10 @@ class Capabilities(BaseModel):
     cpu_threads: int = Field(ge=1, le=65536)
     cuda_available: bool = False
     gpu_name: str = Field(default="", max_length=250)
+    cuda_reason: str = Field(default="", max_length=500)
+    cuda_driver_version: str = Field(default="", max_length=20)
+    gpu_compute_capability: str = Field(default="", max_length=20)
+    gpu_memory_mb: int = Field(default=0, ge=0, le=10_000_000)
     engine_version: str = Field(default="", max_length=250)
     reference_solvers: list[Literal["highs"]] = Field(default_factory=list, max_length=4)
     highs_version: str = Field(default="", max_length=60)

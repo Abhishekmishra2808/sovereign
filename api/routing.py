@@ -11,6 +11,7 @@ def summarize(text, model_format):
         return {"columns": len(variables), "rows": len(constraints),
                 "nonzeros": sum(len(c.get("linear", {})) for c in constraints),
                 "integer_variables": sum(v.get("type") in ("integer", "binary") for v in variables),
+                "bounded_columns": sum(_finite_upper(v) for v in variables),
                 "problem_type": model.get("problem_type", "LP"), "estimated": False}
     # Count structural entries without doing numerical optimization on Render.
     section, rows, columns, nonzeros, integers, integer_mode = "", set(), set(), 0, set(), False
@@ -35,34 +36,60 @@ def summarize(text, model_format):
         elif section == "BOUNDS" and len(fields) >= 3 and fields[0] in ("BV", "LI", "UI"):
             integers.add(fields[2])
     return {"columns": len(columns), "rows": len(rows), "nonzeros": nonzeros,
-            "integer_variables": len(integers), "problem_type": "MILP" if integers else "LP", "estimated": True}
+            "integer_variables": len(integers), "bounded_columns": 0,
+            "problem_type": "MILP" if integers else "LP", "estimated": True}
+
+
+def _finite_upper(variable):
+    upper = variable.get("upper_bound", 1 if variable.get("type") == "binary" else None)
+    return isinstance(upper, (int, float)) and upper < 1e29
+
+
+def dense_order(shape):
+    """Size of the dense system interior point factors every iteration.
+
+    Upper bounds become extra rows; QP factors the full KKT system.
+    """
+    order = shape["rows"] + shape.get("bounded_columns", 0)
+    if shape["problem_type"].upper() == "QP":
+        order += shape["columns"]
+    return order
+
+
+def gpu_ineligible_reason(request, shape):
+    kind = shape["problem_type"].upper()
+    if kind == "MILP" or shape["integer_variables"]:
+        return "Branch and bound solves node LPs with the dual simplex, which runs on CPU."
+    if kind == "QP":
+        if request.get("qpAlgorithm", "auto") == "frank_wolfe":
+            return "Frank-Wolfe runs on CPU."
+    elif request.get("algorithm", "auto") == "simplex":
+        return "The simplex method runs on CPU."
+    return None
 
 
 def route_request(request):
     shape = summarize(request["modelJson"], request["modelFormat"])
-    gpu_eligible = request.get("algorithm", "auto") != "simplex"
-    if shape["problem_type"].upper() == "QP":
-        gpu_eligible = request.get("qpAlgorithm", "auto") != "frank_wolfe"
-    large = shape["nonzeros"] >= int(os.environ.get("SOVEREIGN_GPU_MIN_NONZEROS", "50000")) or (
-        shape["columns"] >= 2000 and shape["nonzeros"] >= 8000)
     requested = request.get("device", "auto")
-    # Repeated whole-solver trials on 10k-40k-variable transport LPs have not
-    # shown a CUDA speedup. Keep auto on CPU until a workload-specific crossover
-    # is measured. The former structural heuristic can be enabled explicitly
-    # for experiments without changing a user's manual CUDA selection.
-    experimental_auto = os.environ.get("SOVEREIGN_GPU_AUTO_ENABLED", "0") == "1"
-    preferred = requested if requested != "auto" else (
-        "cuda" if experimental_auto and large and gpu_eligible else "cpu")
+    ineligible = gpu_ineligible_reason(request, shape)
+    order = dense_order(shape)
+    # Interior point spends its time factoring a dense order x order system.
+    # On an RTX 2050 the CUDA factorization loses to the CPU at 300 rows and
+    # wins from about 400 (2.4x at 600, 8.6x at 1000, 32x at 1500).
+    min_order = int(os.environ.get("SOVEREIGN_GPU_MIN_ROWS", "400"))
+    auto_enabled = os.environ.get("SOVEREIGN_GPU_AUTO_ENABLED", "1") != "0"
     if requested != "auto":
-        reason = f"{requested.upper()} selected manually."
-    elif not gpu_eligible:
-        reason = "Selected algorithm primarily uses CPU operations."
-    elif not experimental_auto:
-        reason = "CPU selected by default: measured whole-solver CUDA runs have not shown a speedup for the tested workloads. Select CUDA explicitly to compare."
-    elif large:
-        reason = "Experimental size-based routing prefers CUDA; use CPU if no matching GPU is online."
+        preferred, reason = requested, f"{requested.upper()} selected manually."
+    elif ineligible:
+        preferred, reason = "cpu", ineligible
+    elif not auto_enabled:
+        preferred, reason = "cpu", "Automatic GPU routing is turned off on this server."
+    elif order >= min_order:
+        preferred = "cuda"
+        reason = (f"Interior point factors a {order}-row dense system each iteration; "
+                  f"a CUDA GPU is faster from {min_order} rows.")
     else:
-        reason = "Small model: CPU avoids GPU transfer and launch overhead."
-    return {"preferred_device": preferred, "reason": reason, "shape": shape,
-            "policy": "experimental-structural-v1" if experimental_auto else "cpu-baseline-v2",
-            "execution_device": None}
+        preferred = "cpu"
+        reason = f"Small interior-point system ({order} rows): CPU avoids GPU launch and transfer overhead."
+    return {"preferred_device": preferred, "reason": reason, "shape": shape, "dense_order": order,
+            "policy": "measured-dense-v3", "execution_device": None}

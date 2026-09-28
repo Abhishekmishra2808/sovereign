@@ -51,15 +51,7 @@ void SparseMatrixCSC::multiply_transpose(const std::vector<double>& x,
   if (x.size() != nrows) {
     throw std::invalid_argument("SparseMatrixCSC::multiply_transpose dimension mismatch");
   }
-  y.assign(ncols, 0.0);
-  for (std::size_t j = 0; j < ncols; ++j) {
-    double sum = 0.0;
-    for (int p = col_ptr[j]; p < col_ptr[j + 1]; ++p) {
-      sum += values[static_cast<std::size_t>(p)] *
-             x[static_cast<std::size_t>(row_idx[static_cast<std::size_t>(p)])];
-    }
-    y[j] = sum;
-  }
+  spmv_csc_auto(nrows, ncols, col_ptr, row_idx, values, x, y, true);
 }
 
 void SparseMatrixCSC::extract_column(std::size_t col, std::vector<double>& dense) const {

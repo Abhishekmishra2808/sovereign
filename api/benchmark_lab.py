@@ -25,8 +25,13 @@ PROFILES = {
                 "config": {"algorithm": "auto", "milpMethod": "branch_and_bound", "branchRule": "most_fractional"}},
     "qp_ipm": {"label": "QP interior point", "kind": "QP", "config": {"qpAlgorithm": "ipm"}},
     "qp_fw": {"label": "Frank-Wolfe", "kind": "QP", "config": {"qpAlgorithm": "frank_wolfe"}},
+    "lp_ipm_cpu": {"label": "Interior point · CPU baseline", "kind": "LP", "config": {"algorithm": "ipm"}},
+    "qp_ipm_cpu": {"label": "QP interior point · CPU baseline", "kind": "QP", "config": {"qpAlgorithm": "ipm"}},
 }
-CPU_ONLY_PROFILES = {"lp_simplex", "qp_fw"}
+# Branch and bound solves node LPs with the dual simplex, so MILP never reaches
+# the GPU interior-point factorization. The baselines pin interior point to the
+# CPU so one run can time the same solve on both devices.
+CPU_ONLY_PROFILES = {"lp_simplex", "qp_fw", "milp_bc", "milp_bb", "lp_ipm_cpu", "qp_ipm_cpu"}
 
 PRESETS = [
     {"id": "quick", "label": "Quick demo", "description": "One model from every family. About a minute on a laptop.",
@@ -47,6 +52,10 @@ PRESETS = [
      "profiles": ["lp_simplex", "lp_ipm", "milp_bc"]},
     {"id": "qp", "label": "Quadratic", "description": "Convex QP examples with the Hessian passed to both solvers.",
      "datasets": ["sample_qp", "qp_ge"], "profiles": ["qp_ipm"]},
+    {"id": "gpu", "label": "GPU speed-up",
+     "description": "The same interior-point solve on the CPU and on CUDA, 600 to 1,000 rows. Needs a CUDA machine.",
+     "datasets": ["plan_600x900", "plan_1000x1500", "portfolio_qp_600"],
+     "profiles": ["lp_ipm", "lp_ipm_cpu", "qp_ipm", "qp_ipm_cpu"], "device": "cuda", "timeLimitSeconds": 60},
     {"id": "miplib", "label": "Official MIPLIB MILPs", "description": "Full integer problems. Some reach the time limit.",
      "datasets": list(RELAXED_MIPLIB), "profiles": ["milp_bc"]},
 ]
