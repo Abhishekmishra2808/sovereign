@@ -463,34 +463,53 @@ bool pivot_column(SimplexState& st, int enter, std::vector<double>& d) {
 }
 
 int select_leaving(const SimplexState& st, const std::vector<double>& d, bool bland) {
-  // Classic ratio test. When bland is set, among rows achieving the minimum
-  // ratio (within a small relative tolerance), leave the basic variable with
-  // the smallest COLUMN index. Note: this solver has no bound-flip moves —
-  // finite UBs are encoded as explicit rows and all structural vars are
-  // shifted to y >= 0 — so Bland only needs to cover entering + leaving.
-  int leave_pos = -1;
-  double best_ratio = std::numeric_limits<double>::infinity();
-  int best_var = std::numeric_limits<int>::max();
+  // Harris ratio test: Instead of selecting the single minimum ratio, collect
+  // ALL rows where ratio is within harris_tol of minimum, then among those
+  // candidates select the one with largest |d[i]| (pivot magnitude).
+  // This avoids small pivots that cause numerical instability and cycling.
+  //
+  // When bland is set, use Bland's rule (smallest variable index) instead of
+  // largest pivot among candidates.
+
+  // First pass: find minimum ratio
+  double min_ratio = std::numeric_limits<double>::infinity();
   for (int i = 0; i < st.lp->m; ++i) {
     const double di = d[static_cast<std::size_t>(i)];
     if (di <= st.tol.pivot) continue;
     const double ratio = st.xB[static_cast<std::size_t>(i)] / di;
-    const int var = st.basis[static_cast<std::size_t>(i)];
-    if (leave_pos < 0) {
-      best_ratio = ratio;
-      leave_pos = i;
-      best_var = var;
-      continue;
-    }
-    const double tie_eps = st.tol.feasibility * std::max(1.0, std::abs(best_ratio));
-    if (ratio < best_ratio - tie_eps) {
-      best_ratio = ratio;
-      leave_pos = i;
-      best_var = var;
-    } else if (bland && ratio <= best_ratio + tie_eps && var < best_var) {
-      best_ratio = std::min(best_ratio, ratio);
-      leave_pos = i;
-      best_var = var;
+    if (ratio < min_ratio) min_ratio = ratio;
+  }
+
+  if (std::isinf(min_ratio)) return -1;  // unbounded
+
+  // Second pass: Harris selection among near-minimum candidates
+  const double harris_tol = st.tol.feasibility * std::max(1.0, std::abs(min_ratio));
+  int leave_pos = -1;
+  double best_pivot = 0.0;
+  int best_var = std::numeric_limits<int>::max();
+
+  for (int i = 0; i < st.lp->m; ++i) {
+    const double di = d[static_cast<std::size_t>(i)];
+    if (di <= st.tol.pivot) continue;
+    const double ratio = st.xB[static_cast<std::size_t>(i)] / di;
+
+    if (ratio <= min_ratio + harris_tol) {
+      const int var = st.basis[static_cast<std::size_t>(i)];
+      if (bland) {
+        // Bland: smallest variable index among candidates
+        if (leave_pos < 0 || var < best_var) {
+          leave_pos = i;
+          best_var = var;
+          best_pivot = di;
+        }
+      } else {
+        // Harris: largest pivot magnitude among candidates
+        if (std::abs(di) > best_pivot) {
+          best_pivot = std::abs(di);
+          leave_pos = i;
+          best_var = var;
+        }
+      }
     }
   }
   return leave_pos;
@@ -574,6 +593,17 @@ PhaseStatus run_phase(SimplexState& st, const std::vector<double>& c,
   bool use_bland = false;
   int improving_streak = 0;
   const bool log_cycle = std::getenv("SOVEREIGN_DBG_CYCLE") != nullptr;
+
+  // Cycle detection buffer: track last 10 (enter, leave) pairs
+  // If we see the same pair repeat within this window, force refactorization
+  // to clear accumulated numerical error in the eta chain
+  struct PivotPair {
+    int enter = -1;
+    int leave = -1;
+  };
+  std::vector<PivotPair> recent_pivots;
+  recent_pivots.reserve(10);
+
   while (st.iterations < max_iterations) {
     // Under Bland, drop product-form etas before pricing so duals cannot
     // drift through a long eta chain (the observed 6↔8 exact 2-cycle).
@@ -607,6 +637,41 @@ PhaseStatus run_phase(SimplexState& st, const std::vector<double>& c,
     const int leave_var = st.basis[static_cast<std::size_t>(leave_pos)];
     const double ratio =
         st.xB[static_cast<std::size_t>(leave_pos)] / d[static_cast<std::size_t>(leave_pos)];
+
+    // PART 1: Cycle detection - check if this (enter, leave_var) pair was seen recently
+    bool cycle_detected = false;
+    for (const auto& pp : recent_pivots) {
+      if (pp.enter == enter && pp.leave == leave_var) {
+        cycle_detected = true;
+        break;
+      }
+    }
+
+    if (cycle_detected) {
+      // Force refactorization to clear accumulated numerical error
+      if (log_cycle) {
+        std::cerr << "[cycle] DETECTED at iteration " << st.iterations
+                  << " enter=" << enter << " leave=" << leave_var
+                  << " - forcing refactorization\n";
+      }
+      if (!refactor_basis(st) || !compute_xB(st)) {
+        if (detail) *detail = "Refactorization failed after cycle detection.";
+        return PhaseStatus::Singular;
+      }
+      recent_pivots.clear();  // Clear history after refactor
+      use_bland = true;       // Switch to Bland's rule to help break the cycle
+      improving_streak = 0;
+    } else {
+      // Record this pivot
+      PivotPair pp;
+      pp.enter = enter;
+      pp.leave = leave_var;
+      recent_pivots.push_back(pp);
+      if (recent_pivots.size() > 10) {
+        recent_pivots.erase(recent_pivots.begin());  // Keep only last 10
+      }
+    }
+
     if (ratio <= st.tol.feasibility) {
       use_bland = true;
       improving_streak = 0;
