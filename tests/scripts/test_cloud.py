@@ -295,6 +295,25 @@ class CloudTests(unittest.TestCase):
         self.assertEqual(self.client.delete(f"/api/benchmarks/runs/{run_id}", headers=self.admin).status_code, 200)
         self.assertEqual(self.client.get(f"/api/benchmarks/runs/{run_id}", headers=self.admin).status_code, 404)
 
+    def test_gpu_showcase_pairs_cuda_with_cpu_baseline(self):
+        catalogue = self.client.get("/api/benchmarks/catalogue", headers=self.admin).json()
+        preset = next(p for p in catalogue["presets"] if p["id"] == "gpu")
+        self.assertEqual(preset["device"], "cuda")
+        self.assertEqual(len(preset["datasets"]), 3)
+        shapes = {d["id"]: d["shape"] for d in catalogue["datasets"]}
+        self.assertGreaterEqual(min(shapes[d]["rows"] for d in preset["datasets"] if d.startswith("plan_")), 600)
+        created = self.client.post("/api/benchmarks/runs", headers=self.admin, json={
+            "datasets": preset["datasets"], "profiles": preset["profiles"], "device": preset["device"],
+            "reference": False, "timeLimitSeconds": preset["timeLimitSeconds"]})
+        self.assertEqual(created.status_code, 201, created.text)
+        self.assertEqual(created.json()["jobs"], 6)
+        rows = self.client.get(f"/api/benchmarks/runs/{created.json()['runId']}", headers=self.admin).json()["rows"]
+        devices = {(r["dataset"], r["profile"]): r["executionDevice"] for r in rows}
+        self.assertEqual(devices[("plan_1000x1500", "lp_ipm")], "cuda")
+        self.assertEqual(devices[("plan_1000x1500", "lp_ipm_cpu")], "cpu")
+        self.assertEqual(devices[("portfolio_qp_600", "qp_ipm")], "cuda")
+        self.assertEqual(devices[("portfolio_qp_600", "qp_ipm_cpu")], "cpu")
+
     def test_benchmark_run_validation(self):
         bad_profile = self.client.post("/api/benchmarks/runs", headers=self.admin,
                                        json={"datasets": ["afiro"], "profiles": ["nope"]})
