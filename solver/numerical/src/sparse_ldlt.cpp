@@ -307,9 +307,11 @@ bool SparseLDLT::numeric_factor(const std::vector<double>& values, double regula
 
       const double d_j = d_[static_cast<std::size_t>(j)];
 
-      // Update x_[i] -= L[i,j] * D[j] * L[k,j] for all i in column j's pattern
+      // Update x_[i] -= L[i,j] * D[j] * L[k,j] for all i > k in column j's pattern
+      // (only off-diagonal entries in column k)
       for (int p = col_j_start; p < col_j_end; ++p) {
         const int i = l_idx_[static_cast<std::size_t>(p)];
+        if (i <= k) continue;  // Skip entries not strictly below diagonal in column k
         const double l_ij = l_val_[static_cast<std::size_t>(p)];
         x_[static_cast<std::size_t>(i)] -= l_ij * d_j * l_kj;
       }
@@ -360,9 +362,97 @@ bool SparseLDLT::numeric_factor(const std::vector<double>& values, double regula
 }
 
 bool SparseLDLT::solve(std::vector<double>& x) const {
-  // Placeholder for Phase 5
-  (void)x;
-  return false;
+  auto start = std::chrono::steady_clock::now();
+
+  if (!ok_ || d_.empty()) return false;
+
+  const int n = static_cast<int>(n_);
+  if (static_cast<int>(x.size()) != n) return false;
+
+  if (n == 0) {
+    solve_time_ = 0.0;
+    return true;
+  }
+
+  // Solve M_reg x = b where P M_reg P^T = L D L^T
+  //
+  // Steps:
+  // 1. y = P b        (permute RHS)
+  // 2. L z = y        (forward solve, unit lower triangular)
+  // 3. D w = z        (diagonal solve)
+  // 4. L^T v = w      (backward solve, unit upper triangular)
+  // 5. x = P^T v      (inverse permute)
+
+  std::vector<double> y(n_);
+
+  // Step 1: Permute RHS: y = P b
+  // y[k] = b[perm[k]]
+  for (int k = 0; k < n; ++k) {
+    y[static_cast<std::size_t>(k)] = x[static_cast<std::size_t>(perm_[static_cast<std::size_t>(k)])];
+  }
+
+  // Step 2: Forward solve L z = y
+  // L is unit lower triangular, stored column-wise
+  // z[0] = y[0] (diagonal is 1)
+  // z[k] = y[k] - sum_{j<k} L[k,j] * z[j]
+  std::vector<double> z(n_);
+  for (int k = 0; k < n; ++k) {
+    z[static_cast<std::size_t>(k)] = y[static_cast<std::size_t>(k)];
+  }
+
+  for (int j = 0; j < n; ++j) {
+    const double z_j = z[static_cast<std::size_t>(j)];
+
+    // Update z[i] -= L[i,j] * z[j] for all i in column j's pattern
+    const int col_j_start = l_ptr_[static_cast<std::size_t>(j)];
+    const int col_j_end = l_ptr_[static_cast<std::size_t>(j) + 1];
+
+    for (int p = col_j_start; p < col_j_end; ++p) {
+      const int i = l_idx_[static_cast<std::size_t>(p)];
+      const double l_ij = l_val_[static_cast<std::size_t>(p)];
+      z[static_cast<std::size_t>(i)] -= l_ij * z_j;
+    }
+  }
+
+  // Step 3: Diagonal solve D w = z
+  std::vector<double> w(n_);
+  for (int k = 0; k < n; ++k) {
+    w[static_cast<std::size_t>(k)] = z[static_cast<std::size_t>(k)] / d_[static_cast<std::size_t>(k)];
+  }
+
+  // Step 4: Backward solve L^T v = w
+  // L^T is unit upper triangular
+  // v[k] = w[k] - sum_{j>k} L^T[k,j] * v[j]
+  //      = w[k] - sum_{j>k} L[j,k] * v[j]
+  // Process k from n-1 down to 0
+  std::vector<double> v(n_);
+
+  for (int k = n - 1; k >= 0; --k) {
+    double sum = 0.0;
+
+    // For each L[i,k] where i > k, add L[i,k] * v[i]
+    const int col_k_start = l_ptr_[static_cast<std::size_t>(k)];
+    const int col_k_end = l_ptr_[static_cast<std::size_t>(k) + 1];
+
+    for (int p = col_k_start; p < col_k_end; ++p) {
+      const int i = l_idx_[static_cast<std::size_t>(p)];
+      const double l_ik = l_val_[static_cast<std::size_t>(p)];
+      sum += l_ik * v[static_cast<std::size_t>(i)];
+    }
+
+    v[static_cast<std::size_t>(k)] = w[static_cast<std::size_t>(k)] - sum;
+  }
+
+  // Step 5: Inverse permute: x = P^T v
+  // x[perm[k]] = v[k], which is equivalent to x[j] = v[iperm[j]]
+  for (int j = 0; j < n; ++j) {
+    x[static_cast<std::size_t>(j)] = v[static_cast<std::size_t>(iperm_[static_cast<std::size_t>(j)])];
+  }
+
+  auto end = std::chrono::steady_clock::now();
+  solve_time_ = std::chrono::duration<double>(end - start).count();
+
+  return true;
 }
 
 std::size_t SparseLDLT::factor_nnz() const {

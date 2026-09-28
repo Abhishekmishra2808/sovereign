@@ -2,8 +2,96 @@
 
 #include "sovereign/sparse_ldlt.hpp"
 #include "sovereign/sparse_symmetric.hpp"
+#include "sovereign/dense_lu.hpp"
+
+#include <cmath>
+#include <vector>
 
 using namespace sovereign;
+
+namespace {
+
+// Helper: Compute M * x for a symmetric matrix stored in CSC lower triangle format
+std::vector<double> multiply_symmetric(
+    const SparseSymmetricPattern& pattern,
+    const std::vector<double>& values,
+    const std::vector<double>& x,
+    double regularization = 0.0
+) {
+  const int n = static_cast<int>(pattern.n);
+  std::vector<double> result(n, 0.0);
+
+  // Process lower triangle
+  for (int j = 0; j < n; ++j) {
+    const int col_start = pattern.col_ptr[static_cast<std::size_t>(j)];
+    const int col_end = pattern.col_ptr[static_cast<std::size_t>(j) + 1];
+
+    for (int p = col_start; p < col_end; ++p) {
+      const int i = pattern.row_idx[static_cast<std::size_t>(p)];
+      const double val = values[static_cast<std::size_t>(p)];
+
+      // M[i,j] contributes to result[i] from x[j]
+      result[static_cast<std::size_t>(i)] += val * x[static_cast<std::size_t>(j)];
+
+      // By symmetry, M[i,j] = M[j,i] contributes to result[j] from x[i]
+      if (i != j) {
+        result[static_cast<std::size_t>(j)] += val * x[static_cast<std::size_t>(i)];
+      }
+    }
+  }
+
+  // Add regularization: (M + λI) * x
+  for (int i = 0; i < n; ++i) {
+    result[static_cast<std::size_t>(i)] += regularization * x[static_cast<std::size_t>(i)];
+  }
+
+  return result;
+}
+
+// Helper: Compute ||v||_2
+double vector_norm(const std::vector<double>& v) {
+  double sum = 0.0;
+  for (double val : v) {
+    sum += val * val;
+  }
+  return std::sqrt(sum);
+}
+
+// Helper: Compute relative residual ||M x - b|| / (||M|| ||x|| + ||b||)
+// For simplicity, approximate ||M|| by max diagonal entry
+double compute_residual(
+    const SparseSymmetricPattern& pattern,
+    const std::vector<double>& values,
+    const std::vector<double>& x,
+    const std::vector<double>& b,
+    double regularization = 0.0
+) {
+  std::vector<double> mx = multiply_symmetric(pattern, values, x, regularization);
+
+  double residual_norm = 0.0;
+  for (std::size_t i = 0; i < mx.size(); ++i) {
+    double diff = mx[i] - b[i];
+    residual_norm += diff * diff;
+  }
+  residual_norm = std::sqrt(residual_norm);
+
+  double x_norm = vector_norm(x);
+  double b_norm = vector_norm(b);
+
+  // Approximate ||M|| by max absolute value
+  double m_norm = 0.0;
+  for (double val : values) {
+    m_norm = std::max(m_norm, std::abs(val));
+  }
+  m_norm += regularization;
+
+  double denom = m_norm * x_norm + b_norm;
+  if (denom < 1e-30) denom = 1.0;
+
+  return residual_norm / denom;
+}
+
+}  // namespace
 
 TEST(SparseLDLT, EmptyMatrix) {
   SparseSymmetricPattern pattern;
@@ -320,6 +408,212 @@ TEST(SparseLDLT, ReconstructionTest) {
 
   // Actual reconstruction will be done via solve test:
   // if solve(b) gives x, then we verify ||M x - b|| is small
+}
+
+// ============================================================================
+// Phase 5: Sparse Triangular Solve Tests
+// ============================================================================
+
+TEST(SparseLDLT, SolveIdentity) {
+  // M = I, solve I x = b, expect x = b
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 3;
+  pattern.col_ptr = {0, 1, 2, 3};
+  pattern.row_idx = {0, 1, 2};
+
+  std::vector<double> values = {1.0, 1.0, 1.0};
+  std::vector<double> b = {2.0, 3.0, 5.0};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+
+  std::vector<double> x = b;
+  EXPECT_TRUE(ldlt.solve(x));
+
+  // For identity matrix, x should equal b
+  EXPECT_TRUE(std::abs(x[0] - 2.0) < 1e-10);
+  EXPECT_TRUE(std::abs(x[1] - 3.0) < 1e-10);
+  EXPECT_TRUE(std::abs(x[2] - 5.0) < 1e-10);
+
+  // Verify residual
+  double residual = compute_residual(pattern, values, x, b);
+  EXPECT_TRUE(residual < 1e-10);
+}
+
+TEST(SparseLDLT, SolveDiagonal) {
+  // M = diag(2, 3, 5), analytical solution x[i] = b[i] / M[i,i]
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 3;
+  pattern.col_ptr = {0, 1, 2, 3};
+  pattern.row_idx = {0, 1, 2};
+
+  std::vector<double> values = {2.0, 3.0, 5.0};
+  std::vector<double> b = {4.0, 9.0, 15.0};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+
+  std::vector<double> x = b;
+  EXPECT_TRUE(ldlt.solve(x));
+
+  // Expected: x = [2, 3, 3]
+  EXPECT_TRUE(std::abs(x[0] - 2.0) < 1e-10);
+  EXPECT_TRUE(std::abs(x[1] - 3.0) < 1e-10);
+  EXPECT_TRUE(std::abs(x[2] - 3.0) < 1e-10);
+
+  // Verify residual
+  double residual = compute_residual(pattern, values, x, b);
+  EXPECT_TRUE(residual < 1e-10);
+}
+
+TEST(SparseLDLT, SolveSmallSPD) {
+  // Small 2x2 SPD matrix, compare against analytical solution
+  // M = [4  2]
+  //     [2  3]
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 2;
+  pattern.col_ptr = {0, 2, 3};
+  pattern.row_idx = {0, 1,  1};
+
+  std::vector<double> values = {4.0, 2.0,  3.0};
+  std::vector<double> b = {10.0, 7.0};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+
+  std::vector<double> x = b;
+  EXPECT_TRUE(ldlt.solve(x));
+
+  // Verify residual against ORIGINAL matrix
+  double residual = compute_residual(pattern, values, x, b);
+  EXPECT_TRUE(residual < 1e-10);
+
+  // Also verify solution satisfies M x = b within tolerance
+  std::vector<double> mx = multiply_symmetric(pattern, values, x);
+  EXPECT_TRUE(std::abs(mx[0] - b[0]) < 1e-10);
+  EXPECT_TRUE(std::abs(mx[1] - b[1]) < 1e-10);
+}
+
+TEST(SparseLDLT, SolveTridiagonalMultipleRHS) {
+  // Tridiagonal SPD matrix with multiple RHS vectors
+  // Factorization should be reused
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 4;
+  pattern.col_ptr = {0, 2, 4, 6, 7};
+  pattern.row_idx = {0, 1,  1, 2,  2, 3,  3};
+
+  std::vector<double> values = {4.0, -1.0,  4.0, -1.0,  4.0, -1.0,  4.0};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+
+  // Solve for multiple RHS
+  std::vector<std::vector<double>> rhs_vectors = {
+    {1.0, 0.0, 0.0, 0.0},
+    {0.0, 1.0, 0.0, 0.0},
+    {1.0, 1.0, 1.0, 1.0},
+    {1.0, 2.0, 3.0, 4.0}
+  };
+
+  for (const auto& b : rhs_vectors) {
+    std::vector<double> x = b;
+    EXPECT_TRUE(ldlt.solve(x));
+
+    double residual = compute_residual(pattern, values, x, b);
+    EXPECT_TRUE(residual < 1e-2);  // Reasonable tolerance for 4x4 system
+  }
+}
+
+TEST(SparseLDLT, SolveWithRegularization) {
+  // Solve (M + λI) x = b
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 3;
+  pattern.col_ptr = {0, 2, 4, 5};
+  pattern.row_idx = {0, 1,  1, 2,  2};
+
+  std::vector<double> values = {2.0, -1.0,  2.0, -1.0,  2.0};
+  std::vector<double> b = {1.0, 2.0, 3.0};
+
+  const double lambda = 1e-8;
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_TRUE(ldlt.numeric_factor(values, lambda));
+
+  std::vector<double> x = b;
+  EXPECT_TRUE(ldlt.solve(x));
+
+  // Verify residual against regularized system
+  double residual = compute_residual(pattern, values, x, b, lambda);
+  EXPECT_TRUE(residual < 1e-2);
+}
+
+TEST(SparseLDLT, SolveAMDPermuted) {
+  // Arrow matrix where AMD produces nontrivial permutation
+  // [2  1  1  1]
+  // [1  2  0  0]
+  // [1  0  2  0]
+  // [1  0  0  2]
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 4;
+  pattern.col_ptr = {0, 4, 5, 6, 7};
+  pattern.row_idx = {0, 1, 2, 3,  1,  2,  3};
+
+  std::vector<double> values = {2.0, 1.0, 1.0, 1.0,  2.0,  2.0,  2.0};
+  std::vector<double> b = {5.0, 3.0, 3.0, 3.0};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+
+  std::vector<double> x = b;
+  EXPECT_TRUE(ldlt.solve(x));
+
+  // Verify residual - permutation must be handled correctly
+  double residual = compute_residual(pattern, values, x, b);
+  EXPECT_TRUE(residual < 1e-2);
+}
+
+TEST(SparseLDLT, SolveTiming) {
+  // Verify solve timing is recorded
+
+  SparseSymmetricPattern pattern;
+  pattern.n = 10;
+  pattern.col_ptr.resize(11);
+  pattern.row_idx.resize(10);
+  std::vector<double> values(10);
+
+  for (int i = 0; i <= 10; ++i) {
+    pattern.col_ptr[static_cast<std::size_t>(i)] = i;
+  }
+  for (int i = 0; i < 10; ++i) {
+    pattern.row_idx[static_cast<std::size_t>(i)] = i;
+    values[static_cast<std::size_t>(i)] = 2.0 + i * 0.1;
+  }
+
+  std::vector<double> b(10, 1.0);
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+
+  std::vector<double> x = b;
+  EXPECT_TRUE(ldlt.solve(x));
+
+  EXPECT_TRUE(ldlt.solve_time_seconds() >= 0.0);
+
+  double residual = compute_residual(pattern, values, x, b);
+  EXPECT_TRUE(residual < 1e-9);
 }
 
 TEST(SparseLDLT, PredictedNonzeroCount) {
