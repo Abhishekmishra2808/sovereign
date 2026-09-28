@@ -126,12 +126,12 @@ def highs_reference(path, limit):
                     i, j = index[a], index[b]
                     key = (max(i, j), min(i, j))
                     entries[key] = entries.get(key, 0) + value * (1 if i == j else .5)
-            starts, indices, values = [0], [], []
+            starts, indices, values = [0] * (len(variables) + 1), [], []
+            for (i, col), value in sorted(entries.items(), key=lambda kv: (kv[0][1], kv[0][0])):
+                indices.append(i); values.append(value)
+                starts[col + 1] += 1
             for j in range(len(variables)):
-                for (i, col), value in sorted(entries.items()):
-                    if col == j:
-                        indices.append(i); values.append(value)
-                starts.append(len(indices))
+                starts[j + 1] += starts[j]
             status = h.passHessian(len(variables), len(values), highspy.HessianFormat.kTriangular,
                                   np.array(starts, dtype=np.int32), np.array(indices, dtype=np.int32), np.array(values))
             assert status == highspy.HighsStatus.kOk

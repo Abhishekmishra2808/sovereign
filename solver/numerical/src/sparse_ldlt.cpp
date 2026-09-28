@@ -98,6 +98,7 @@ bool SparseLDLT::numeric_factor(const std::vector<double>& values, double regula
   auto start = std::chrono::steady_clock::now();
   factored_ = false;
   if (!ok_ || values.size() != input_nnz_) return false;
+  if (!pivot_sign_.empty() && pivot_sign_.size() != n_) return false;
 
   const int n = static_cast<int>(n_);
   regularization_used_ = regularization;
@@ -153,21 +154,23 @@ bool SparseLDLT::numeric_factor(const std::vector<double>& values, double regula
       ++l_len_[static_cast<std::size_t>(i)];
     }
 
+    const double sign =
+        pivot_sign_.empty() ? 1.0 : static_cast<double>(pivot_sign_[static_cast<std::size_t>(perm_[static_cast<std::size_t>(k)])]);
     const bool replace = tiny_pivot_threshold_ > 0.0 && std::isfinite(d_k) &&
-                         d_k <= tiny_pivot_threshold_ * std::abs(diagonal);
+                         sign * d_k <= tiny_pivot_threshold_ * std::abs(diagonal);
     if (replace) {
-      d_[static_cast<std::size_t>(k)] = 1e128;
+      d_[static_cast<std::size_t>(k)] = sign * 1e128;
       ++replaced_pivots_;
       continue;
     }
-    if (!std::isfinite(d_k) || d_k < 1e-30) {
-      // Not positive definite (even after regularization) or numerical breakdown.
+    if (!std::isfinite(d_k) || sign * d_k < 1e-30) {
+      // Wrong inertia (even after regularization) or numerical breakdown.
       std::fill(y_.begin(), y_.end(), 0.0);
       return false;
     }
     d_[static_cast<std::size_t>(k)] = d_k;
-    min_pivot_ = std::min(min_pivot_, d_k);
-    max_pivot_ = std::max(max_pivot_, d_k);
+    min_pivot_ = std::min(min_pivot_, sign * d_k);
+    max_pivot_ = std::max(max_pivot_, sign * d_k);
   }
 
   factored_ = true;

@@ -14,7 +14,9 @@
 
 #include "sovereign/cuts.hpp"
 #include "sovereign/branch_and_bound.hpp"
+#include "sovereign/convex_qp.hpp"
 #include "sovereign/interior_point.hpp"
+#include "sovereign/qp_interior_point.hpp"
 #include "sovereign/json_io.hpp"
 #include "sovereign/lp_solver.hpp"
 #include "sovereign/revised_simplex.hpp"
@@ -136,13 +138,15 @@ namespace {
 extern "C" int _putenv(const char*);
 #endif
 
-void set_normal_equations(const char* mode) {
+void set_env(const char* name, const char* value) {
 #if defined(_WIN32)
-  _putenv((std::string("SOVEREIGN_IPM_NORMAL_EQUATIONS=") + mode).c_str());
+  _putenv((std::string(name) + "=" + value).c_str());
 #else
-  setenv("SOVEREIGN_IPM_NORMAL_EQUATIONS", mode, 1);
+  setenv(name, value, 1);
 #endif
 }
+
+void set_normal_equations(const char* mode) { set_env("SOVEREIGN_IPM_NORMAL_EQUATIONS", mode); }
 
 // Multi-period production planning: inventory balance per product and period,
 // one shared capacity row per period. Its normal equations are block banded,
@@ -208,6 +212,97 @@ TEST(IpmAccuracy, SparseAndDenseNormalEquationsAgree) {
   set_normal_equations("");
   EXPECT_EQ(sparse.status, SolverStatus::Optimal);
   EXPECT_TRUE(sparse.message.find("sparse LDL^T") != std::string::npos);
+}
+
+TEST(QpAccuracy, OffDiagonalHessianTermsCountOnce) {
+  // The objective is 1/2 sum q_ij x_i x_j over the stored terms:
+  // 1/2 (2x^2 + xy + 2y^2) - x - y, minimized at x = y = 0.4 with value -0.4.
+  // Doubling the stored xy term gives x = y = 1/3 instead.
+  OptimizationModel m;
+  m.problem_type = ProblemType::QP;
+  m.sense = Sense::Minimize;
+  m.variables.push_back(make_var("x", VariableType::Continuous, 0.0, 10.0));
+  m.variables.push_back(make_var("y", VariableType::Continuous, 0.0, 10.0));
+  m.objective.linear = {{"x", -1.0}, {"y", -1.0}};
+  m.objective.quadratic["x"]["x"] = 2.0;
+  m.objective.quadratic["x"]["y"] = 1.0;
+  m.objective.quadratic["y"]["y"] = 2.0;
+  m.constraints.push_back(make_cons("c", {{"x", 1.0}, {"y", 1.0}}, ConstraintSense::Le, 5.0));
+
+  const SolverResult ipm = QpInteriorPointSolver().solve(m);
+  EXPECT_EQ(ipm.status, SolverStatus::Optimal);
+  EXPECT_NEAR(ipm.primal.at("x"), 0.4, 1e-7);
+  EXPECT_NEAR(ipm.primal.at("y"), 0.4, 1e-7);
+  EXPECT_NEAR(ipm.objective_value, -0.4, 1e-8);
+
+  const SolverResult fw = ConvexQpSolver().solve(m);
+  EXPECT_EQ(fw.status, SolverStatus::Optimal);
+  EXPECT_NEAR(fw.objective_value, -0.4, 1e-4);
+}
+
+namespace {
+
+// Portfolio-style convex QP: a diagonally dominant covariance with a few
+// symmetric couplings per asset, a budget row and sector caps. Its KKT system
+// is sparse apart from the budget row.
+OptimizationModel build_portfolio(int assets, int sectors) {
+  OptimizationModel model;
+  model.problem_type = ProblemType::QP;
+  model.sense = Sense::Minimize;
+  auto name = [](int j) { return "w" + std::to_string(j); };
+  std::vector<std::pair<std::string, double>> budget;
+  for (int j = 0; j < assets; ++j) {
+    model.variables.push_back(make_var(name(j), VariableType::Continuous, 0.0, 1e30));
+    model.objective.linear[name(j)] = -0.01 - 0.19 * ((j * 37) % 101) / 100.0;
+    model.objective.quadratic[name(j)][name(j)] = 0.5 + 1.5 * ((j * 53) % 97) / 96.0;
+    for (int t = 1; t <= 3; ++t) {
+      const int k = (j * 7 + t * 13) % assets;
+      if (k == j) continue;
+      const double v = 0.05 * (((j + k * t) % 21) - 10) / 10.0;
+      model.objective.quadratic[name(j)][name(k)] += v;
+      model.objective.quadratic[name(k)][name(j)] += v;
+    }
+    budget.push_back({name(j), 1.0});
+  }
+  model.constraints.push_back(make_cons("budget", budget, ConstraintSense::Eq, 1.0));
+  for (int s = 0; s < sectors; ++s) {
+    std::vector<std::pair<std::string, double>> terms;
+    for (int j = s; j < assets; j += sectors) terms.push_back({name(j), 1.0});
+    model.constraints.push_back(make_cons("sector" + std::to_string(s), terms, ConstraintSense::Le, 0.4));
+  }
+  return model;
+}
+
+}  // namespace
+
+TEST(QpAccuracy, SparseAndDenseKktAgree) {
+  // The transport LP run through the QP interior point has Q = 0 and a
+  // redundant equality row: the regularized quasi-definite factorization must
+  // handle both.
+  const OptimizationModel models[] = {build_portfolio(300, 12), build_transport(20)};
+  for (const OptimizationModel& model : models) {
+    set_env("SOVEREIGN_QP_KKT", "dense");
+    const SolverResult dense = QpInteriorPointSolver().solve(model);
+    set_env("SOVEREIGN_QP_KKT", "sparse");
+    const SolverResult sparse = QpInteriorPointSolver().solve(model);
+    set_env("SOVEREIGN_QP_KKT", "auto");
+    const SolverResult automatic = QpInteriorPointSolver().solve(model);
+    set_env("SOVEREIGN_QP_KKT", "");
+
+    EXPECT_EQ(dense.status, SolverStatus::Optimal);
+    EXPECT_EQ(sparse.status, SolverStatus::Optimal);
+    EXPECT_EQ(automatic.status, SolverStatus::Optimal);
+    EXPECT_TRUE(dense.message.find("dense LU") != std::string::npos);
+    EXPECT_TRUE(sparse.message.find("sparse quasi-definite LDL^T") != std::string::npos);
+    EXPECT_TRUE(sparse.message.find("dense LU retries") == std::string::npos);
+    const double scale = std::max(1.0, std::abs(dense.objective_value));
+    EXPECT_NEAR(sparse.objective_value, dense.objective_value, 1e-7 * scale);
+    EXPECT_NEAR(automatic.objective_value, dense.objective_value, 1e-7 * scale);
+    EXPECT_TRUE(SolutionVerifier().verify(model, sparse, 1e-6).is_valid);
+  }
+  // Order 300 + 12 slacks + 13 rows on the CPU: automatic selection is sparse.
+  const SolverResult automatic = QpInteriorPointSolver().solve(build_portfolio(300, 12));
+  EXPECT_TRUE(automatic.message.find("sparse quasi-definite LDL^T") != std::string::npos);
 }
 
 TEST(IpmAccuracy, OptimalClaimIsBackedByResiduals) {

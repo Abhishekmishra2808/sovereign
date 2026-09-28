@@ -304,6 +304,9 @@ class CloudTests(unittest.TestCase):
         self.assertGreaterEqual(min(shapes[d]["rows"] for d in preset["datasets"] if d.startswith("plan_")), 1000)
         sparse = next(p for p in catalogue["presets"] if p["id"] == "sparse")
         self.assertEqual(max(shapes[d]["rows"] for d in sparse["datasets"]), 10200)
+        self.assertIn("qp_ipm", sparse["profiles"])
+        self.assertEqual(max(shapes[d]["columns"] for d in sparse["datasets"] if shapes[d]["problem_type"] == "QP"),
+                         20000)
         created = self.client.post("/api/benchmarks/runs", headers=self.admin, json={
             "datasets": preset["datasets"], "profiles": preset["profiles"], "device": preset["device"],
             "reference": False, "timeLimitSeconds": preset["timeLimitSeconds"]})

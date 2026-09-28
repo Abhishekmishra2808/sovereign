@@ -24,20 +24,17 @@ void build_q(const OptimizationModel& model, std::vector<double>& Q, std::size_t
     for (const auto& col : row.second) {
       const int j = var_index(model, col.first);
       if (j < 0) continue;
-      Q[static_cast<std::size_t>(j) * n + static_cast<std::size_t>(i)] += col.second;
-      if (i != j) {
-        Q[static_cast<std::size_t>(i) * n + static_cast<std::size_t>(j)] += col.second;
+      // The objective is 1/2 sum q_ij x_i x_j over the stored terms, so a term
+      // (i, j) contributes q_ij / 2 to each of the symmetric entries Q_ij, Q_ji.
+      if (i == j) {
+        Q[static_cast<std::size_t>(i) * n + static_cast<std::size_t>(i)] += col.second;
+      } else {
+        Q[static_cast<std::size_t>(j) * n + static_cast<std::size_t>(i)] += 0.5 * col.second;
+        Q[static_cast<std::size_t>(i) * n + static_cast<std::size_t>(j)] += 0.5 * col.second;
       }
     }
   }
-  for (std::size_t i = 0; i < n; ++i) {
-    for (std::size_t j = i + 1; j < n; ++j) {
-      const double mid = 0.5 * (Q[j * n + i] + Q[i * n + j]);
-      Q[j * n + i] = mid;
-      Q[i * n + j] = mid;
-    }
-    Q[i * n + i] += 1e-14;
-  }
+  for (std::size_t i = 0; i < n; ++i) Q[i * n + i] += 1e-14;
 }
 
 void build_c_min(const OptimizationModel& model, std::vector<double>& c, std::size_t n) {

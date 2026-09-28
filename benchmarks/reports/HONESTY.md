@@ -64,7 +64,7 @@ strong-branch decision. Measured times:
 ## Still open / narrow
 
 - Full tree-level parallel B&B (beyond strong-branch children)
-- Sparse iterative KKT for IPM (LP-IPM: dense `A D Aᵀ`; QP-IPM: dense augmented KKT with Q in (1,1))
+- Iterative (Krylov) KKT solvers for IPM. Both IPMs factor sparse systems directly (LP: `A D Aᵀ`; QP: quasi-definite augmented KKT) with a single-threaded, non-supernodal LDLᵀ and exact minimum-degree ordering; dense LU is used for small or dense systems
 - Official MIPLIB **full MILP** competitiveness (converter + LP-relax are solid; B&B search is not yet)
 - Synthetic multi-knapsack / set-partition under `datasets/miplib/` are ablation fixtures, **not** official MIPLIB IDs
 - Million-variable industrial scale not claimed

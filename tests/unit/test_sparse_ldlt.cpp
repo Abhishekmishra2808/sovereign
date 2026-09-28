@@ -719,6 +719,46 @@ TEST(SparseLDLT, TinyPivotReplacementDropsDependentDirection) {
   EXPECT_NEAR(x[0] + x[1], 3.0, 1e-12);
 }
 
+TEST(SparseLDLT, QuasiDefiniteKktWithPivotSigns) {
+  // K = [H A^T; A -dI] with H = diag(2, 3, 4, 5) plus a coupling H_01 = 1 and
+  // A = [1 1 0 0; 0 1 1 1]. Minimum degree may order any index first; the
+  // signs keep the two dual pivots negative, which is the only valid inertia.
+  SparseSymmetricPattern pattern;
+  pattern.n = 6;
+  pattern.col_ptr = {0, 3, 6, 8, 10, 11, 12};
+  pattern.row_idx = {0, 1, 4, 1, 4, 5, 2, 5, 3, 5, 4, 5};
+  const double d = 1e-9;
+  const std::vector<double> values = {2.0, 1.0, 1.0, 3.0, 1.0, 1.0, 4.0, 1.0, 5.0, 1.0, -d, -d};
+
+  SparseLDLT ldlt;
+  EXPECT_TRUE(ldlt.symbolic_analyze(pattern));
+  EXPECT_FALSE(ldlt.numeric_factor(values, 0.0));
+  ldlt.set_pivot_signs({1, 1, 1, 1, -1, -1});
+  EXPECT_TRUE(ldlt.numeric_factor(values, 0.0));
+  const std::vector<double> b = {1.0, -2.0, 0.5, 3.0, 1.0, -1.0};
+  std::vector<double> x = b;
+  EXPECT_TRUE(ldlt.solve(x));
+  EXPECT_TRUE(compute_residual(pattern, values, x, b) < 1e-12);
+
+  std::vector<double> dense(36, 0.0);
+  for (int j = 0; j < 6; ++j) {
+    for (int p = pattern.col_ptr[static_cast<std::size_t>(j)]; p < pattern.col_ptr[static_cast<std::size_t>(j) + 1]; ++p) {
+      const int i = pattern.row_idx[static_cast<std::size_t>(p)];
+      dense[static_cast<std::size_t>(j * 6 + i)] = values[static_cast<std::size_t>(p)];
+      dense[static_cast<std::size_t>(i * 6 + j)] = values[static_cast<std::size_t>(p)];
+    }
+  }
+  DenseLU lu;
+  EXPECT_TRUE(lu.factorize(dense, 6));
+  std::vector<double> reference = b;
+  EXPECT_TRUE(lu.solve(reference));
+  for (int i = 0; i < 6; ++i) EXPECT_NEAR(x[static_cast<std::size_t>(i)], reference[static_cast<std::size_t>(i)], 1e-9);
+
+  // A wrong expected sign is reported as a failure, not a silent solve.
+  ldlt.set_pivot_signs({1, 1, 1, 1, 1, -1});
+  EXPECT_FALSE(ldlt.numeric_factor(values, 0.0));
+}
+
 TEST(SparseLDLT, FillLimitStopsDenseFactorizations) {
   // An arrow matrix ordered by minimum degree has no fill; a complete graph
   // on 6 nodes needs 15 entries in L, over a limit of 10.

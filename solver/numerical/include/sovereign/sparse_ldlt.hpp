@@ -3,12 +3,14 @@
 #include "sovereign/sparse_symmetric.hpp"
 
 #include <cstddef>
+#include <utility>
 #include <vector>
 
 namespace sovereign {
 
-// Sparse symmetric positive-definite factorization: M = L D L^T
-// where L is unit lower triangular, D is positive diagonal
+// Sparse symmetric factorization without pivoting: M = L D L^T where L is
+// unit lower triangular and D is diagonal. D is positive for positive-definite
+// M, or has prescribed signs for quasi-definite M (see set_pivot_signs).
 //
 // Two-phase approach:
 // 1. Symbolic analysis (once): compute sparsity structure of L
@@ -53,6 +55,14 @@ class SparseLDLT {
   // which drops that direction instead of failing (the usual IPM treatment).
   void set_tiny_pivot_threshold(double threshold) { tiny_pivot_threshold_ = threshold; }
   int replaced_pivots() const { return replaced_pivots_; }
+
+  // Expected sign (+1 or -1) of the pivot of each original index, for
+  // quasi-definite matrices [H A^T; A -G] with H, G positive definite: any
+  // symmetric ordering then factors with D carrying exactly these signs
+  // (Vanderbei, SIAM J. Optim. 5(1), 1995). Empty means all positive.
+  // A pivot of the wrong sign fails the factorization, and the tiny-pivot
+  // test and replacement use the same sign.
+  void set_pivot_signs(std::vector<signed char> signs) { pivot_sign_ = std::move(signs); }
 
   // Phase 3: Solve M x = b
   //
@@ -138,6 +148,7 @@ class SparseLDLT {
   double regularization_used_ = 0.0;
   double tiny_pivot_threshold_ = 0.0;
   int replaced_pivots_ = 0;
+  std::vector<signed char> pivot_sign_;
   std::size_t input_nnz_ = 0;  // nnz of input pattern for fill ratio
 };
 

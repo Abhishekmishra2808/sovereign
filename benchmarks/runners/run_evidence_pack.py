@@ -541,7 +541,9 @@ def build_honesty_md(
             "## Still open / narrow",
             "",
             "- Full tree-level parallel B&B (beyond strong-branch children)",
-            "- Sparse iterative KKT for IPM (current LP-IPM uses dense normal equations `A D Aᵀ`; QP-IPM uses dense augmented KKT)",
+            "- Iterative (Krylov) KKT solvers for IPM. Both IPMs factor sparse systems directly (LP: `A D Aᵀ`; "
+            "QP: quasi-definite augmented KKT) with a single-threaded, non-supernodal LDLᵀ and exact minimum-degree "
+            "ordering; dense LU is used for small or dense systems",
             "- Official MIPLIB **full MILP** solves: converter + LP-relax match HiGHS, but B&B is not yet competitive "
             "(TIMEOUT / node-limit on flugpl/gt2/b-ball within tens of seconds; HiGHS solves some in <1s)",
             "- Synthetic multi-knapsack / set-partition under `datasets/miplib/` are ablation fixtures, **not** official MIPLIB IDs",

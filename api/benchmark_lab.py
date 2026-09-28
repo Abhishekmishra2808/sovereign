@@ -57,8 +57,10 @@ PRESETS = [
      "datasets": ["plan_1000x1500", "plan_1500x2200", "portfolio_qp_600"],
      "profiles": ["lp_ipm", "lp_ipm_cpu", "qp_ipm", "qp_ipm_cpu"], "device": "cuda", "timeLimitSeconds": 60},
     {"id": "sparse", "label": "Sparse scale",
-     "description": "Production-planning LPs with 2,100 and 10,200 rows, solved by sparse interior point and dual simplex.",
-     "datasets": ["staircase_20x100", "staircase_50x200"], "profiles": ["lp_ipm", "lp_simplex"],
+     "description": "Production-planning LPs with 2,100 and 10,200 rows (sparse interior point and dual simplex) "
+                    "and portfolio QPs with 5,000 and 20,000 assets (sparse QP interior point).",
+     "datasets": ["staircase_20x100", "staircase_50x200", "portfolio_qp_5000", "portfolio_qp_20000"],
+     "profiles": ["lp_ipm", "lp_simplex", "qp_ipm"],
      "timeLimitSeconds": 60},
     {"id": "miplib", "label": "Official MIPLIB MILPs", "description": "Full integer problems. Some reach the time limit.",
      "datasets": list(RELAXED_MIPLIB), "profiles": ["milp_bc"]},
