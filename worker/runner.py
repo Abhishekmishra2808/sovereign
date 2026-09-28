@@ -356,7 +356,14 @@ def pair(server, engine, hours):
     print(f"Pairing code: {code}\nApprove it on the website under Machines > Connect machine.", flush=True)
     while True:
         time.sleep(3)
-        status = client.get("/api/worker/connect/status?" + urllib.parse.urlencode({"deviceId": device_id}))
+        try:
+            status = client.get("/api/worker/connect/status?" + urllib.parse.urlencode({"deviceId": device_id}))
+        except urllib.error.HTTPError as exc:
+            if exc.code < 500:
+                raise
+            continue  # The coordinator is restarting (e.g. a deploy); keep waiting.
+        except OSError:
+            continue
         if status["status"] == "approved" and status.get("token"):
             print(f"Approved: {status.get('name')} until {status.get('expiresAt')}", flush=True)
             return status["token"]
