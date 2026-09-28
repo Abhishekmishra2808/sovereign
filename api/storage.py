@@ -57,10 +57,18 @@ class Store:
     def worker_solving_job(self, worker_id: str) -> Row | None:
         raise NotImplementedError
 
-    def insert_job(self, job_id: str, name: str, now: float, request: str, user_id: str) -> None:
+    def insert_job(self, job_id: str, name: str, now: float, request: str, user_id: str,
+                   run_id: str | None = None, bench: str | None = None) -> None:
         raise NotImplementedError
 
     def get_job(self, job_id: str, user_id: str) -> Row | None:
+        raise NotImplementedError
+
+    def list_run_jobs(self, user_id: str, run_id: str) -> list[Row]:
+        """Benchmark-run jobs without their model or full result."""
+        raise NotImplementedError
+
+    def list_runs(self, user_id: str, limit: int = 10) -> list[Row]:
         raise NotImplementedError
 
     def cancel_job(self, job_id: str, now: float, user_id: str) -> bool:
@@ -89,7 +97,7 @@ class Store:
         raise NotImplementedError
 
     def complete_job(self, job_id: str, state: str, result: str | None, message: str | None,
-                     now: float) -> None:
+                     now: float, summary: str | None = None) -> None:
         raise NotImplementedError
 
     def create_pairing(self, device_id: str, code: str, name: str, capabilities: dict,
@@ -147,6 +155,10 @@ class SQLiteStore(Store):
         job_columns = {row[1] for row in self.db.execute("PRAGMA table_info(jobs)")}
         if "user_id" not in job_columns:
             self.db.execute("ALTER TABLE jobs ADD COLUMN user_id TEXT")
+        for column in ("run_id", "bench", "summary"):
+            if column not in job_columns:
+                self.db.execute(f"ALTER TABLE jobs ADD COLUMN {column} TEXT")
+        self.db.execute("CREATE INDEX IF NOT EXISTS jobs_run ON jobs(user_id, run_id)")
         pair_columns = {row[1] for row in self.db.execute("PRAGMA table_info(pairings)")}
         if pair_columns and "issued_token" not in pair_columns:
             self.db.execute("ALTER TABLE pairings ADD COLUMN issued_token TEXT")
@@ -168,7 +180,7 @@ class SQLiteStore(Store):
 
     def list_jobs(self, user_id: str, limit: int = 100) -> list[Row]:
         return [Row(row) for row in self.db.execute(
-            "SELECT * FROM jobs WHERE user_id=? ORDER BY created DESC LIMIT ?", (user_id, limit))]
+            "SELECT * FROM jobs WHERE user_id=? AND run_id IS NULL ORDER BY created DESC LIMIT ?", (user_id, limit))]
 
     def insert_worker(self, worker_id: str, name: str, token_hash: str, user_id: str) -> None:
         self.db.execute("INSERT INTO workers(id,name,token_hash,user_id) VALUES(?,?,?,?)",
@@ -200,13 +212,26 @@ class SQLiteStore(Store):
         row = self.db.execute("SELECT id FROM jobs WHERE worker_id=? AND state='SOLVING'", (worker_id,)).fetchone()
         return Row(row) if row else None
 
-    def insert_job(self, job_id: str, name: str, now: float, request: str, user_id: str) -> None:
-        self.db.execute("INSERT INTO jobs(id,name,state,created,updated,request,user_id) VALUES(?,?,'QUEUED',?,?,?,?)",
-                        (job_id, name, now, now, request, user_id))
+    def insert_job(self, job_id: str, name: str, now: float, request: str, user_id: str,
+                   run_id: str | None = None, bench: str | None = None) -> None:
+        self.db.execute("""INSERT INTO jobs(id,name,state,created,updated,request,user_id,run_id,bench)
+            VALUES(?,?,'QUEUED',?,?,?,?,?,?)""", (job_id, name, now, now, request, user_id, run_id, bench))
 
     def get_job(self, job_id: str, user_id: str) -> Row | None:
         row = self.db.execute("SELECT * FROM jobs WHERE id=? AND user_id=?", (job_id, user_id)).fetchone()
         return Row(row) if row else None
+
+    def list_run_jobs(self, user_id: str, run_id: str) -> list[Row]:
+        return [Row(row) for row in self.db.execute(
+            """SELECT id,name,state,created,updated,worker_id,message,bench,summary FROM jobs
+               WHERE user_id=? AND run_id=? ORDER BY created""", (user_id, run_id))]
+
+    def list_runs(self, user_id: str, limit: int = 10) -> list[Row]:
+        return [Row(row) for row in self.db.execute(
+            """SELECT run_id, MIN(created) AS created, MAX(updated) AS updated, COUNT(*) AS jobs,
+                      SUM(state IN ('COMPLETED','FAILED','CANCELLED')) AS finished
+               FROM jobs WHERE user_id=? AND run_id IS NOT NULL GROUP BY run_id
+               ORDER BY created DESC LIMIT ?""", (user_id, limit))]
 
     def cancel_job(self, job_id: str, now: float, user_id: str) -> bool:
         return bool(self.db.execute(
@@ -249,9 +274,9 @@ class SQLiteStore(Store):
         self.db.execute("UPDATE jobs SET expires=0 WHERE id=?", (job_id,))
 
     def complete_job(self, job_id: str, state: str, result: str | None, message: str | None,
-                     now: float) -> None:
-        self.db.execute("UPDATE jobs SET state=?,result=?,message=?,updated=? WHERE id=?",
-                        (state, result, message, now, job_id))
+                     now: float, summary: str | None = None) -> None:
+        self.db.execute("UPDATE jobs SET state=?,result=?,message=?,updated=?,summary=? WHERE id=?",
+                        (state, result, message, now, summary, job_id))
 
     def create_pairing(self, device_id: str, code: str, name: str, capabilities: dict,
                        requested_hours: int | None, expires: float) -> None:
@@ -306,6 +331,7 @@ class MongoStore(Store):
         self.workers.create_index("token_hash")
         self.workers.create_index("seen")
         self.jobs.create_index([("state", 1), ("created", 1)])
+        self.jobs.create_index([("user_id", 1), ("run_id", 1), ("created", 1)])
         self.pairings.create_index("code", unique=True)
         self.pairings.create_index("device_id", unique=True)
 
@@ -327,7 +353,7 @@ class MongoStore(Store):
 
     def list_jobs(self, user_id: str, limit: int = 100) -> list[Row]:
         return [mongo_row(doc) for doc in self.jobs.find(
-            {"user_id": user_id}, sort=[("created", -1)], limit=limit) if doc]
+            {"user_id": user_id, "run_id": None}, sort=[("created", -1)], limit=limit) if doc]
 
     def insert_worker(self, worker_id: str, name: str, token_hash: str, user_id: str) -> None:
         self.workers.insert_one({"id": worker_id, "name": name, "token_hash": token_hash, "user_id": user_id,
@@ -358,14 +384,34 @@ class MongoStore(Store):
         row = self.jobs.find_one({"worker_id": worker_id, "state": "SOLVING"})
         return mongo_row(row)
 
-    def insert_job(self, job_id: str, name: str, now: float, request: str, user_id: str) -> None:
+    def insert_job(self, job_id: str, name: str, now: float, request: str, user_id: str,
+                   run_id: str | None = None, bench: str | None = None) -> None:
         self.jobs.insert_one({"id": job_id, "name": name, "state": "QUEUED", "created": now, "updated": now,
                               "request": request, "user_id": user_id, "worker_id": None, "lease": None,
-                              "expires": None, "attempts": 0, "result": None, "message": None})
+                              "expires": None, "attempts": 0, "result": None, "message": None,
+                              "run_id": run_id, "bench": bench, "summary": None})
 
     def get_job(self, job_id: str, user_id: str) -> Row | None:
         row = self.jobs.find_one({"id": job_id, "user_id": user_id})
         return mongo_row(row)
+
+    def list_run_jobs(self, user_id: str, run_id: str) -> list[Row]:
+        projection = {"_id": 0, "id": 1, "name": 1, "state": 1, "created": 1, "updated": 1,
+                      "worker_id": 1, "message": 1, "bench": 1, "summary": 1}
+        return [mongo_row(doc) for doc in self.jobs.find(
+            {"user_id": user_id, "run_id": run_id}, projection, sort=[("created", 1)]) if doc]
+
+    def list_runs(self, user_id: str, limit: int = 10) -> list[Row]:
+        pipeline = [
+            {"$match": {"user_id": user_id, "run_id": {"$ne": None}}},
+            {"$group": {"_id": "$run_id", "created": {"$min": "$created"}, "updated": {"$max": "$updated"},
+                        "jobs": {"$sum": 1},
+                        "finished": {"$sum": {"$cond": [{"$in": ["$state", ["COMPLETED", "FAILED", "CANCELLED"]]}, 1, 0]}}}},
+            {"$sort": {"created": -1}},
+            {"$limit": limit},
+        ]
+        return [Row({"run_id": doc["_id"], **{k: v for k, v in doc.items() if k != "_id"}})
+                for doc in self.jobs.aggregate(pipeline)]
 
     def cancel_job(self, job_id: str, now: float, user_id: str) -> bool:
         result = self.jobs.update_one({"id": job_id, "user_id": user_id, "state": {"$in": ["QUEUED", "SOLVING"]}},
@@ -407,9 +453,10 @@ class MongoStore(Store):
         self.jobs.update_one({"id": job_id}, {"$set": {"expires": 0}})
 
     def complete_job(self, job_id: str, state: str, result: str | None, message: str | None,
-                     now: float) -> None:
+                     now: float, summary: str | None = None) -> None:
         self.jobs.update_one({"id": job_id}, {"$set": {"state": state, "result": result,
-                                                       "message": message, "updated": now}})
+                                                       "message": message, "updated": now,
+                                                       "summary": summary}})
 
     def create_pairing(self, device_id: str, code: str, name: str, capabilities: dict,
                        requested_hours: int | None, expires: float) -> None:

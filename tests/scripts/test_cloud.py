@@ -214,6 +214,75 @@ class CloudTests(unittest.TestCase):
         jobs = self.client.get("/api/workspace", headers=self.admin).json()["jobs"]
         self.assertEqual(jobs, [])
 
+    def test_benchmark_run_reference_routing_and_rows(self):
+        catalogue = self.client.get("/api/benchmarks/catalogue", headers=self.admin).json()
+        ids = {d["id"] for d in catalogue["datasets"]}
+        self.assertIn("afiro", ids)
+        self.assertIn("flugpl-lp", ids)
+        relaxed = next(d for d in catalogue["datasets"] if d["id"] == "b-ball-lp")
+        self.assertEqual(relaxed["shape"]["problem_type"], "LP")
+        self.assertEqual(relaxed["shape"]["integer_variables"], 0)
+
+        _, connector = self.pair("npm connector")
+        _, python = self.pair("python worker")
+        created = self.client.post("/api/benchmarks/runs", headers=self.admin, json={
+            "datasets": ["afiro", "sample_qp"], "profiles": ["lp_simplex", "lp_ipm", "qp_ipm"],
+            "device": "cuda", "reference": True, "timeLimitSeconds": 20})
+        self.assertEqual(created.status_code, 201, created.text)
+        run_id = created.json()["runId"]
+        self.assertEqual(created.json()["jobs"], 5)
+        self.assertEqual(self.client.get("/api/workspace", headers=self.admin).json()["jobs"], [])
+
+        # The HiGHS job for afiro is first in the queue, but a worker without HiGHS never receives it.
+        first = self.claim(connector)
+        self.assertNotEqual(first["request"].get("solver"), "highs")
+        self.assertEqual(first["request"]["algorithm"], "simplex")
+        self.assertEqual(first["request"]["device"], "cpu")
+        reference = self.claim(python, reference_solvers=["highs"], highs_version="1.15.1")
+        self.assertEqual(reference["request"]["solver"], "highs")
+
+        bad = {"jobId": reference["id"], "lease": reference["lease"], "result": {"status": "OPTIMAL"}}
+        self.assertEqual(self.client.post("/api/worker/complete", headers=python, json=bad).status_code, 422)
+        self.assertEqual(self.client.post("/api/worker/complete", headers=python, json={
+            **bad, "result": {"solver": "highs", "status": "OPTIMAL", "objective_value": -464.7531428571,
+                              "runtime_seconds": 0.02, "version": "1.15.1"}}).status_code, 200)
+        self.assertEqual(self.client.post("/api/worker/complete", headers=connector, json={
+            "jobId": first["id"], "lease": first["lease"],
+            "result": {"status": "OPTIMAL", "objective_value": -464.7531428571, "runtime_seconds": 0.001,
+                       "verification": {"is_valid": True}, "primal": {"x": 1}}}).status_code, 200)
+
+        run = self.client.get(f"/api/benchmarks/runs/{run_id}", headers=self.admin).json()
+        self.assertEqual(run["state"], "running")
+        rows = {r["profile"]: r for r in run["rows"]}
+        self.assertEqual(set(rows), {"lp_simplex", "lp_ipm", "qp_ipm"})
+        self.assertTrue(rows["lp_simplex"]["agrees"])
+        self.assertEqual(rows["lp_simplex"]["reference"]["status"], "OPTIMAL")
+        self.assertEqual(rows["lp_ipm"]["executionDevice"], "cuda")
+        self.assertIsNone(rows["lp_ipm"]["agrees"])
+        self.assertEqual(run["summary"]["agreements"], 1)
+        self.assertAlmostEqual(run["summary"]["geomeanTimeRatio"], 0.05)
+        self.assertNotIn("modelJson", json.dumps(run))
+        self.assertEqual({m["name"] for m in run["machines"]}, {"npm connector", "python worker"})
+
+        self.assertEqual(self.client.get("/api/benchmarks/runs", headers=self.admin).json()["runs"][0]["runId"], run_id)
+        self.assertEqual(self.client.post(f"/api/benchmarks/runs/{run_id}/cancel", headers=self.admin).json()["cancelled"], 3)
+        self.assertEqual(self.client.get(f"/api/benchmarks/runs/{run_id}", headers=self.admin).json()["state"], "finished")
+        self.assertEqual(self.client.delete(f"/api/benchmarks/runs/{run_id}", headers=self.admin).status_code, 200)
+        self.assertEqual(self.client.get(f"/api/benchmarks/runs/{run_id}", headers=self.admin).status_code, 404)
+
+    def test_benchmark_run_validation(self):
+        bad_profile = self.client.post("/api/benchmarks/runs", headers=self.admin,
+                                       json={"datasets": ["afiro"], "profiles": ["nope"]})
+        self.assertEqual(bad_profile.status_code, 422)
+        mismatch = self.client.post("/api/benchmarks/runs", headers=self.admin,
+                                    json={"datasets": ["afiro"], "profiles": ["qp_ipm"]})
+        self.assertEqual(mismatch.status_code, 422)
+        unknown = self.client.post("/api/benchmarks/runs", headers=self.admin,
+                                   json={"datasets": ["../../etc/passwd"], "profiles": ["lp_ipm"]})
+        self.assertEqual(unknown.status_code, 422)
+        recorded = self.client.get("/api/benchmarks/recorded", headers=self.admin).json()
+        self.assertGreater(len(recorded["rows"]), 0)
+
     def test_revocation_and_invalid_model(self):
         worker_id, worker = self.pair()
         self.client.delete(f"/api/workers/{worker_id}", headers=self.admin)

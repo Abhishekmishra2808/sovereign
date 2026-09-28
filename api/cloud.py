@@ -14,6 +14,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
+from api import benchmark_lab
 from api.datasets import catalogue, dataset
 from api.firebase_auth import verify_firebase_token
 from api.routing import route_request
@@ -338,7 +339,7 @@ def submit(body: JobRequest, user_id: str = Depends(current_user)):
         shape = routing["shape"]
         kind = shape["problem_type"].upper()
         if kind in ("LP", "MILP") and body.algorithm == "simplex":
-            raise HTTPException(422, "CUDA jobs need LP interior point or automatic LP selection; revised simplex currently runs on CPU.")
+            raise HTTPException(422, "CUDA jobs need LP interior point or automatic LP selection; the simplex currently runs on CPU.")
         if kind == "QP" and body.qpAlgorithm == "frank_wolfe":
             raise HTTPException(422, "CUDA jobs need QP interior point or automatic QP selection; Frank-Wolfe currently runs on CPU.")
     job_id, now = secrets.token_hex(12), time.time()
@@ -360,6 +361,133 @@ def job(job_id: str, user_id: str = Depends(current_user)):
         if not row:
             raise HTTPException(404, "Job not found.")
         return job_view(row, full=True)
+
+
+class BenchmarkRunRequest(BaseModel):
+    datasets: list[str] = Field(min_length=1, max_length=40)
+    profiles: list[str] = Field(min_length=1, max_length=len(benchmark_lab.PROFILES))
+    device: Literal["cpu", "cuda", "auto"] = "cpu"
+    reference: bool = True
+    timeLimitSeconds: int = Field(default=30, ge=1, le=600)
+    maxNodes: int = Field(default=100000, ge=1, le=1000000)
+    workerId: str | None = None
+
+
+@app.get("/api/benchmarks/catalogue", dependencies=[Depends(current_user)])
+def benchmark_catalogue():
+    return benchmark_lab.catalogue()
+
+
+@app.get("/api/benchmarks/recorded", dependencies=[Depends(current_user)])
+def benchmark_recorded():
+    return benchmark_lab.recorded_run()
+
+
+@app.post("/api/benchmarks/runs", dependencies=[Depends(current_user)], status_code=201)
+def create_benchmark_run(body: BenchmarkRunRequest, user_id: str = Depends(current_user)):
+    unknown = [p for p in body.profiles if p not in benchmark_lab.PROFILES]
+    if unknown:
+        raise HTTPException(422, f"Unknown method: {', '.join(unknown)}.")
+    run_id, now = secrets.token_hex(8), time.time()
+    run_config = body.model_dump(exclude={"workerId"})
+    planned = []
+    for dataset_id in dict.fromkeys(body.datasets):
+        try:
+            entry = benchmark_lab.lab_dataset(dataset_id)
+        except (KeyError, OSError) as exc:
+            raise HTTPException(422, f"Unknown dataset: {dataset_id}.") from exc
+        kind = benchmark_lab.kind_of(entry["shape"])
+        profiles = [p for p in body.profiles if benchmark_lab.PROFILES[p]["kind"] == kind]
+        if not profiles:
+            continue
+        common = {"dataset": dataset_id, "suite": entry["suite"], "kind": kind,
+                  "shape": benchmark_lab.compact_shape(entry["shape"]), "run": run_config}
+        base = {"modelJson": entry["modelJson"], "modelFormat": entry["modelFormat"], "workerId": body.workerId,
+                "presolve": True, "parallelBranching": False, "maxNodes": body.maxNodes,
+                "timeLimitSeconds": body.timeLimitSeconds, "algorithm": "auto", "qpAlgorithm": "auto",
+                "milpMethod": "branch_and_cut", "branchRule": "strong"}
+        if body.reference:
+            planned.append((f"{dataset_id} · HiGHS reference", {**base, "device": "cpu", "solver": "highs"},
+                            {**common, "role": "reference", "device": "cpu"}))
+        for profile in profiles:
+            spec = benchmark_lab.PROFILES[profile]
+            device = "cpu" if profile in benchmark_lab.CPU_ONLY_PROFILES else body.device
+            planned.append((f"{dataset_id} · {spec['label']}", {**base, **spec["config"], "device": device},
+                            {**common, "role": "sovereign", "profile": profile, "profileLabel": spec["label"],
+                             "device": device}))
+    if not planned:
+        raise HTTPException(422, "None of the chosen methods apply to the chosen datasets.")
+    if len(planned) > 150:
+        raise HTTPException(422, "Choose fewer datasets or methods (at most 150 jobs per run).")
+    with open_store() as store:
+        if body.workerId and not store.worker_exists(body.workerId, user_id):
+            raise HTTPException(422, "Choose an existing machine.")
+        for i, (name, req, bench) in enumerate(planned):
+            req["name"] = name
+            req["routing"] = route_request(req)
+            req["benchmarkRun"] = run_id
+            store.insert_job(secrets.token_hex(12), name, now + i * 1e-4, json.dumps(req), user_id,
+                             run_id=run_id, bench=json.dumps(bench))
+    return {"runId": run_id, "jobs": len(planned)}
+
+
+@app.get("/api/benchmarks/runs", dependencies=[Depends(current_user)])
+def list_benchmark_runs(user_id: str = Depends(current_user)):
+    with open_store() as store:
+        runs = [dict(row) for row in store.list_runs(user_id)]
+    return {"runs": [{"runId": r["run_id"], "created": r["created"], "updated": r["updated"],
+                      "jobs": r["jobs"], "finished": r["finished"]} for r in runs]}
+
+
+@app.get("/api/benchmarks/runs/{run_id}", dependencies=[Depends(current_user)])
+def benchmark_run(run_id: str, user_id: str = Depends(current_user)):
+    now = time.time()
+    with open_store() as store:
+        store.reap(now)
+        jobs = [dict(row) for row in store.list_run_jobs(user_id, run_id)]
+        workers = {w["id"]: w for w in (dict(row) for row in store.list_workers(user_id))}
+    if not jobs:
+        raise HTTPException(404, "Benchmark run not found.")
+    rows = benchmark_lab.build_rows(jobs)
+    summary = benchmark_lab.summarize_rows(rows, jobs)
+    first = json.loads(jobs[0]["bench"]) if jobs[0].get("bench") else {}
+    machines = []
+    for worker_id in dict.fromkeys(j["worker_id"] for j in jobs if j.get("worker_id")):
+        worker = workers.get(worker_id)
+        caps = parse_json_value(worker.get("capabilities"), {}) if worker else {}
+        machines.append({"id": worker_id, "name": worker["name"] if worker else "Removed machine",
+                         "cpuThreads": caps.get("cpu_threads"), "gpu": caps.get("gpu_name") or None,
+                         "platform": caps.get("platform"), "engineVersion": caps.get("engine_version"),
+                         "highsVersion": caps.get("highs_version") or None})
+    active = any(j["state"] in ("QUEUED", "SOLVING") for j in jobs)
+    return {"runId": run_id, "created": jobs[0]["created"], "updated": max(j["updated"] for j in jobs),
+            "state": "running" if active else "finished", "config": first.get("run", {}),
+            "machines": machines, "rows": rows, "summary": summary}
+
+
+@app.post("/api/benchmarks/runs/{run_id}/cancel", dependencies=[Depends(current_user)])
+def cancel_benchmark_run(run_id: str, user_id: str = Depends(current_user)):
+    now = time.time()
+    with open_store() as store:
+        jobs = store.list_run_jobs(user_id, run_id)
+        if not jobs:
+            raise HTTPException(404, "Benchmark run not found.")
+        cancelled = sum(store.cancel_job(j["id"], now, user_id) for j in jobs if j["state"] in ("QUEUED", "SOLVING"))
+    return {"cancelled": cancelled}
+
+
+@app.delete("/api/benchmarks/runs/{run_id}", dependencies=[Depends(current_user)])
+def delete_benchmark_run(run_id: str, user_id: str = Depends(current_user)):
+    with open_store() as store:
+        store.reap(time.time())
+        jobs = store.list_run_jobs(user_id, run_id)
+        if not jobs:
+            raise HTTPException(404, "Benchmark run not found.")
+        if any(j["state"] == "SOLVING" for j in jobs):
+            raise HTTPException(409, "Cancel the run before deleting it; a machine is still solving one of its jobs.")
+        for j in jobs:
+            store.delete_job(j["id"], user_id)
+    return {"deleted": True}
 
 
 @app.post("/api/jobs/{job_id}/cancel", dependencies=[Depends(current_user)])
@@ -389,6 +517,8 @@ class Capabilities(BaseModel):
     cuda_available: bool = False
     gpu_name: str = Field(default="", max_length=250)
     engine_version: str = Field(default="", max_length=250)
+    reference_solvers: list[Literal["highs"]] = Field(default_factory=list, max_length=4)
+    highs_version: str = Field(default="", max_length=60)
 
 
 @app.post("/api/worker/claim")
@@ -405,6 +535,8 @@ def claim(body: Capabilities, worker_id: str = Depends(worker_auth)):
         for row in store.queued_jobs(user_id):
             req = parse_json_value(row["request"], {})
             if req.get("workerId") not in (None, worker_id):
+                continue
+            if req.get("solver") == "highs" and "highs" not in body.reference_solvers:
                 continue
             if req["device"] == "cuda" and not body.cuda_available:
                 continue
@@ -472,8 +604,6 @@ def complete(body: Completion, worker_id: str = Depends(worker_auth)):
     verified = isinstance(verification, dict) and verification.get("is_valid") is True
     conclusive = status in ("OPTIMAL", "FEASIBLE", "INFEASIBLE", "UNBOUNDED")
     message = body.error
-    if body.result and not message and (not conclusive or not verified):
-        message = "Solver result did not pass verification." if not verified else f"Solver stopped with status {status}."
     now = time.time()
     with open_store() as store:
         store.reap(now)
@@ -485,7 +615,16 @@ def complete(body: Completion, worker_id: str = Depends(worker_auth)):
             return {"accepted": True}
         if row["state"] != "SOLVING":
             raise HTTPException(409, "Job is no longer running.")
-        store.complete_job(body.jobId, "FAILED" if message else "COMPLETED", encoded, message, now)
+        reference = parse_json_value(row["request"], {}).get("solver") == "highs"
+        if reference and body.result is not None and body.result.get("solver") != "highs":
+            raise HTTPException(422, "A HiGHS reference job must return a HiGHS result.")
+        # Reference solutions come from HiGHS itself; Sovereign's verifier only gates Sovereign results.
+        if body.result and not message and not reference and (not conclusive or not verified):
+            message = "Solver result did not pass verification." if not verified else f"Solver stopped with status {status}."
+        summary = None
+        if row.get("run_id"):
+            summary = json.dumps(benchmark_lab.summarize_result(body.result, message), allow_nan=False)
+        store.complete_job(body.jobId, "FAILED" if message else "COMPLETED", encoded, message, now, summary)
         store.touch_worker(worker_id, now)
     return {"accepted": True}
 

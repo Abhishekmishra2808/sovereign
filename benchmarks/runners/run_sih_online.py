@@ -18,64 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from api.datasets import CASES, dataset
-
-
-def highs_reference(path, limit):
-    import highspy
-    import numpy as np
-    h = highspy.Highs()
-    h.setOptionValue("output_flag", False)
-    h.setOptionValue("time_limit", float(limit))
-    h.setOptionValue("threads", 1)
-    if path.suffix == ".mps":
-        assert h.readModel(str(path)) == highspy.HighsStatus.kOk
-    else:
-        m = json.loads(path.read_text())
-        variables = m["variables"]
-        index = {v["name"]: i for i, v in enumerate(variables)}
-        for i, v in enumerate(variables):
-            lb, ub = v.get("lower_bound", 0), v.get("upper_bound", 1 if v.get("type") == "binary" else 1e30)
-            h.addVar(lb, h.getInfinity() if ub >= 1e29 else ub)
-            if v.get("type") in ("integer", "binary"):
-                h.changeColIntegrality(i, highspy.HighsVarType.kInteger)
-        obj = m.get("objective", {})
-        for name, value in obj.get("linear", {}).items():
-            h.changeColCost(index[name], value)
-        h.changeObjectiveOffset(obj.get("constant", 0))
-        h.changeObjectiveSense(highspy.ObjSense.kMaximize if m.get("sense") == "maximize" else highspy.ObjSense.kMinimize)
-        for row in m.get("constraints", []):
-            coeffs = row.get("linear", {})
-            rhs, sense = row["rhs"], row["sense"]
-            h.addRow(rhs if sense in (">=", "=") else -h.getInfinity(),
-                     rhs if sense in ("<=", "=") else h.getInfinity(), len(coeffs),
-                     list(index[k] for k in coeffs), list(coeffs.values()))
-        q = obj.get("quadratic", {})
-        if q:
-            # Objective is 0.5*x'Q*x. Symmetrize off-diagonal entries before
-            # passing HiGHS' lower triangular Hessian, preserving that objective.
-            entries = {}
-            for a, row in q.items():
-                for b, value in row.items():
-                    i, j = index[a], index[b]
-                    key = (max(i, j), min(i, j))
-                    entries[key] = entries.get(key, 0) + value * (1 if i == j else .5)
-            starts, indices, values = [0], [], []
-            for j in range(len(variables)):
-                for (i, col), value in sorted(entries.items()):
-                    if col == j:
-                        indices.append(i); values.append(value)
-                starts.append(len(indices))
-            status = h.passHessian(len(variables), len(values), highspy.HessianFormat.kTriangular,
-                                  np.array(starts, dtype=np.int32), np.array(indices, dtype=np.int32), np.array(values))
-            assert status == highspy.HighsStatus.kOk
-    start = time.perf_counter()
-    h.run()
-    elapsed = time.perf_counter() - start
-    status = h.modelStatusToString(h.getModelStatus()).upper().replace(" ", "_")
-    info = h.getInfo()
-    return {"status": status, "objective": h.getObjectiveValue() if h.getSolution().value_valid else None,
-            "runtime_seconds": elapsed, "mip_gap": info.mip_gap if math.isfinite(info.mip_gap) else None,
-            "version": h.version()}
+from worker.runner import highs_reference
 
 
 def write_report(report):
