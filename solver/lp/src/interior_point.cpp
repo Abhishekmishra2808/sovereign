@@ -2,6 +2,8 @@
 
 #include "sovereign/dense_lu.hpp"
 #include "sovereign/sparse_matrix.hpp"
+#include "sovereign/sparse_symmetric.hpp"
+#include "sovereign/sparse_ldlt.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -78,6 +80,72 @@ void build_normal_eq(const SparseMatrixCSC& A, const std::vector<double>& d,
     M_col_major[static_cast<std::size_t>(i) * static_cast<std::size_t>(m) +
                 static_cast<std::size_t>(i)] += 1e-12;
   }
+}
+
+// Sparse normal equation state (reused across IPM iterations)
+struct SparseNormalEqState {
+  SparseSymmetricPattern pattern;   // Sparsity pattern of M (constant)
+  std::vector<double> values;       // Current numerical values of M
+  SparseLDLT ldlt;                  // LDL^T factorization (symbolic reused)
+  bool symbolic_done = false;       // Whether symbolic analysis completed
+
+  // Statistics
+  std::size_t nnz_A = 0;
+  std::size_t nnz_M = 0;
+  std::size_t nnz_L = 0;
+  double symbolic_time = 0.0;
+  double numeric_time = 0.0;
+  double solve_time = 0.0;
+  int factorizations = 0;
+  int solves = 0;
+};
+
+// Build sparse M = A D A^T and factorize with LDL^T
+// Returns true on success, false if factorization fails
+bool factorize_sparse_normal_eq(const SparseMatrixCSC& A,
+                                 const std::vector<double>& d,
+                                 SparseNormalEqState& state,
+                                 double regularization = 1e-12) {
+  // On first call, build pattern and do symbolic analysis
+  if (!state.symbolic_done) {
+    state.pattern = build_normal_eq_pattern(A);
+    state.nnz_A = A.values.size();
+    state.nnz_M = state.pattern.nnz();
+
+    if (!state.ldlt.symbolic_analyze(state.pattern)) {
+      return false;
+    }
+
+    state.nnz_L = state.ldlt.factor_nnz();
+    state.symbolic_time = state.ldlt.symbolic_time_seconds();
+    state.symbolic_done = true;
+  }
+
+  // Build numerical values of M = A D A^T
+  state.values.resize(state.pattern.nnz());
+  build_normal_eq_values(A, d, state.pattern, state.values);
+
+  // Numerical LDL^T factorization with regularization
+  if (!state.ldlt.numeric_factor(state.values, regularization)) {
+    return false;
+  }
+
+  state.numeric_time += state.ldlt.numeric_time_seconds();
+  state.factorizations++;
+
+  return true;
+}
+
+// Solve M x = b using existing LDL^T factorization
+bool solve_sparse_normal_eq(SparseNormalEqState& state, std::vector<double>& x) {
+  if (!state.ldlt.solve(x)) {
+    return false;
+  }
+
+  state.solve_time += state.ldlt.solve_time_seconds();
+  state.solves++;
+
+  return true;
 }
 
 double step_to_bound(const std::vector<double>& x, const std::vector<double>& dx) {
@@ -265,7 +333,8 @@ bool solve_newton(const IpmLp& lp, const std::vector<double>& x,
                   const std::vector<double>& s, const std::vector<double>& rp,
                   const std::vector<double>& rd, const std::vector<double>& rxs,
                   std::vector<double>& dx, std::vector<double>& dy,
-                  std::vector<double>& ds) {
+                  std::vector<double>& ds, bool use_sparse,
+                  SparseNormalEqState* sparse_state) {
   const int m = lp.m;
   const int n = lp.n;
   std::vector<double> d(static_cast<std::size_t>(n), 0.0);
@@ -284,12 +353,24 @@ bool solve_newton(const IpmLp& lp, const std::vector<double>& x,
   std::vector<double> rhs = rp;
   axpy(1.0, Atmp, rhs);
 
-  std::vector<double> M;
-  build_normal_eq(lp.A, d, M);
-  DenseLU lu;
-  if (!lu.factorize(std::move(M), static_cast<std::size_t>(m))) return false;
-  dy = rhs;
-  if (!lu.solve(dy)) return false;
+  // Sparse path: use LDL^T factorization
+  if (use_sparse && sparse_state) {
+    if (!factorize_sparse_normal_eq(lp.A, d, *sparse_state, 1e-12)) {
+      return false;  // Factorization failed, caller should try dense fallback
+    }
+    dy = rhs;
+    if (!solve_sparse_normal_eq(*sparse_state, dy)) {
+      return false;
+    }
+  } else {
+    // Dense path: use LU factorization
+    std::vector<double> M;
+    build_normal_eq(lp.A, d, M);
+    DenseLU lu;
+    if (!lu.factorize(std::move(M), static_cast<std::size_t>(m))) return false;
+    dy = rhs;
+    if (!lu.solve(dy)) return false;
+  }
 
   std::vector<double> Atdy = matvec_At(lp.A, dy);
   dx.assign(static_cast<std::size_t>(n), 0.0);
@@ -330,6 +411,11 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
     result.message = "Optimal (no constraints) via IPM path.";
     return result;
   }
+
+  // Initialize sparse state if requested
+  SparseNormalEqState sparse_state;
+  bool use_sparse = opt.use_sparse_normal_equations;
+  bool sparse_failed = false;
 
   std::vector<double> x(static_cast<std::size_t>(n), 1.0);
   std::vector<double> s(static_cast<std::size_t>(n), 1.0);
@@ -402,7 +488,31 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
       result.duality_gap = gap;
       result.primal_residual = p_res;
       result.dual_residual = d_res;
-      result.message = "Optimal solution found by primal-dual interior-point (Mehrotra).";
+
+      // Build diagnostic message
+      std::ostringstream msg;
+      msg << "Optimal solution found by primal-dual interior-point (Mehrotra)";
+      if (use_sparse && !sparse_failed) {
+        msg << " with sparse LDL^T.";
+        msg << "\nSparse linear algebra: m=" << m << ", n=" << n
+            << ", nnz(A)=" << sparse_state.nnz_A
+            << ", nnz(M)=" << sparse_state.nnz_M
+            << ", nnz(L)=" << sparse_state.nnz_L
+            << " (fill ratio: " << sparse_state.ldlt.fill_ratio() << ")"
+            << "\nSymbolic time: " << sparse_state.symbolic_time << "s"
+            << ", numeric time: " << sparse_state.numeric_time << "s"
+            << ", solve time: " << sparse_state.solve_time << "s"
+            << "\nFactorizations: " << sparse_state.factorizations
+            << ", solves: " << sparse_state.solves
+            << "\nRegularization: 1e-12"
+            << ", min pivot: " << sparse_state.ldlt.min_pivot()
+            << ", max pivot: " << sparse_state.ldlt.max_pivot();
+      } else if (sparse_failed) {
+        msg << " (sparse factorization failed, used dense LU fallback).";
+      } else {
+        msg << " (dense LU).";
+      }
+      result.message = msg.str();
 
       // Map structural solution back
       double obj = original.objective.constant;
@@ -425,14 +535,30 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
           -x[static_cast<std::size_t>(j)] * s[static_cast<std::size_t>(j)];
     }
     std::vector<double> dx_aff, dy_aff, ds_aff;
-    if (!solve_newton(lp, x, s, rp, rd, rxs, dx_aff, dy_aff, ds_aff)) {
-      result.status = SolverStatus::NumericalError;
-      result.message =
-          "IPM Newton normal-equations factorization is singular on the affine predictor "
-          "(the basis is numerically dependent). The iterate is not trustworthy, so falling "
-          "back to the simplex path is the correct response.";
-      result.iterations = it;
-      return result;
+    if (!solve_newton(lp, x, s, rp, rd, rxs, dx_aff, dy_aff, ds_aff,
+                      use_sparse && !sparse_failed,
+                      use_sparse && !sparse_failed ? &sparse_state : nullptr)) {
+      // If sparse factorization failed, try dense fallback
+      if (use_sparse && !sparse_failed) {
+        sparse_failed = true;
+        if (!solve_newton(lp, x, s, rp, rd, rxs, dx_aff, dy_aff, ds_aff, false, nullptr)) {
+          result.status = SolverStatus::NumericalError;
+          result.message =
+              "IPM Newton normal-equations factorization is singular on the affine predictor "
+              "(the basis is numerically dependent). The iterate is not trustworthy, so falling "
+              "back to the simplex path is the correct response.";
+          result.iterations = it;
+          return result;
+        }
+      } else {
+        result.status = SolverStatus::NumericalError;
+        result.message =
+            "IPM Newton normal-equations factorization is singular on the affine predictor "
+            "(the basis is numerically dependent). The iterate is not trustworthy, so falling "
+            "back to the simplex path is the correct response.";
+        result.iterations = it;
+        return result;
+      }
     }
 
     const double alpha_p_aff = step_to_bound(x, dx_aff);
@@ -454,14 +580,30 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
           sigma * mu;
     }
     std::vector<double> dx, dy, ds;
-    if (!solve_newton(lp, x, s, rp, rd, rxs, dx, dy, ds)) {
-      result.status = SolverStatus::NumericalError;
-      result.message =
-          "IPM Newton normal-equations factorization is singular on the corrector "
-          "(the basis is numerically dependent). The iterate is not trustworthy, so "
-          "falling back to the simplex path is the correct response.";
-      result.iterations = it;
-      return result;
+    if (!solve_newton(lp, x, s, rp, rd, rxs, dx, dy, ds,
+                      use_sparse && !sparse_failed,
+                      use_sparse && !sparse_failed ? &sparse_state : nullptr)) {
+      // If sparse factorization failed, try dense fallback
+      if (use_sparse && !sparse_failed) {
+        sparse_failed = true;
+        if (!solve_newton(lp, x, s, rp, rd, rxs, dx, dy, ds, false, nullptr)) {
+          result.status = SolverStatus::NumericalError;
+          result.message =
+              "IPM Newton normal-equations factorization is singular on the corrector "
+              "(the basis is numerically dependent). The iterate is not trustworthy, so "
+              "falling back to the simplex path is the correct response.";
+          result.iterations = it;
+          return result;
+        }
+      } else {
+        result.status = SolverStatus::NumericalError;
+        result.message =
+            "IPM Newton normal-equations factorization is singular on the corrector "
+            "(the basis is numerically dependent). The iterate is not trustworthy, so "
+            "falling back to the simplex path is the correct response.";
+        result.iterations = it;
+        return result;
+      }
     }
 
     double alpha_p = tau * step_to_bound(x, dx);

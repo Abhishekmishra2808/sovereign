@@ -15,6 +15,11 @@ struct InteriorPointOptions {
   double optimality_tol = 1e-9;
   double fraction_to_boundary = 0.999;
   bool enable_scaling = true;
+
+  // Sparse linear algebra for normal equations M = A D A^T
+  // When true, uses sparse LDL^T factorization with AMD ordering.
+  // When false or if sparse factorization fails, falls back to dense LU.
+  bool use_sparse_normal_equations = false;
 };
 
 // Mehrotra predictor-corrector primal-dual interior-point method for LP.
