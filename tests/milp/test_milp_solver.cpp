@@ -140,3 +140,26 @@ TEST(MilpNearTieTest, AcceptBetterIntegerEvenWhenWithinMipGap) {
   EXPECT_NEAR(r.primal.at("z"), 0.0, 1e-5);
   EXPECT_TRUE(SolutionVerifier().verify(m, r, 1e-4).is_valid);
 }
+
+TEST(MilpTimeLimitTest, ExpiredBudgetNeverClaimsOptimalOrInfeasible) {
+  OptimizationModel m;
+  m.problem_type = ProblemType::MILP;
+  m.sense = Sense::Maximize;
+  m.variables.push_back(Variable{"x", VariableType::Integer, 0.0, 10.0});
+  m.variables.push_back(Variable{"y", VariableType::Integer, 0.0, 10.0});
+  m.objective.linear = {{"x", 5.0}, {"y", 4.0}};
+  m.constraints.push_back(Constraint{"c1", {{"x", 6.0}, {"y", 4.0}}, ConstraintSense::Le, 24.5});
+  m.constraints.push_back(Constraint{"c2", {{"x", 1.0}, {"y", 2.0}}, ConstraintSense::Le, 6.5});
+
+  BranchAndBoundOptions opt;
+  opt.time_limit_seconds = 1e-12;
+  opt.parallel_workers = 1;
+  SolverResult r = BranchAndBoundSolver(opt).solve(m);
+  EXPECT_EQ(r.status, SolverStatus::TimeLimit);
+  EXPECT_FALSE(r.has_objective_value);
+  EXPECT_NE(r.message.find("time limit"), std::string::npos);
+
+  opt.time_limit_seconds = 0.0;
+  SolverResult full = BranchAndBoundSolver(opt).solve(m);
+  EXPECT_EQ(full.status, SolverStatus::Optimal);
+}

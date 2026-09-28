@@ -107,15 +107,32 @@ std::vector<Cut> generate_cover_cuts(const OptimizationModel& milp,
       double xv;
     };
     std::vector<Term> terms;
+    // The knapsack is  sum_{binary, a>0} a_j x_j <= rhs - min(activity of every
+    // other term). Using the raw rhs is only valid when the other terms can
+    // never go negative; a row like x1 + x2 - 2y <= 0 would otherwise yield the
+    // invalid cover x1 + x2 <= 1.
     double rhs = row.rhs;
+    bool bounded = true;
     for (const auto& kv : row.linear) {
       const Variable* v = find_var(milp, kv.first);
-      if (!v || !is_bin(v->type) || kv.second <= 1e-12) continue;
-      auto it = x.find(kv.first);
-      const double xv = it == x.end() ? 0.0 : it->second;
-      terms.push_back({kv.first, kv.second, xv});
+      if (!v) {
+        bounded = false;
+        break;
+      }
+      if (is_bin(v->type) && kv.second > 1e-12) {
+        auto it = x.find(kv.first);
+        const double xv = it == x.end() ? 0.0 : it->second;
+        terms.push_back({kv.first, kv.second, xv});
+        continue;
+      }
+      const double at = kv.second > 0.0 ? v->lower_bound : v->upper_bound;
+      if (std::abs(at) >= 1e20) {
+        bounded = false;
+        break;
+      }
+      rhs -= kv.second * at;
     }
-    if (terms.size() < 2) continue;
+    if (!bounded || terms.size() < 2) continue;
 
     // Minimal cover heuristic: take vars in decreasing a until sum > rhs
     std::sort(terms.begin(), terms.end(),
@@ -198,6 +215,13 @@ std::vector<Cut> generate_mir_cuts(const OptimizationModel& milp,
       // continuous column with a negative lower bound also has to disqualify
       // the row: we would be dropping a term from the left-hand side.
       if (v != nullptr && !is_int(v->type) && can_be_negative) {
+        row_is_routable = false;
+        break;
+      }
+      // Dropping a continuous term is only a relaxation when that term is never
+      // negative: from x - y <= 0.5 (y >= 0 continuous) the dropped -y would
+      // turn into the invalid cut x <= 0.
+      if (v == nullptr || (!is_int(v->type) && a < 0.0)) {
         row_is_routable = false;
         break;
       }

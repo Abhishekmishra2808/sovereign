@@ -1,5 +1,6 @@
 #include "sovereign/lp_solver.hpp"
 
+#include "sovereign/dual_simplex.hpp"
 #include "sovereign/interior_point.hpp"
 #include "sovereign/revised_simplex.hpp"
 
@@ -25,16 +26,25 @@ std::string describe_handoff(const SolverResult& primary) {
 SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& algorithm) const {
   const char* algo = std::getenv("SOVEREIGN_LP_ALGORITHM");
   const std::string choice = algorithm.empty() ? (algo ? algo : "auto") : algorithm;
-  if (choice != "auto" && choice != "simplex" && choice != "ipm") {
+  if (choice != "auto" && choice != "simplex" && choice != "dual" && choice != "ipm") {
     SolverResult invalid;
     invalid.status = SolverStatus::Error;
     invalid.message = "Unsupported LP algorithm: " + choice;
     return invalid;
   }
 
+  // Dual simplex first; it certifies only OPTIMAL and INFEASIBLE, so anything
+  // else (an unbounded LP included) goes to the primal revised simplex.
   auto run_simplex = [&]() {
+    SolverResult dual = solve_lp_dual_simplex(model, nullptr, nullptr);
+    if (dual.status == SolverStatus::Optimal || dual.status == SolverStatus::Infeasible) {
+      return dual;
+    }
     RevisedSimplexOptions opt;
-    return RevisedSimplexSolver(opt).solve(model);
+    SolverResult primal = RevisedSimplexSolver(opt).solve(model);
+    primal.warnings.push_back("Dual simplex did not finish (" + describe_handoff(dual) +
+                              "); solved with the primal revised simplex.");
+    return primal;
   };
   auto run_ipm = [&]() {
     InteriorPointOptions opt;
@@ -43,6 +53,9 @@ SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& 
 
   if (choice == "simplex") {
     return run_simplex();
+  }
+  if (choice == "dual") {
+    return solve_lp_dual_simplex(model, nullptr, nullptr);
   }
   if (choice == "ipm") {
     return run_ipm();

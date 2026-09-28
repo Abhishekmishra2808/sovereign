@@ -14,6 +14,7 @@ BranchRule parse_branch_rule(const char* s) {
   const std::string v(s);
   if (v == "most_fractional" || v == "fractional") return BranchRule::MostFractional;
   if (v == "pseudocost" || v == "pseudo") return BranchRule::PseudoCost;
+  if (v == "full_strong") return BranchRule::FullStrong;
   return BranchRule::StrongBranching;
 }
 
@@ -40,6 +41,13 @@ SolverResult MilpSolver::solve(const OptimizationModel& model) const {
   if (const char* mn = std::getenv("SOVEREIGN_MAX_NODES")) {
     opt.max_nodes = std::atoi(mn);
   }
+  if (const char* tl = std::getenv("SOVEREIGN_TIME_LIMIT")) {
+    opt.time_limit_seconds = std::atof(tl);
+  }
+  if (const char* df = std::getenv("SOVEREIGN_DIVE_FREQUENCY")) {
+    opt.dive_frequency = std::atoi(df);
+  }
+  opt.plunging = env_flag_true("SOVEREIGN_PLUNGING", true);
   return BranchAndBoundSolver(opt).solve(model);
 }
 

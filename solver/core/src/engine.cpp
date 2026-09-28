@@ -9,8 +9,31 @@
 #include <chrono>
 #include <unordered_map>
 
+#if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
+
 namespace sovereign {
 namespace {
+
+// MinGW's steady_clock advances in ~1 ms steps on Windows, which reports small
+// solves as 0 s; the performance counter resolves well under a microsecond.
+double monotonic_seconds() {
+#if defined(_WIN32)
+  LARGE_INTEGER frequency, now;
+  QueryPerformanceFrequency(&frequency);
+  QueryPerformanceCounter(&now);
+  return static_cast<double>(now.QuadPart) / static_cast<double>(frequency.QuadPart);
+#else
+  return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
+#endif
+}
 
 double evaluate_objective(const OptimizationModel& model,
                           const std::unordered_map<std::string, double>& x) {
@@ -34,7 +57,7 @@ double evaluate_objective(const OptimizationModel& model,
 }  // namespace
 
 SolverResult OptimizationEngine::solve(const OptimizationModel& model, const EngineOptions& options) const {
-  const auto t0 = std::chrono::steady_clock::now();
+  const double t0 = monotonic_seconds();
 
   const std::string validation = ModelValidator::validate(model);
   if (!validation.empty()) {
@@ -84,8 +107,7 @@ SolverResult OptimizationEngine::solve(const OptimizationModel& model, const Eng
     }
   }
 
-  const auto t1 = std::chrono::steady_clock::now();
-  result.runtime_seconds = std::chrono::duration<double>(t1 - t0).count();
+  result.runtime_seconds = monotonic_seconds() - t0;
   return result;
 }
 

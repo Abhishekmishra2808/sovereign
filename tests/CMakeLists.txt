@@ -10,11 +10,13 @@ set(SOVEREIGN_TEST_SOURCES
   unit/test_verifier.cpp
   unit/test_sparse.cpp
   unit/test_dense_lu.cpp
+  unit/test_sparse_lu.cpp
   unit/test_presolve.cpp
   unit/test_cuts_heuristics.cpp
   unit/test_correctness_regressions.cpp
   unit/test_ed25519_verify.cpp
   lp/test_lp_solver.cpp
+  lp/test_dual_simplex.cpp
   milp/test_milp_solver.cpp
   qp/test_qp_solver.cpp
 )

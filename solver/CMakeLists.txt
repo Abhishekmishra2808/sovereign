@@ -43,9 +43,11 @@ add_library(sovereign_core
   core/src/engine.cpp
   sparse/src/sparse_matrix.cpp
   numerical/src/dense_lu.cpp
+  numerical/src/sparse_lu.cpp
   numerical/src/ed25519_verify.cpp
   lp/src/lp_solver.cpp
   lp/src/revised_simplex.cpp
+  lp/src/dual_simplex.cpp
   lp/src/interior_point.cpp
   qp/src/qp_solver.cpp
   qp/src/convex_qp.cpp

@@ -107,6 +107,11 @@ bool remove_empty_and_redundant(OptimizationModel& model, PresolveResult& out,
   bool changed = false;
   std::vector<Constraint> kept;
   kept.reserve(model.constraints.size());
+  std::unordered_map<std::string, int> var_index;
+  var_index.reserve(model.variables.size() * 2);
+  for (std::size_t i = 0; i < model.variables.size(); ++i) {
+    var_index.emplace(model.variables[i].name, static_cast<int>(i));
+  }
 
   for (const auto& c : model.constraints) {
     double min_act = 0.0;
@@ -115,9 +120,9 @@ bool remove_empty_and_redundant(OptimizationModel& model, PresolveResult& out,
     for (const auto& kv : c.linear) {
       if (std::abs(kv.second) <= tol) continue;
       has_terms = true;
-      const int vi = find_var(model, kv.first);
-      if (vi < 0) continue;
-      const Variable& v = model.variables[static_cast<std::size_t>(vi)];
+      const auto found = var_index.find(kv.first);
+      if (found == var_index.end()) continue;
+      const Variable& v = model.variables[static_cast<std::size_t>(found->second)];
       const double a = kv.second;
       if (a > 0) {
         min_act += a * v.lower_bound;
@@ -208,35 +213,20 @@ bool remove_empty_and_redundant(OptimizationModel& model, PresolveResult& out,
 }
 
 bool fix_fixed_variables(OptimizationModel& model, PresolveResult& out, double tol) {
-  bool changed = false;
-  for (;;) {
-    int idx = -1;
-    for (std::size_t i = 0; i < model.variables.size(); ++i) {
-      if (is_fixed(model.variables[i], tol)) {
-        idx = static_cast<int>(i);
-        break;
-      }
-    }
-    if (idx < 0) break;
-
-    Variable v = model.variables[static_cast<std::size_t>(idx)];
+  // Removing a variable never fixes another, so every currently fixed variable
+  // is folded out in one sweep over the constraints.
+  std::unordered_map<std::string, double> fixed;
+  std::vector<char> drop(model.variables.size(), 0);
+  for (std::size_t i = 0; i < model.variables.size(); ++i) {
+    const Variable& v = model.variables[i];
+    if (!is_fixed(v, tol) || fixed.count(v.name)) continue;
     if (v.lower_bound > v.upper_bound + tol) {
       out.infeasible = true;
       out.message = "Presolve detected inconsistent bounds on " + v.name;
       return true;
     }
     const double val = 0.5 * (v.lower_bound + v.upper_bound);
-
-    // Fold into objective constant and constraints, then remove.
-    const double cn = obj_coef(model, v.name);
-    out.objective_offset += cn * val;
-
-    for (auto& c : model.constraints) {
-      auto it = c.linear.find(v.name);
-      if (it == c.linear.end()) continue;
-      c.rhs -= it->second * val;
-      c.linear.erase(it);
-    }
+    out.objective_offset += obj_coef(model, v.name) * val;
 
     PresolveAction act;
     act.type = PresolveActionType::FixVariable;
@@ -246,10 +236,38 @@ bool fix_fixed_variables(OptimizationModel& model, PresolveResult& out, double t
     out.actions.push_back(act);
     ++out.stats.fixed_variables;
 
-    remove_variable_at(model, idx);
-    changed = true;
+    fixed.emplace(v.name, val);
+    drop[i] = 1;
   }
-  return changed;
+  if (fixed.empty()) return false;
+
+  for (auto& c : model.constraints) {
+    for (auto it = c.linear.begin(); it != c.linear.end();) {
+      const auto f = fixed.find(it->first);
+      if (f == fixed.end()) {
+        ++it;
+        continue;
+      }
+      c.rhs -= it->second * f->second;
+      it = c.linear.erase(it);
+    }
+  }
+  for (const auto& kv : fixed) model.objective.linear.erase(kv.first);
+  for (auto it = model.objective.quadratic.begin(); it != model.objective.quadratic.end();) {
+    if (fixed.count(it->first)) {
+      it = model.objective.quadratic.erase(it);
+      continue;
+    }
+    for (const auto& kv : fixed) it->second.erase(kv.first);
+    if (it->second.empty()) it = model.objective.quadratic.erase(it);
+    else ++it;
+  }
+  std::size_t out_i = 0;
+  for (std::size_t i = 0; i < model.variables.size(); ++i) {
+    if (!drop[i]) model.variables[out_i++] = std::move(model.variables[i]);
+  }
+  model.variables.resize(out_i);
+  return true;
 }
 
 bool singleton_rows(OptimizationModel& model, PresolveResult& out, double tol,

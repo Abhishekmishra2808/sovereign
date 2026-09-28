@@ -1,6 +1,6 @@
 #include "sovereign/revised_simplex.hpp"
 
-#include "sovereign/dense_lu.hpp"
+#include "sovereign/sparse_lu.hpp"
 #include "sovereign/sparse_matrix.hpp"
 #include "sovereign/tolerances.hpp"
 
@@ -298,7 +298,7 @@ struct SimplexState {
   std::vector<int> nonbasic;  // size n-m
   std::vector<char> is_basic; // size n
   std::vector<double> xB;
-  DenseLU lu;                 // factorization of basis at last refactor
+  SparseLU lu;                // factorization of basis at last refactor
   std::vector<Eta> etas;      // product-form updates since last refactor
   std::int64_t iterations = 0;
   int since_refactor = 0;
@@ -348,25 +348,26 @@ bool ftran(SimplexState& st, std::vector<double>& x) {
 
 bool btran(SimplexState& st, std::vector<double>& x) {
   // Solve B^T pi = c, where B = B0 * E1 * E2 * ... * Ek (product-form basis).
-  // B^T = Ek^T * ... * E1^T * B0^T, so B^{-T} = B0^{-T} * E1^{-T} * ... * Ek^{-T}.
-  // The base factorization's transpose-solve must be applied FIRST, then the
-  // eta transposes in forward (insertion) order. Applying them in reverse
-  // order (as a prior version of this function did) computes the wrong dual
-  // vector whenever any etas are present, which corrupts reduced-cost
-  // pricing and can cause the simplex to genuinely cycle forever (observed:
-  // repeating exact 2-cycles for 100k+ iterations on degenerate MILP node
-  // LPs) because entering-variable choices are based on incorrect duals.
-  if (!st.lu.solve_transpose(x)) return false;
-  for (const Eta& e : st.etas) {
-    apply_eta_inv_transpose(x, e.pivot, e.alpha);
+  // B^{-T} = B0^{-T} * E1^{-T} * ... * Ek^{-T}, so the newest eta acts on c
+  // first and the base factorization's transpose-solve comes last.
+  for (auto it = st.etas.rbegin(); it != st.etas.rend(); ++it) {
+    apply_eta_inv_transpose(x, it->pivot, it->alpha);
   }
-  return true;
+  return st.lu.solve_transpose(x);
 }
 
 bool refactor_basis(SimplexState& st) {
-  std::vector<double> dense;
-  st.lp->A.extract_dense_basis(st.basis, dense);
-  if (!st.lu.factorize(std::move(dense), static_cast<std::size_t>(st.lp->m))) {
+  const SparseMatrixCSC& a = st.lp->A;
+  std::vector<int> ptr(1, 0), idx;
+  std::vector<double> val;
+  for (const int col : st.basis) {
+    for (int p = a.col_ptr[static_cast<std::size_t>(col)]; p < a.col_ptr[static_cast<std::size_t>(col) + 1]; ++p) {
+      idx.push_back(a.row_idx[static_cast<std::size_t>(p)]);
+      val.push_back(a.values[static_cast<std::size_t>(p)]);
+    }
+    ptr.push_back(static_cast<int>(idx.size()));
+  }
+  if (!st.lu.factorize(static_cast<std::size_t>(st.lp->m), ptr, idx, val)) {
     return false;
   }
   st.etas.clear();
@@ -463,27 +464,28 @@ bool pivot_column(SimplexState& st, int enter, std::vector<double>& d) {
 }
 
 int select_leaving(const SimplexState& st, const std::vector<double>& d, bool bland) {
-  // Harris ratio test: Instead of selecting the single minimum ratio, collect
-  // ALL rows where ratio is within harris_tol of minimum, then among those
-  // candidates select the one with largest |d[i]| (pivot magnitude).
-  // This avoids small pivots that cause numerical instability and cycling.
+  // Bounded two-pass Harris ratio test.
   //
-  // When bland is set, use Bland's rule (smallest variable index) instead of
-  // largest pivot among candidates.
-
-  // First pass: find minimum ratio
-  double min_ratio = std::numeric_limits<double>::infinity();
+  // Pass 1 relaxes every basic variable's bound by an ABSOLUTE feasibility
+  // tolerance and takes theta_max = min (max(xB_i,0) + tol) / d_i. Pass 2
+  // accepts any row whose true ratio is <= theta_max and picks the largest
+  // pivot (or, under Bland, the smallest variable index). Because the chosen
+  // step never exceeds theta_max, no basic variable is driven below -tol, which
+  // the post-pivot clamp in run_phase absorbs. The tolerance must stay absolute:
+  // scaling it by |ratio| lets large-magnitude rows (flugpl, ratios ~1e6) go
+  // negative by far more than tol, after which steps run backwards and Phase I
+  // reports false infeasibility.
+  const double harris_tol = st.tol.feasibility;
+  double theta_max = std::numeric_limits<double>::infinity();
   for (int i = 0; i < st.lp->m; ++i) {
     const double di = d[static_cast<std::size_t>(i)];
     if (di <= st.tol.pivot) continue;
-    const double ratio = st.xB[static_cast<std::size_t>(i)] / di;
-    if (ratio < min_ratio) min_ratio = ratio;
+    const double xi = std::max(0.0, st.xB[static_cast<std::size_t>(i)]);
+    theta_max = std::min(theta_max, (xi + harris_tol) / di);
   }
 
-  if (std::isinf(min_ratio)) return -1;  // unbounded
+  if (std::isinf(theta_max)) return -1;  // unbounded
 
-  // Second pass: Harris selection among near-minimum candidates
-  const double harris_tol = st.tol.feasibility * std::max(1.0, std::abs(min_ratio));
   int leave_pos = -1;
   double best_pivot = 0.0;
   int best_var = std::numeric_limits<int>::max();
@@ -493,7 +495,7 @@ int select_leaving(const SimplexState& st, const std::vector<double>& d, bool bl
     if (di <= st.tol.pivot) continue;
     const double ratio = st.xB[static_cast<std::size_t>(i)] / di;
 
-    if (ratio <= min_ratio + harris_tol) {
+    if (ratio <= theta_max) {
       const int var = st.basis[static_cast<std::size_t>(i)];
       if (bland) {
         // Bland: smallest variable index among candidates
@@ -520,8 +522,10 @@ bool perform_pivot(SimplexState& st, int enter, int leave_pos,
   const double d_piv = d[static_cast<std::size_t>(leave_pos)];
   if (std::abs(d_piv) < st.tol.pivot) return false;
 
-  // Update primal basic solution: xB <- xB - theta * d, xB[leave]=theta
-  const double theta = st.xB[static_cast<std::size_t>(leave_pos)] / d_piv;
+  // Update primal basic solution: xB <- xB - theta * d, xB[leave]=theta.
+  // A leaving variable sitting slightly below zero (within tol) must not
+  // produce a backward step that worsens the objective.
+  const double theta = std::max(0.0, st.xB[static_cast<std::size_t>(leave_pos)] / d_piv);
   for (int i = 0; i < st.lp->m; ++i) {
     st.xB[static_cast<std::size_t>(i)] -= theta * d[static_cast<std::size_t>(i)];
   }
@@ -661,6 +665,9 @@ PhaseStatus run_phase(SimplexState& st, const std::vector<double>& c,
       recent_pivots.clear();  // Clear history after refactor
       use_bland = true;       // Switch to Bland's rule to help break the cycle
       improving_streak = 0;
+      // d, leave_pos and ratio came from the old factor and old xB; re-price
+      // against the fresh one instead of pivoting on stale numbers.
+      continue;
     } else {
       // Record this pivot
       PivotPair pp;
@@ -878,116 +885,133 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
     }
   }
 
-  const PhaseStatus ps2 = run_phase(st, c2, opt.max_iterations, false, &detail);
-  result.iterations = st.iterations;
-  if (ps2 == PhaseStatus::Singular) {
-    result.status = SolverStatus::NumericalError;
-    result.message = "Phase II basis became numerically singular. " + detail;
-    return result;
-  }
-  if (ps2 == PhaseStatus::IterationLimit) {
-    result.status = SolverStatus::IterationLimit;
-    result.message = "Phase II hit the iteration limit (" +
-                     std::to_string(opt.max_iterations) +
-                     " iterations) before reaching optimality. No proven solution.";
-    return result;
-  }
-  if (ps2 == PhaseStatus::Unbounded) {
-    result.status = SolverStatus::Unbounded;
-    result.message = "LP is unbounded.";
-    return result;
-  }
+  // A primal-feasible final basis that fails the dual check (usually eta-chain
+  // drift in the pricing duals) is not an answer, but it is a good warm start:
+  // resume Phase II from the freshly refactored basis on the true RHS.
+  constexpr int kMaxPolishRounds = 3;
+  std::vector<double> x;
+  for (int polish = 0;; ++polish) {
+    const PhaseStatus ps2 = run_phase(st, c2, opt.max_iterations, false, &detail);
+    result.iterations = st.iterations;
+    if (ps2 == PhaseStatus::Singular) {
+      result.status = SolverStatus::NumericalError;
+      result.message = "Phase II basis became numerically singular. " + detail;
+      return result;
+    }
+    if (ps2 == PhaseStatus::IterationLimit) {
+      result.status = SolverStatus::IterationLimit;
+      result.message = "Phase II hit the iteration limit (" +
+                       std::to_string(opt.max_iterations) +
+                       " iterations) before reaching optimality. No proven solution.";
+      return result;
+    }
+    if (ps2 == PhaseStatus::Unbounded) {
+      result.status = SolverStatus::Unbounded;
+      result.message = "LP is unbounded.";
+      return result;
+    }
 
-  // Undo lex RHS perturbation: refactor the final basis and solve against
-  // the true (unperturbed) right-hand side so the reported primal/objective
-  // are exact for the original LP.
-  if (!refactor_basis(st)) {
-    result.status = SolverStatus::Error;
-    result.message = "Failed to refactor final basis after lex perturbation.";
-    return result;
-  }
-  st.xB = lp.b;
-  if (!ftran(st, st.xB)) {
-    result.status = SolverStatus::Error;
-    result.message = "Failed to recover solution against unperturbed RHS.";
-    return result;
-  }
+    // Undo lex RHS perturbation: refactor the final basis and solve against
+    // the true (unperturbed) right-hand side so the reported primal/objective
+    // are exact for the original LP.
+    if (!refactor_basis(st)) {
+      result.status = SolverStatus::Error;
+      result.message = "Failed to refactor final basis after lex perturbation.";
+      return result;
+    }
+    st.xB = lp.b;
+    if (!ftran(st, st.xB)) {
+      result.status = SolverStatus::Error;
+      result.message = "Failed to recover solution against unperturbed RHS.";
+      return result;
+    }
 
-  // Recover primal for structural variables
-  std::vector<double> x(static_cast<std::size_t>(lp.n), 0.0);
-  for (int i = 0; i < lp.m; ++i) {
-    x[static_cast<std::size_t>(st.basis[static_cast<std::size_t>(i)])] =
-        clamp_nonnegative(st.xB[static_cast<std::size_t>(i)], opt.feasibility_tol);
-  }
-
-  // ---------------------------------------------------------------------
-  // Optimality certificate.
-  //
-  // run_phase() returned Optimal because no nonbasic column had a reduced cost
-  // below -optimality_tol, but that was measured on the *perturbed* right-hand
-  // side and against the eta chain. We have since refactorized and re-solved
-  // against the true b, so the basis is not literally the one that was proven.
-  // Claiming OPTIMAL without re-checking means a basis that silently lost dual
-  // feasibility still gets reported as a proof. Measure it.
-  //
-  // Primal:   ||b - Ax||_inf / (1 + ||b||_inf)
-  // Dual:     worst reduced cost over nonbasic columns (must be >= -tol)
-  // Gap:      |c'x - b'y| / (1 + |c'x|), with y from the true dual B^{-T} c_B
-  // ---------------------------------------------------------------------
-  double residual = 0.0;
-  {
-    std::vector<double> Ax;
-    lp.A.multiply(x, Ax);
-    double bnorm = 1.0;
-    for (int i = 0; i < lp.m; ++i) bnorm = std::max(bnorm, std::abs(lp.b[static_cast<std::size_t>(i)]));
+    // Recover primal for structural variables
+    x.assign(static_cast<std::size_t>(lp.n), 0.0);
     for (int i = 0; i < lp.m; ++i) {
-      residual = std::max(residual, std::abs(lp.b[static_cast<std::size_t>(i)] - Ax[static_cast<std::size_t>(i)]));
+      x[static_cast<std::size_t>(st.basis[static_cast<std::size_t>(i)])] =
+          clamp_nonnegative(st.xB[static_cast<std::size_t>(i)], opt.feasibility_tol);
     }
-    residual /= bnorm;
-  }
-  result.primal_residual = residual;
 
-  std::vector<double> cB(static_cast<std::size_t>(lp.m), 0.0);
-  for (int i = 0; i < lp.m; ++i) {
-    cB[static_cast<std::size_t>(i)] = lp.c[static_cast<std::size_t>(st.basis[static_cast<std::size_t>(i)])];
-  }
-  std::vector<double> y = cB;
-  if (!btran(st, y)) {
-    result.status = SolverStatus::NumericalError;
-    result.message =
-        "Could not recompute the dual vector from the final basis; optimality cannot be "
-        "certified. The basis factorization is numerically unreliable.";
-    return result;
-  }
-
-  double worst_rc = 0.0;
-  for (int j : st.nonbasic) {
-    if (is_artificial(lp.names[static_cast<std::size_t>(j)])) continue;
-    double aj_pi = 0.0;
-    for (int p = lp.A.col_ptr[static_cast<std::size_t>(j)];
-         p < lp.A.col_ptr[static_cast<std::size_t>(j) + 1]; ++p) {
-      aj_pi += lp.A.values[static_cast<std::size_t>(p)] *
-               y[static_cast<std::size_t>(lp.A.row_idx[static_cast<std::size_t>(p)])];
+    // ---------------------------------------------------------------------
+    // Optimality certificate.
+    //
+    // run_phase() returned Optimal because no nonbasic column had a reduced cost
+    // below -optimality_tol, but that was measured on the *perturbed* right-hand
+    // side and against the eta chain. We have since refactorized and re-solved
+    // against the true b, so the basis is not literally the one that was proven.
+    // Claiming OPTIMAL without re-checking means a basis that silently lost dual
+    // feasibility still gets reported as a proof. Measure it.
+    //
+    // Primal:   ||b - Ax||_inf / (1 + ||b||_inf)
+    // Dual:     worst reduced cost over nonbasic columns (must be >= -tol)
+    // Gap:      |c'x - b'y| / (1 + |c'x|), with y from the true dual B^{-T} c_B
+    // ---------------------------------------------------------------------
+    double residual = 0.0;
+    {
+      std::vector<double> Ax;
+      lp.A.multiply(x, Ax);
+      double bnorm = 1.0;
+      for (int i = 0; i < lp.m; ++i) bnorm = std::max(bnorm, std::abs(lp.b[static_cast<std::size_t>(i)]));
+      for (int i = 0; i < lp.m; ++i) {
+        residual = std::max(residual, std::abs(lp.b[static_cast<std::size_t>(i)] - Ax[static_cast<std::size_t>(i)]));
+      }
+      residual /= bnorm;
     }
-    worst_rc = std::min(worst_rc, lp.c[static_cast<std::size_t>(j)] - aj_pi);
-  }
-  result.dual_residual = std::max(0.0, -worst_rc);
+    result.primal_residual = residual;
 
-  double cxs = 0.0;
-  for (int j = 0; j < lp.n; ++j) {
-    cxs += lp.c[static_cast<std::size_t>(j)] * x[static_cast<std::size_t>(j)];
-  }
-  double bys = 0.0;
-  for (int i = 0; i < lp.m; ++i) {
-    bys += lp.b[static_cast<std::size_t>(i)] * y[static_cast<std::size_t>(i)];
-  }
-  result.duality_gap = std::abs(cxs - bys) / (1.0 + std::abs(cxs));
+    std::vector<double> cB(static_cast<std::size_t>(lp.m), 0.0);
+    for (int i = 0; i < lp.m; ++i) {
+      cB[static_cast<std::size_t>(i)] = lp.c[static_cast<std::size_t>(st.basis[static_cast<std::size_t>(i)])];
+    }
+    std::vector<double> y = cB;
+    if (!btran(st, y)) {
+      result.status = SolverStatus::NumericalError;
+      result.message =
+          "Could not recompute the dual vector from the final basis; optimality cannot be "
+          "certified. The basis factorization is numerically unreliable.";
+      return result;
+    }
 
-  const bool primal_ok = residual <= opt.feasibility_tol;
-  const bool dual_ok = -worst_rc <= opt.optimality_tol;
-  const bool gap_ok = result.duality_gap <= std::max(opt.optimality_tol, 1e-9);
+    double worst_rc = 0.0;
+    for (int j : st.nonbasic) {
+      if (is_artificial(lp.names[static_cast<std::size_t>(j)])) continue;
+      double aj_pi = 0.0;
+      for (int p = lp.A.col_ptr[static_cast<std::size_t>(j)];
+           p < lp.A.col_ptr[static_cast<std::size_t>(j) + 1]; ++p) {
+        aj_pi += lp.A.values[static_cast<std::size_t>(p)] *
+                 y[static_cast<std::size_t>(lp.A.row_idx[static_cast<std::size_t>(p)])];
+      }
+      worst_rc = std::min(worst_rc, lp.c[static_cast<std::size_t>(j)] - aj_pi);
+    }
+    result.dual_residual = std::max(0.0, -worst_rc);
 
-  if (!primal_ok || !dual_ok || !gap_ok) {
+    double cxs = 0.0;
+    for (int j = 0; j < lp.n; ++j) {
+      cxs += lp.c[static_cast<std::size_t>(j)] * x[static_cast<std::size_t>(j)];
+    }
+    double bys = 0.0;
+    for (int i = 0; i < lp.m; ++i) {
+      bys += lp.b[static_cast<std::size_t>(i)] * y[static_cast<std::size_t>(i)];
+    }
+    result.duality_gap = std::abs(cxs - bys) / (1.0 + std::abs(cxs));
+
+    const bool primal_ok = residual <= opt.feasibility_tol;
+    const bool dual_ok = -worst_rc <= opt.optimality_tol;
+    const bool gap_ok = result.duality_gap <= std::max(opt.optimality_tol, 1e-9);
+
+    if (primal_ok && dual_ok && gap_ok) break;
+    if (primal_ok && !dual_ok && polish < kMaxPolishRounds) {
+      work.b = lp.b;
+      for (double& v : st.xB) {
+        if (v < 0.0 && v > -opt.feasibility_tol) v = 0.0;
+      }
+      continue;
+    }
+
+    // A dual-infeasible basis is NOT a bound: its objective can sit above the LP
+    // optimum (minimize), so branch-and-bound must never prune with it. Report
+    // NUMERICAL_ERROR so B&B records the node as failed instead of trusting it.
     std::ostringstream oss;
     oss << "Revised simplex finished iterating but the final basis does not certify "
         << "optimality. Relative primal residual = " << residual
@@ -996,27 +1020,16 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
         << result.duality_gap << " (tol " << opt.optimality_tol << "). ";
     if (!primal_ok) {
       oss << "Primal infeasible, so the point is not even usable. ";
-      oss << "Downgrading to NUMERICAL_ERROR rather than reporting OPTIMAL.";
-      result.status = SolverStatus::NumericalError;
     } else if (!dual_ok) {
-      oss << "Primal feasible but the basis is dual infeasible, so this is a vertex "
-             "that may be improvable; optimality is NOT proven. ";
-      // For B&B node LPs, primal feasible with small duality gap is good enough
-      // for bound-based pruning even without dual feasibility certificate.
-      // Return FEASIBLE instead of NUMERICAL_ERROR so the B&B can use the bound.
-      if (gap_ok) {
-        oss << "Duality gap is within tolerance, so returning FEASIBLE status for use in branch-and-bound.";
-        result.status = SolverStatus::Feasible;
-      } else {
-        oss << "Downgrading to NUMERICAL_ERROR due to open duality gap.";
-        result.status = SolverStatus::NumericalError;
-      }
+      oss << "Primal feasible but the basis is dual infeasible after " << polish
+          << " polish round(s), so this is a vertex that may be improvable; optimality "
+             "is NOT proven. ";
     } else {
       oss << "Primal and dual feasible but the duality gap is still open. ";
-      oss << "Downgrading to NUMERICAL_ERROR rather than reporting OPTIMAL.";
-      result.status = SolverStatus::NumericalError;
     }
+    oss << "Downgrading to NUMERICAL_ERROR rather than reporting OPTIMAL.";
 
+    result.status = SolverStatus::NumericalError;
     result.message = oss.str();
     // Still publish the primal so a caller can inspect it, but flag that the
     // objective is unverified. has_objective_value stays false so nothing
