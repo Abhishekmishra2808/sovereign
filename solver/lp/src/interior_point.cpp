@@ -1,10 +1,14 @@
 #include "sovereign/interior_point.hpp"
 
 #include "sovereign/dense_lu.hpp"
+#include "sovereign/gpu_spmv.hpp"
+#include "sovereign/sparse_ldlt.hpp"
 #include "sovereign/sparse_matrix.hpp"
+#include "sovereign/sparse_symmetric.hpp"
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
@@ -79,6 +83,115 @@ void build_normal_eq(const SparseMatrixCSC& A, const std::vector<double>& d,
                 static_cast<std::size_t>(i)] += 1e-12;
   }
 }
+
+constexpr double kNormalEqRegularization = 1e-12;
+// Above this many rows the dense m x m system no longer fits comfortably in a
+// 32-bit process (8000^2 doubles = 512 MB), so only the sparse path is tried.
+constexpr std::size_t kDenseMaxRows = 8000;
+
+std::size_t env_size(const char* name, std::size_t fallback) {
+  const char* v = std::getenv(name);
+  if (!v || !*v) return fallback;
+  char* end = nullptr;
+  const unsigned long long parsed = std::strtoull(v, &end, 10);
+  return (end && *end == '\0') ? static_cast<std::size_t>(parsed) : fallback;
+}
+
+// Factors M = A D A^T once per interior-point iteration.
+//
+// SOVEREIGN_IPM_NORMAL_EQUATIONS selects the method: "dense" always uses
+// DenseLU (which runs on the GPU when SOVEREIGN_DEVICE allows), "sparse"
+// always uses the minimum-degree-ordered sparse LDL^T, and "auto" (default)
+// picks per model from at least SOVEREIGN_IPM_SPARSE_MIN_ROWS rows:
+//   - an explicit CUDA request keeps the dense GPU factorization while it fits;
+//   - on the CPU, sparse LDL^T beat the dense LU on every model measured, even
+//     at 65% fill, so it is used unless the factor is essentially dense;
+//   - with a usable GPU under SOVEREIGN_DEVICE=auto, the dense GPU LU takes
+//     over once one sparse factorization exceeds SOVEREIGN_IPM_GPU_MIN_FLOPS
+//     multiply-adds. On an RTX 2050 the two tied at 1.6e8 and the GPU was 1.5x
+//     faster at 5.1e8, hence the 2e8 default.
+class NormalEquations {
+ public:
+  explicit NormalEquations(const SparseMatrixCSC& A) : A_(A), m_(A.nrows) {
+    const char* raw = std::getenv("SOVEREIGN_IPM_NORMAL_EQUATIONS");
+    const std::string mode = raw && *raw ? raw : "auto";
+    if (mode == "dense" || m_ == 0) return;
+    const double dense_entries = 0.5 * static_cast<double>(m_) * static_cast<double>(m_ + 1);
+    const bool dense_fits = m_ <= kDenseMaxRows;
+    std::size_t limit = 0;
+    bool gpu_dense = false;
+    if (mode != "sparse" && dense_fits) {
+      if (m_ < env_size("SOVEREIGN_IPM_SPARSE_MIN_ROWS", 200)) return;
+      const std::string device = requested_device();
+      if (device == "cuda") return;
+      // Each column with k nonzeros couples k(k+1)/2 entries of M, so a few
+      // dense columns make the pattern itself as large as the dense system.
+      double pairs = 0.0;
+      for (std::size_t j = 0; j < A_.ncols; ++j) {
+        const double k = static_cast<double>(A_.col_ptr[j + 1] - A_.col_ptr[j]);
+        pairs += 0.5 * k * (k + 1.0);
+      }
+      if (pairs > 4.0 * dense_entries) return;
+      limit = static_cast<std::size_t>(0.9 * dense_entries);
+      gpu_dense = device == "auto" && m_ >= env_size("SOVEREIGN_GPU_DENSE_MIN", 400) && gpu_available();
+    }
+    pattern_ = build_normal_eq_pattern(A_);
+    use_sparse_ = ldlt_.symbolic_analyze(pattern_, limit);
+    if (use_sparse_ && gpu_dense &&
+        ldlt_.factor_flops() > static_cast<double>(env_size("SOVEREIGN_IPM_GPU_MIN_FLOPS", 200000000))) {
+      use_sparse_ = false;
+    }
+    ldlt_.set_tiny_pivot_threshold(1e-13);
+  }
+
+  bool factor(const std::vector<double>& d) {
+    last_sparse_ = false;
+    if (use_sparse_) {
+      build_normal_eq_values(A_, d, pattern_, values_);
+      if (ldlt_.numeric_factor(values_, kNormalEqRegularization)) {
+        last_sparse_ = true;
+        ++sparse_factorizations_;
+        replaced_pivots_ = std::max(replaced_pivots_, ldlt_.replaced_pivots());
+        return true;
+      }
+      // A breakdown near convergence is retried with the pivoting dense LU.
+      if (m_ > kDenseMaxRows) return false;
+    }
+    std::vector<double> M;
+    build_normal_eq(A_, d, M);
+    ++dense_factorizations_;
+    return lu_.factorize(std::move(M), m_);
+  }
+
+  bool solve(std::vector<double>& rhs) const { return last_sparse_ ? ldlt_.solve(rhs) : lu_.solve(rhs); }
+
+  std::string describe() const {
+    std::ostringstream oss;
+    if (!use_sparse_) {
+      oss << "dense LU (" << m_ << " x " << m_ << ")";
+    } else {
+      oss << "sparse LDL^T with minimum-degree ordering (nnz(L) = " << ldlt_.factor_nnz()
+          << ", dense triangle " << static_cast<std::size_t>(0.5 * static_cast<double>(m_) * static_cast<double>(m_ + 1))
+          << ")";
+      if (replaced_pivots_ > 0) oss << ", up to " << replaced_pivots_ << " dependent rows dropped per iteration";
+      if (dense_factorizations_ > 0) oss << ", " << dense_factorizations_ << " dense LU retries";
+    }
+    return oss.str();
+  }
+
+ private:
+  const SparseMatrixCSC& A_;
+  std::size_t m_;
+  bool use_sparse_ = false;
+  bool last_sparse_ = false;
+  int sparse_factorizations_ = 0;
+  int dense_factorizations_ = 0;
+  int replaced_pivots_ = 0;
+  SparseSymmetricPattern pattern_;
+  SparseLDLT ldlt_;
+  std::vector<double> values_;
+  DenseLU lu_;
+};
 
 double step_to_bound(const std::vector<double>& x, const std::vector<double>& dx) {
   double alpha = 1.0;
@@ -261,19 +374,22 @@ IpmLp build_ipm_form(const OptimizationModel& model, bool enable_scaling) {
   return lp;
 }
 
-bool solve_newton(const IpmLp& lp, const std::vector<double>& x,
+std::vector<double> scaling_diagonal(const std::vector<double>& x, const std::vector<double>& s) {
+  std::vector<double> d(x.size());
+  for (std::size_t j = 0; j < x.size(); ++j) d[j] = std::max(x[j], 1e-16) / std::max(s[j], 1e-16);
+  return d;
+}
+
+// Solves the Newton system with normal equations already factored for d = x/s.
+bool solve_newton(const IpmLp& lp, const NormalEquations& normal, const std::vector<double>& d,
                   const std::vector<double>& s, const std::vector<double>& rp,
                   const std::vector<double>& rd, const std::vector<double>& rxs,
                   std::vector<double>& dx, std::vector<double>& dy,
                   std::vector<double>& ds) {
-  const int m = lp.m;
   const int n = lp.n;
-  std::vector<double> d(static_cast<std::size_t>(n), 0.0);
   std::vector<double> tmp(static_cast<std::size_t>(n), 0.0);
   for (int j = 0; j < n; ++j) {
-    const double xj = std::max(x[static_cast<std::size_t>(j)], 1e-16);
     const double sj = std::max(s[static_cast<std::size_t>(j)], 1e-16);
-    d[static_cast<std::size_t>(j)] = xj / sj;
     tmp[static_cast<std::size_t>(j)] =
         d[static_cast<std::size_t>(j)] * rd[static_cast<std::size_t>(j)] -
         rxs[static_cast<std::size_t>(j)] / sj;
@@ -284,12 +400,8 @@ bool solve_newton(const IpmLp& lp, const std::vector<double>& x,
   std::vector<double> rhs = rp;
   axpy(1.0, Atmp, rhs);
 
-  std::vector<double> M;
-  build_normal_eq(lp.A, d, M);
-  DenseLU lu;
-  if (!lu.factorize(std::move(M), static_cast<std::size_t>(m))) return false;
   dy = rhs;
-  if (!lu.solve(dy)) return false;
+  if (!normal.solve(dy)) return false;
 
   std::vector<double> Atdy = matvec_At(lp.A, dy);
   dx.assign(static_cast<std::size_t>(n), 0.0);
@@ -334,19 +446,17 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
   std::vector<double> x(static_cast<std::size_t>(n), 1.0);
   std::vector<double> s(static_cast<std::size_t>(n), 1.0);
   std::vector<double> y(static_cast<std::size_t>(m), 0.0);
+  NormalEquations normal(lp.A);
 
   // Mehrotra-like starting point from least-squares residual push
   {
     std::vector<double> ones(static_cast<std::size_t>(n), 1.0);
-    std::vector<double> M;
-    build_normal_eq(lp.A, ones, M);
-    DenseLU lu;
-    if (lu.factorize(std::move(M), static_cast<std::size_t>(m))) {
+    if (normal.factor(ones)) {
       std::vector<double> Ax;
       lp.A.multiply(ones, Ax);
       std::vector<double> dy = lp.b;
       for (int i = 0; i < m; ++i) dy[static_cast<std::size_t>(i)] -= Ax[static_cast<std::size_t>(i)];
-      if (lu.solve(dy)) {
+      if (normal.solve(dy)) {
         std::vector<double> Atdy = matvec_At(lp.A, dy);
         for (int j = 0; j < n; ++j) {
           x[static_cast<std::size_t>(j)] = std::max(1.0, std::abs(Atdy[static_cast<std::size_t>(j)]));
@@ -402,7 +512,8 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
       result.duality_gap = gap;
       result.primal_residual = p_res;
       result.dual_residual = d_res;
-      result.message = "Optimal solution found by primal-dual interior-point (Mehrotra).";
+      result.message = "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: " +
+                       normal.describe() + ".";
 
       // Map structural solution back
       double obj = original.objective.constant;
@@ -424,8 +535,9 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
       rxs[static_cast<std::size_t>(j)] =
           -x[static_cast<std::size_t>(j)] * s[static_cast<std::size_t>(j)];
     }
+    const std::vector<double> d = scaling_diagonal(x, s);
     std::vector<double> dx_aff, dy_aff, ds_aff;
-    if (!solve_newton(lp, x, s, rp, rd, rxs, dx_aff, dy_aff, ds_aff)) {
+    if (!normal.factor(d) || !solve_newton(lp, normal, d, s, rp, rd, rxs, dx_aff, dy_aff, ds_aff)) {
       result.status = SolverStatus::NumericalError;
       result.message =
           "IPM Newton normal-equations factorization is singular on the affine predictor "
@@ -454,7 +566,7 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
           sigma * mu;
     }
     std::vector<double> dx, dy, ds;
-    if (!solve_newton(lp, x, s, rp, rd, rxs, dx, dy, ds)) {
+    if (!solve_newton(lp, normal, d, s, rp, rd, rxs, dx, dy, ds)) {
       result.status = SolverStatus::NumericalError;
       result.message =
           "IPM Newton normal-equations factorization is singular on the corrector "

@@ -130,6 +130,77 @@ TEST(IpmAccuracy, MatchesSimplexOnWideSparseLp) {
   EXPECT_TRUE(ipm.duality_gap >= observed * 0.5);
 }
 
+namespace {
+
+#if defined(_WIN32) && !defined(_MSC_VER)
+extern "C" int _putenv(const char*);
+#endif
+
+void set_normal_equations(const char* mode) {
+#if defined(_WIN32)
+  _putenv((std::string("SOVEREIGN_IPM_NORMAL_EQUATIONS=") + mode).c_str());
+#else
+  setenv("SOVEREIGN_IPM_NORMAL_EQUATIONS", mode, 1);
+#endif
+}
+
+// Multi-period production planning: inventory balance per product and period,
+// one shared capacity row per period. Its normal equations are block banded,
+// the structure a sparse factorization is meant for.
+OptimizationModel build_staircase(int products, int periods) {
+  OptimizationModel model;
+  model.problem_type = ProblemType::LP;
+  model.sense = Sense::Minimize;
+  auto name = [](const char* kind, int p, int t) { return std::string(kind) + std::to_string(p) + "_" + std::to_string(t); };
+  for (int t = 0; t < periods; ++t) {
+    std::vector<std::pair<std::string, double>> capacity;
+    for (int p = 0; p < products; ++p) {
+      model.variables.push_back(make_var(name("make", p, t), VariableType::Continuous, 0.0, 1e30));
+      model.variables.push_back(make_var(name("stock", p, t), VariableType::Continuous, 0.0, 1e30));
+      model.objective.linear[name("make", p, t)] = 1.0 + 0.1 * ((p * 3 + t * 7) % 11);
+      model.objective.linear[name("stock", p, t)] = 0.05 + 0.01 * (p % 4);
+      std::vector<std::pair<std::string, double>> balance = {{name("make", p, t), 1.0}, {name("stock", p, t), -1.0}};
+      if (t > 0) balance.push_back({name("stock", p, t - 1), 1.0});
+      model.constraints.push_back(make_cons(name("balance", p, t), balance, ConstraintSense::Eq,
+                                            5.0 + static_cast<double>((p * 5 + t * 3) % 9)));
+      capacity.push_back({name("make", p, t), 1.0 + 0.1 * (p % 3)});
+    }
+    model.constraints.push_back(make_cons("capacity" + std::to_string(t), capacity, ConstraintSense::Le,
+                                          12.0 * products));
+  }
+  return model;
+}
+
+}  // namespace
+
+TEST(IpmAccuracy, SparseAndDenseNormalEquationsAgree) {
+  // The transport model has a redundant equality row, so its normal equations
+  // are singular: the sparse factorization must drop that direction, not fail.
+  const OptimizationModel models[] = {build_transport(40), build_staircase(8, 40)};
+  for (const OptimizationModel& model : models) {
+    InteriorPointOptions iopt;
+    set_normal_equations("dense");
+    const SolverResult dense = InteriorPointSolver(iopt).solve(model);
+    set_normal_equations("sparse");
+    const SolverResult sparse = InteriorPointSolver(iopt).solve(model);
+    set_normal_equations("auto");
+    const SolverResult automatic = InteriorPointSolver(iopt).solve(model);
+    set_normal_equations("");
+
+    EXPECT_EQ(dense.status, SolverStatus::Optimal);
+    EXPECT_EQ(sparse.status, SolverStatus::Optimal);
+    EXPECT_EQ(automatic.status, SolverStatus::Optimal);
+    EXPECT_TRUE(sparse.message.find("sparse LDL^T") != std::string::npos);
+    EXPECT_TRUE(sparse.message.find("dense LU retries") == std::string::npos);
+    const double scale = std::max(1.0, std::abs(dense.objective_value));
+    EXPECT_NEAR(sparse.objective_value, dense.objective_value, 1e-7 * scale);
+    EXPECT_NEAR(automatic.objective_value, dense.objective_value, 1e-7 * scale);
+  }
+  // 360 rows on the CPU: automatic selection takes the sparse path.
+  const SolverResult automatic = InteriorPointSolver(InteriorPointOptions()).solve(build_staircase(8, 40));
+  EXPECT_TRUE(automatic.message.find("sparse LDL^T") != std::string::npos);
+}
+
 TEST(IpmAccuracy, OptimalClaimIsBackedByResiduals) {
   const OptimizationModel model = build_transport(40);
   InteriorPointOptions iopt;

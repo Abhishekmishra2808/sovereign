@@ -11,6 +11,9 @@ set(SOVEREIGN_TEST_SOURCES
   unit/test_sparse.cpp
   unit/test_dense_lu.cpp
   unit/test_sparse_lu.cpp
+  unit/test_sparse_symmetric.cpp
+  unit/test_amd.cpp
+  unit/test_sparse_ldlt.cpp
   unit/test_gpu_backend.cpp
   unit/test_presolve.cpp
   unit/test_cuts_heuristics.cpp

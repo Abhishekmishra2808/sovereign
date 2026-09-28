@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT))
 
 from fastapi.testclient import TestClient
 from api.cloud import app
+from benchmarks.tools.generate_sparse_scale import staircase
 from worker.runner import capabilities, execute
 
 DEFAULT_ENGINE = ROOT / "build/solver/sovereign.exe"
@@ -50,8 +51,11 @@ def models():
         "objective": {"linear": {"x": 1}}, "constraints": []})
     milp = (ROOT / "examples/models/sample_milp.json").read_text(encoding="utf-8")
     # (case, model, requested device, expected state, assigned device, minimum GPU factorizations)
+    # Both large automatic jobs go to the GPU machine; the engine then factors the
+    # dense planning LP on the GPU and the block-banded staircase sparsely on the CPU.
     return [("automatic_small_lp", ordinary, "auto", "COMPLETED", "cpu", 0),
-            ("automatic_large_lp", planning_lp(600, 900), "auto", "COMPLETED", "cuda", 1),
+            ("automatic_large_lp", planning_lp(1500, 2200), "auto", "COMPLETED", "cuda", 1),
+            ("automatic_sparse_lp", json.dumps(staircase(20, 100)), "auto", "COMPLETED", "cuda", 0),
             ("automatic_milp", milp, "auto", "COMPLETED", "cpu", 0),
             ("ordinary_lp", ordinary, "cuda", "COMPLETED", "cuda", 1),
             ("presolve_fixed_lp", fixed, "cuda", "COMPLETED", "cuda", 0),
@@ -97,8 +101,11 @@ def main():
                 assert claimed["request"]["executionDevice"] == assigned, name
                 assert result["verification"]["is_valid"], name
                 assert result.get("gpu_factorizations", 0) >= min_factorizations, name
-                if assigned == "cuda" and state == "COMPLETED":
+                if device == "cuda" and state == "COMPLETED":
                     assert result["gpu_operations"] > 0, name
+                if name == "automatic_sparse_lp":
+                    assert "sparse LDL^T" in result["message"], result["message"]
+                    assert result.get("gpu_factorizations", 0) == 0, name
                 if name == "unconstrained_lp":
                     assert "0 GPU operations" in final["message"]
     args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -17,27 +17,38 @@ On this PC (NVIDIA GeForce RTX 2050, compute 8.6, 4 GB, driver CUDA 12.5,
 
 ## What runs on the GPU
 
-Each interior-point iteration factors a dense system (LP: `A D A^T`; QP: the
-KKT matrix) twice. `DenseLU::factorize` runs that factorization on the GPU with
-the same partial-pivoting rule as the CPU code, so results agree to rounding.
-Sparse products `A x` and `A^T x` also run on the GPU for CUDA jobs.
+Each interior-point iteration factors one system (LP: `A D A^T`; QP: the KKT
+matrix); the predictor and corrector reuse it. `DenseLU::factorize` runs a
+dense factorization on the GPU with the same partial-pivoting rule as the CPU
+code, so results agree to rounding. Sparse products `A x` and `A^T x` also run
+on the GPU for CUDA jobs.
 
-Interior point, CPU against RTX 2050, same executable (generated
-production-planning LPs, `build/gen_lp.py`):
+LP interior point can instead factor `A D A^T` with the sparse LDL^T
+(`solver/numerical/src/sparse_ldlt.cpp`, minimum-degree ordering, symbolic
+analysis once per solve). Interior point on the same executable, RTX 2050,
+generated models (`benchmarks/tools/generate_gpu_showcase.py`,
+`benchmarks/tools/generate_sparse_scale.py`):
 
-| Rows x columns | CPU | GPU | Speed-up | Objectives agree |
+| Model (rows) | CPU dense LU | GPU dense LU | CPU sparse LDL^T | Objectives agree |
 |---|---:|---:|---:|---|
-| 300 x 500 | 0.46 s | 0.82 s | CPU faster | yes |
-| 600 x 900 | 3.63 s | 1.50 s | 2.4x | yes |
-| 1000 x 1500 | 32.6 s | 3.80 s | 8.6x | yes |
-| 1500 x 2200 | 314.8 s | 9.91 s | 32x | yes |
-| transport 200x200 (400 rows) | 1.88 s | 1.29 s | 1.5x | yes |
-| portfolio QP, 600 assets | 3.43 s | 1.08 s | 3.2x | yes |
+| plan 600 x 900 (600) | 2.02 s | 0.91 s | 0.45 s | yes |
+| plan 1000 x 1500 (1000) | 19.8 s | 2.03 s | 1.79 s | yes |
+| plan 1500 x 2200 (1500) | 113 s | 5.44 s | 8.33 s | yes |
+| staircase 20 x 100 (2,100) | 294 s | not run | 0.22 s | yes |
+| staircase 50 x 200 (10,200) | does not fit | does not fit | 0.90 s | yes, and matches HiGHS |
 
-Automatic routing therefore prefers a CUDA worker once the factorized system
-has 400 rows (`SOVEREIGN_GPU_MIN_ROWS`). Simplex, Frank-Wolfe and
-branch-and-bound (whose node LPs use the dual simplex) stay on CPU, and
-explicit CUDA requests for them are rejected at submission.
+The random planning LPs fill in to about 60% of the dense triangle, so the
+GPU's dense factorization wins once each factorization is large enough; the
+staircase LPs stay sparse, where the CPU sparse factorization is hundreds of
+times faster. `SOVEREIGN_DEVICE=auto` therefore picks per model: sparse
+LDL^T unless one factorization would exceed `SOVEREIGN_IPM_GPU_MIN_FLOPS`
+(2e8 multiply-adds), then the GPU. Explicit CUDA jobs keep the dense GPU path.
+
+Automatic routing sends LP and QP jobs whose factorized system has 400 rows
+(`SOVEREIGN_GPU_MIN_ROWS`) to a CUDA worker, which then runs the engine with
+`SOVEREIGN_DEVICE=auto`. Simplex, Frank-Wolfe and branch-and-bound (whose node
+LPs use the dual simplex) stay on CPU, and explicit CUDA requests for them are
+rejected at submission.
 
 ## Coordinator/worker round trip
 
@@ -47,10 +58,11 @@ on this PC:
 | Case | Requested | Assigned | State | GPU factorizations |
 |---|---|---|---|---:|
 | small LP | Automatic | CPU | COMPLETED | 0 |
-| 600-row LP | Automatic | CUDA | COMPLETED | 33 |
+| 1500-row planning LP | Automatic | CUDA | COMPLETED | 19 |
+| 2100-row staircase LP | Automatic | CUDA | COMPLETED (engine chose sparse LDL^T) | 0 |
 | MILP | Automatic | CPU | COMPLETED | 0 |
-| small LP | CUDA | CUDA | COMPLETED | 11 |
-| LP fixed by presolve | CUDA | CUDA | COMPLETED (retried without presolve) | 9 |
+| small LP | CUDA | CUDA | COMPLETED | 6 |
+| LP fixed by presolve | CUDA | CUDA | COMPLETED (retried without presolve) | 5 |
 | unconstrained LP | CUDA | CUDA | FAILED (no GPU work possible) | 0 |
 
 Every returned answer passed verification. The

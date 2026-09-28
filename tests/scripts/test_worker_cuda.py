@@ -72,6 +72,26 @@ class CudaExecutionTests(unittest.TestCase):
         self.assertEqual(completion["result"]["gpu_operations"], 14)
         self.assertFalse(completion["result"]["configuration"]["effectivePresolve"])
 
+    def test_automatic_job_on_gpu_machine_lets_engine_choose(self):
+        seen = []
+
+        def launch(*args, **kwargs):
+            seen.append(kwargs["env"]["SOVEREIGN_DEVICE"])
+            result = {"status": "OPTIMAL", "objective_value": 1, "gpu_operations": 0, "gpu_used": False,
+                      "requested_device": "auto"}
+            return FakeProcess(json.dumps(result) + "\nverification:\n" + json.dumps({"is_valid": True}))
+
+        for device, execution in (("auto", "cuda"), ("auto", "cpu"), ("cuda", "cuda")):
+            job = {"id": "job", "lease": "lease", "request": {
+                "modelFormat": "json", "modelJson": '{"variables":[{"name":"x"}]}',
+                "device": device, "executionDevice": execution, "algorithm": "ipm",
+                "presolve": False, "timeLimitSeconds": 5}}
+            with patch("worker.runner.subprocess.Popen", side_effect=launch):
+                completion = execute(None, "ignored-engine", job)
+            if device == "auto":
+                self.assertNotIn("error", completion)
+        self.assertEqual(seen, ["auto", "cpu", "cuda"])
+
     def test_oversize_completion_becomes_clear_failure(self):
         completion = {"jobId": "job", "lease": "lease", "result": {"primal": "x" * 100}}
         with patch.dict("os.environ", {"SOVEREIGN_WORKER_MAX_PAYLOAD_BYTES": "80"}):

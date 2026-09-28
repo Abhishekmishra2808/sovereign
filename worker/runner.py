@@ -220,7 +220,10 @@ def execute(client, engine, job):
         env = os.environ.copy()
         for key in [k for k in env if k.startswith("SOVEREIGN_")]:
             env.pop(key, None)
-        env["SOVEREIGN_DEVICE"] = req.get("executionDevice", req["device"])
+        execution = req.get("executionDevice", req["device"])
+        # Automatic jobs placed on a GPU machine let the engine choose per model:
+        # a sparse factorization on the CPU often beats the dense one on the GPU.
+        env["SOVEREIGN_DEVICE"] = "auto" if req["device"] == "auto" and execution == "cuda" else execution
         env["SOVEREIGN_LP_ALGORITHM"] = req["algorithm"]
         env["SOVEREIGN_QP_ALGORITHM"] = req.get("qpAlgorithm", "auto")
         env["SOVEREIGN_BRANCH_RULE"] = req.get("branchRule", "strong")

@@ -301,7 +301,9 @@ class CloudTests(unittest.TestCase):
         self.assertEqual(preset["device"], "cuda")
         self.assertEqual(len(preset["datasets"]), 3)
         shapes = {d["id"]: d["shape"] for d in catalogue["datasets"]}
-        self.assertGreaterEqual(min(shapes[d]["rows"] for d in preset["datasets"] if d.startswith("plan_")), 600)
+        self.assertGreaterEqual(min(shapes[d]["rows"] for d in preset["datasets"] if d.startswith("plan_")), 1000)
+        sparse = next(p for p in catalogue["presets"] if p["id"] == "sparse")
+        self.assertEqual(max(shapes[d]["rows"] for d in sparse["datasets"]), 10200)
         created = self.client.post("/api/benchmarks/runs", headers=self.admin, json={
             "datasets": preset["datasets"], "profiles": preset["profiles"], "device": preset["device"],
             "reference": False, "timeLimitSeconds": preset["timeLimitSeconds"]})
@@ -310,7 +312,7 @@ class CloudTests(unittest.TestCase):
         rows = self.client.get(f"/api/benchmarks/runs/{created.json()['runId']}", headers=self.admin).json()["rows"]
         devices = {(r["dataset"], r["profile"]): r["executionDevice"] for r in rows}
         self.assertEqual(devices[("plan_1000x1500", "lp_ipm")], "cuda")
-        self.assertEqual(devices[("plan_1000x1500", "lp_ipm_cpu")], "cpu")
+        self.assertEqual(devices[("plan_1500x2200", "lp_ipm_cpu")], "cpu")
         self.assertEqual(devices[("portfolio_qp_600", "qp_ipm")], "cuda")
         self.assertEqual(devices[("portfolio_qp_600", "qp_ipm_cpu")], "cpu")
 
