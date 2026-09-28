@@ -3,7 +3,7 @@ FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-COPY api/cloud.py api/storage.py api/routing.py api/datasets.py api/firebase_auth.py ./api/
+COPY api/cloud.py api/storage.py api/routing.py api/datasets.py api/firebase_auth.py api/benchmark_lab.py ./api/
 COPY worker/ ./worker/
 COPY benchmarks/datasets ./benchmarks/datasets
 COPY benchmarks/reports ./benchmarks/reports
