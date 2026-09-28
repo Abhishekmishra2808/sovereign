@@ -1,39 +1,21 @@
-config,gap,iterations,message,milp_stats,nodes,objective,problem,returncode,runtime_s,solver,status,suite
-,0.0,1,Optimal solution found by revised simplex (product-form basis updates).,,0,30.0,sample_lp.json,0,0.134129,OurSolver-simplex,OPTIMAL,lp_compare
-,0.0,5,Optimal solution found by primal-dual interior-point (Mehrotra).,,0,29.99999969856827,sample_lp.json,0,0.035265,OurSolver-ipm,OPTIMAL,lp_compare
-,,,external reference only,,,30.0,sample_lp.json,,0.018096,HiGHS,OPTIMAL,lp_compare
-,0.0,2,Optimal solution found by revised simplex (product-form basis updates).,,0,9.0,classic_lp.json,0,0.048369,OurSolver-simplex,OPTIMAL,lp_compare
-,0.0,5,Optimal solution found by primal-dual interior-point (Mehrotra).,,0,8.999999972291743,classic_lp.json,0,0.041173,OurSolver-ipm,OPTIMAL,lp_compare
-,,,external reference only,,,9.0,classic_lp.json,,0.004841,HiGHS,OPTIMAL,lp_compare
-,0.0,89,Optimal solution found by revised simplex (product-form basis updates).,,0,-464.75314285714285,afiro.json,0,0.062702,OurSolver-simplex,OPTIMAL,lp_compare
-,0.0,9,Optimal solution found by primal-dual interior-point (Mehrotra).,,0,-464.75313685758306,afiro.json,0,0.04643,OurSolver-ipm,OPTIMAL,lp_compare
-,,,external reference only,,,-464.75314285714285,afiro.json,,0.005027,HiGHS,OPTIMAL,lp_compare
-,0.0,6,Optimal solution found by revised simplex (product-form basis updates).,,0,-1.2500000000000002,kuhn_degeneracy.json,0,0.042042,OurSolver-simplex,OPTIMAL,lp_compare
-,0.0,6,Optimal solution found by primal-dual interior-point (Mehrotra).,,0,-1.249999998293319,kuhn_degeneracy.json,0,0.024924,OurSolver-ipm,OPTIMAL,lp_compare
-,,,external reference only,,,-1.25,kuhn_degeneracy.json,,0.0007,HiGHS,OPTIMAL,lp_compare
-,0.0,1,Optimal solution found by revised simplex (product-form basis updates).,,0,29999999.999999996,illconditioned.json,0,0.021136,OurSolver-simplex,OPTIMAL,lp_compare
-,0.0,6,Optimal solution found by primal-dual interior-point (Mehrotra).,,0,29999999.67302191,illconditioned.json,0,0.015991,OurSolver-ipm,OPTIMAL,lp_compare
-,,,external reference only,,,30000000.0,illconditioned.json,,0.00042,HiGHS,OPTIMAL,lp_compare
-,0.0,566,Optimal solution found by revised simplex (product-form basis updates).,,0,201.99999999999994,transport_20x20.json,0,0.066326,OurSolver-simplex,OPTIMAL,lp_compare
-,0.0,8,Optimal solution found by primal-dual interior-point (Mehrotra).,,0,202.00000080882702,transport_20x20.json,0,0.026208,OurSolver-ipm,OPTIMAL,lp_compare
-,,,external reference only,,,201.99999999999994,transport_20x20.json,,0.001831,HiGHS,OPTIMAL,lp_compare
-,0.0,3938,Optimal solution found by revised simplex (product-form basis updates).,,0,504.6000000000004,transport_50x50.json,0,1.395043,OurSolver-simplex,OPTIMAL,lp_compare
-,0.0,7,Optimal solution found by primal-dual interior-point (Mehrotra).,,0,504.6036921484578,transport_50x50.json,0,0.075134,OurSolver-ipm,OPTIMAL,lp_compare
-,,,external reference only,,,504.6000000000004,transport_50x50.json,,0.008112,HiGHS,OPTIMAL,lp_compare
-,0.0,12253,Optimal solution found by revised simplex (product-form basis updates).,,0,1009.0000000000014,transport_100x100.json,0,38.157606,OurSolver-simplex,OPTIMAL,lp_compare
-,0.0,7,Optimal solution found by primal-dual interior-point (Mehrotra).,,0,1009.0399319562407,transport_100x100.json,0,0.490385,OurSolver-ipm,OPTIMAL,lp_compare
-,,,external reference only,,,1009.0000000000015,transport_100x100.json,,0.056723,HiGHS,OPTIMAL,lp_compare
-,,,readModel status=HighsStatus.kOk,,,-464.75314285714285,afiro.mps (native),,0.005868,HiGHS,OPTIMAL,lp_compare
-,0.0,8,Optimal solution found by primal-dual interior-point (Mehrotra).,,0,202.00000080882702,transport_20x20.json,0,0.022766,OurSolver-auto,OPTIMAL,scale_auto
-,0.0,7,Optimal solution found by primal-dual interior-point (Mehrotra).,,0,504.6036921484578,transport_50x50.json,0,0.067965,OurSolver-auto,OPTIMAL,scale_auto
-,0.0,7,Optimal solution found by primal-dual interior-point (Mehrotra).,,0,1009.0399319562407,transport_100x100.json,0,0.579189,OurSolver-auto,OPTIMAL,scale_auto
-plain_bb,0.0,564,Optimal integer solution found by branch-and-cut (strong/pseudo branching).,nodes=71 lp_iters=564 branch_rule=most_fractional parallel_strong_lp=off,71,102.0,multi_knapsack_18x3.json,0,0.032538,OurSolver-plain_bb,OPTIMAL,milp_ablation
-bc_strong,0.0,568,Optimal integer solution found by branch-and-cut (strong/pseudo branching).,nodes=37 lp_iters=568 branch_rule=strong parallel_strong_lp=on,37,102.0,multi_knapsack_18x3.json,0,0.068613,OurSolver-bc_strong,OPTIMAL,milp_ablation
-plain_bb,0.0,2359,Optimal integer solution found by branch-and-cut (strong/pseudo branching).,nodes=145 lp_iters=2359 branch_rule=most_fractional parallel_strong_lp=off,145,133.0,multi_knapsack_24x4.json,0,0.063331,OurSolver-plain_bb,OPTIMAL,milp_ablation
-bc_strong,0.0,2021,Optimal integer solution found by branch-and-cut (strong/pseudo branching).,nodes=49 lp_iters=2021 branch_rule=strong parallel_strong_lp=on,49,133.0,multi_knapsack_24x4.json,0,0.731133,OurSolver-bc_strong,OPTIMAL,milp_ablation
-plain_bb,0.0,149,Optimal integer solution found by branch-and-cut (strong/pseudo branching).,nodes=5 lp_iters=149 branch_rule=most_fractional parallel_strong_lp=off,5,6.0,set_partition_14x9.json,0,0.03368,OurSolver-plain_bb,OPTIMAL,milp_ablation
-bc_strong,0.0,161,Optimal integer solution found by branch-and-cut (strong/pseudo branching).,nodes=3 lp_iters=161 branch_rule=strong parallel_strong_lp=on,3,6.0,set_partition_14x9.json,0,0.030958,OurSolver-bc_strong,OPTIMAL,milp_ablation
-plain_bb,0.0,1,Optimal integer solution found by branch-and-cut (strong/pseudo branching).,nodes=1 lp_iters=1 branch_rule=most_fractional parallel_strong_lp=off,1,100.0,weak_lp_relaxation.json,0,0.023089,OurSolver-plain_bb,OPTIMAL,milp_ablation
-bc_strong,0.0,1,Optimal integer solution found by branch-and-cut (strong/pseudo branching).,nodes=1 lp_iters=1 branch_rule=strong parallel_strong_lp=on,1,100.0,weak_lp_relaxation.json,0,0.023226,OurSolver-bc_strong,OPTIMAL,milp_ablation
-strong_serial,0.0,2021,Optimal integer solution found by branch-and-cut (strong/pseudo branching). (best of 3 runs),nodes=49 lp_iters=2021 branch_rule=strong parallel_strong_lp=off,49,133.0,multi_knapsack_24x4.json,0,0.682466,OurSolver-strong_serial,OPTIMAL,parallel_strong
-strong_parallel2,0.0,2021,Optimal integer solution found by branch-and-cut (strong/pseudo branching). (best of 3 runs),nodes=49 lp_iters=2021 branch_rule=strong parallel_strong_lp=on,49,133.0,multi_knapsack_24x4.json,0,0.724285,OurSolver-strong_parallel2,OPTIMAL,parallel_strong
+gap,iterations,message,nodes,objective,problem,returncode,runtime_s,solver,status,suite
+0.0,6,Optimal solution found by primal-dual interior-point (Mehrotra).,0,29.999999999698563,sample_lp.json,0,0.001849,OurSolver,OPTIMAL,smoke
+,,highspy not installed (pip install highspy),,,sample_lp.json,,,HiGHS,SKIPPED,smoke
+0.0,6,Optimal solution found by primal-dual interior-point (Mehrotra).,0,8.999999999972278,classic_lp.json,0,0.001688,OurSolver,OPTIMAL,smoke
+,,highspy not installed (pip install highspy),,,classic_lp.json,,,HiGHS,SKIPPED,smoke
+0.0,12,"Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",1,8.0,sample_milp.json,0,0.001851,OurSolver,OPTIMAL,smoke
+,,highspy not installed (pip install highspy),,,sample_milp.json,,,HiGHS,SKIPPED,smoke
+0.0,10,Optimal solution found by primal-dual interior-point (Mehrotra).,0,-464.7531428511402,afiro.json,0,0.003695,OurSolver,OPTIMAL,netlib
+,,highspy not installed (pip install highspy),,,afiro.json,,,HiGHS,SKIPPED,netlib
+0.0,8,"Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",1,34.0,knapsack6.json,0,0.002083,OurSolver,OPTIMAL,miplib
+,,highspy not installed (pip install highspy),,,knapsack6.json,,,HiGHS,SKIPPED,miplib
+0.0,7,Optimal solution found by primal-dual interior-point (Mehrotra).,0,29999999.99967302,illconditioned.json,0,0.002298,OurSolver,OPTIMAL,robustness
+,,highspy not installed (pip install highspy),,,illconditioned.json,,,HiGHS,SKIPPED,robustness
+0.0,7,Optimal solution found by primal-dual interior-point (Mehrotra).,0,-1.2499999999982918,kuhn_degeneracy.json,0,0.001861,OurSolver,OPTIMAL,robustness
+,,highspy not installed (pip install highspy),,,kuhn_degeneracy.json,,,HiGHS,SKIPPED,robustness
+0.0,12,"Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",1,100.0,weak_lp_relaxation.json,0,0.001808,OurSolver,OPTIMAL,robustness
+,,highspy not installed (pip install highspy),,,weak_lp_relaxation.json,,,HiGHS,SKIPPED,robustness
+0.0,9,Optimal solution found by primal-dual interior-point (Mehrotra).,0,202.00000000080885,transport_20x20.json,0,0.017563,OurSolver,OPTIMAL,scale
+,,highspy not installed (pip install highspy),,,transport_20x20.json,,,HiGHS,SKIPPED,scale
+0.0,9,Optimal solution found by primal-dual interior-point (Mehrotra).,0,504.60000000368774,transport_50x50.json,0,0.172915,OurSolver,OPTIMAL,scale
+,,highspy not installed (pip install highspy),,,transport_50x50.json,,,HiGHS,SKIPPED,scale
