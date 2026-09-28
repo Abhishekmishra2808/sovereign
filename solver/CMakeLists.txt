@@ -46,6 +46,7 @@ add_library(sovereign_core
   numerical/src/sparse_lu.cpp
   numerical/src/sparse_symmetric.cpp
   numerical/src/amd_ordering.cpp
+  numerical/src/sparse_ldlt.cpp
   numerical/src/ed25519_verify.cpp
   lp/src/lp_solver.cpp
   lp/src/revised_simplex.cpp
