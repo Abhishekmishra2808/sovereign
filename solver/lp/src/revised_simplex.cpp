@@ -483,7 +483,7 @@ int select_leaving(const SimplexState& st, const std::vector<double>& d, bool bl
   if (std::isinf(min_ratio)) return -1;  // unbounded
 
   // Second pass: Harris selection among near-minimum candidates
-  const double harris_tol = st.tol.feasibility * std::max(1.0, std::abs(min_ratio));
+  const double harris_tol = st.tol.feasibility;
   int leave_pos = -1;
   double best_pivot = 0.0;
   int best_var = std::numeric_limits<int>::max();
