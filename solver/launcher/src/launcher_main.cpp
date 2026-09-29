@@ -89,14 +89,14 @@ bool sovereign_already_serving(int port) {
 }
 
 int read_instance_port() {
-  std::ifstream in(instance_file_path());
+  std::ifstream in{fs::path(instance_file_path())};
   int port = 0;
   if (in >> port) return port;
   return 0;
 }
 
 void write_instance_port(int port) {
-  std::ofstream out(instance_file_path(), std::ios::trunc);
+  std::ofstream out(fs::path(instance_file_path()), std::ios::trunc);
   out << port;
 }
 
