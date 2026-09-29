@@ -73,9 +73,10 @@ def route_request(request):
     requested = request.get("device", "auto")
     ineligible = gpu_ineligible_reason(request, shape)
     order = dense_order(shape)
-    # Interior point spends its time factoring a dense order x order system.
-    # On an RTX 2050 the CUDA factorization loses to the CPU at 300 rows and
-    # wins from about 400 (2.4x at 600, 8.6x at 1000, 32x at 1500).
+    # Below 400 rows the CUDA factorization never pays for its transfers. Above
+    # it, a GPU machine runs the engine in auto mode, which still keeps sparse
+    # models on its sparse CPU factorization: on an RTX 2050 the dense GPU path
+    # won only on the 1,500-row dense planning LP (1.6x; gpu-dense-ipm.md).
     min_order = int(os.environ.get("SOVEREIGN_GPU_MIN_ROWS", "400"))
     auto_enabled = os.environ.get("SOVEREIGN_GPU_AUTO_ENABLED", "1") != "0"
     if requested != "auto":
@@ -86,8 +87,8 @@ def route_request(request):
         preferred, reason = "cpu", "Automatic GPU routing is turned off on this server."
     elif order >= min_order:
         preferred = "cuda"
-        reason = (f"Interior point factors a {order}-row dense system each iteration; "
-                  f"a CUDA GPU is faster from {min_order} rows.")
+        reason = (f"Large interior-point system ({order} rows): sent to a GPU machine, where the engine "
+                  "uses CUDA only if the model is dense enough to benefit and otherwise stays on the CPU.")
     else:
         preferred = "cpu"
         reason = f"Small interior-point system ({order} rows): CPU avoids GPU launch and transfer overhead."
