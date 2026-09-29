@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-29T06:32:41.844514+00:00",
+  "generated_at": "2026-09-29T07:29:50.085320+00:00",
   "platform": "Windows-10-10.0.26200-SP0",
   "cpu_threads": 12,
   "gpu": "NVIDIA GeForce RTX 2050",
@@ -35,11 +35,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "0498f8f1e5442d1cfe45958c",
+      "job_id": "03ef6e1993a08c7a148a03a1",
       "status": "OPTIMAL",
       "objective": -464.7531428571429,
-      "runtime_seconds": 0.0003334000939503312,
-      "turnaround_seconds": 2.633747100015171,
+      "runtime_seconds": 0.00060889997985214,
+      "turnaround_seconds": 3.200488999951631,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -47,7 +47,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -464.75314285714285,
-        "runtime_seconds": 0.0016365000046789646,
+        "runtime_seconds": 0.0065191000467166305,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -96,11 +96,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "cd539ccb6712cb76b9131019",
+      "job_id": "6c0b3c35c01a196bc1e6ccc1",
       "status": "OPTIMAL",
       "objective": -464.7531428511402,
-      "runtime_seconds": 0.0005743000656366348,
-      "turnaround_seconds": 3.111644299933687,
+      "runtime_seconds": 0.0006463000318035483,
+      "turnaround_seconds": 3.1464056000113487,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -108,7 +108,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -464.75314285714285,
-        "runtime_seconds": 0.0016365000046789646,
+        "runtime_seconds": 0.0065191000467166305,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -158,11 +158,11 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "e58b442de52b99b5d124f3e0",
+      "job_id": "9ddeaa27e4971d153f752002",
       "status": "OPTIMAL",
       "objective": 1201500.0,
-      "runtime_seconds": 0.4579601999139413,
-      "turnaround_seconds": 2.1272874999558553,
+      "runtime_seconds": 0.3480182000203058,
+      "turnaround_seconds": 2.396420200006105,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -170,7 +170,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 1201500.0,
-        "runtime_seconds": 0.22254470002371818,
+        "runtime_seconds": 0.13096159999258816,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -221,11 +221,11 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "a72acc4276763ede8ff70d21",
+      "job_id": "0df0762a135918dc5f206a34",
       "status": "OPTIMAL",
       "objective": 1201500.0,
-      "runtime_seconds": 0.8531349999830127,
-      "turnaround_seconds": 3.885196299990639,
+      "runtime_seconds": 0.7182868999661878,
+      "turnaround_seconds": 3.8295453999890015,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -233,7 +233,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 1201500.0,
-        "runtime_seconds": 0.22254470002371818,
+        "runtime_seconds": 0.13096159999258816,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -283,11 +283,11 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "e08685dbd49f500aab7bfbdd",
+      "job_id": "1e8a4726ead3645d98d4894b",
       "status": "OPTIMAL",
       "objective": 1201500.0,
-      "runtime_seconds": 0.7408769000321627,
-      "turnaround_seconds": 3.9081104000797495,
+      "runtime_seconds": 0.6823258000658825,
+      "turnaround_seconds": 0.8415081000421196,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -295,7 +295,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 1201500.0,
-        "runtime_seconds": 0.22254470002371818,
+        "runtime_seconds": 0.13096159999258816,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -345,11 +345,11 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "d61873f855e1ba5e23d9de49",
+      "job_id": "53a2877155144ec72455677c",
       "status": "OPTIMAL",
       "objective": 21166.0,
-      "runtime_seconds": 22.665615700068884,
-      "turnaround_seconds": 24.693331000045873,
+      "runtime_seconds": 20.710418300004676,
+      "turnaround_seconds": 23.28155919990968,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -357,7 +357,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 21166.0,
-        "runtime_seconds": 0.08356089994776994,
+        "runtime_seconds": 0.07362909999210387,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -408,11 +408,11 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "d7bd9a6a687c831708704b86",
+      "job_id": "f07d3af50cc9d8b19ea6b2f5",
       "status": "FEASIBLE",
       "objective": 53344.0,
-      "runtime_seconds": 27.049335599993356,
-      "turnaround_seconds": 30.142823700094596,
+      "runtime_seconds": 27.038126999977976,
+      "turnaround_seconds": 30.236796199926175,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -420,11 +420,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 21166.0,
-        "runtime_seconds": 0.08356089994776994,
+        "runtime_seconds": 0.07362909999210387,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Branch-and-bound stopped at the time limit (27 s, 66774 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
+      "message": "Branch-and-bound stopped at the time limit (27 s, 85307 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -470,11 +470,11 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "14256e0486f98952656ea2c0",
+      "job_id": "39d87776d42e12a012345612",
       "status": "OPTIMAL",
       "objective": 21166.0,
-      "runtime_seconds": 4.920660699950531,
-      "turnaround_seconds": 8.081057199975476,
+      "runtime_seconds": 2.8686580999055877,
+      "turnaround_seconds": 6.0275851000333205,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -482,7 +482,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 21166.0,
-        "runtime_seconds": 0.08356089994776994,
+        "runtime_seconds": 0.07362909999210387,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -532,11 +532,11 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "58d560334913d4e55bf9c71f",
+      "job_id": "fa1ac572065413c6eb5b3bcf",
       "status": "FEASIBLE",
       "objective": -1.5,
-      "runtime_seconds": 26.590462399995886,
-      "turnaround_seconds": 28.42910720000509,
+      "runtime_seconds": 19.02280349994544,
+      "turnaround_seconds": 21.384764999966137,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -544,7 +544,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.500001,
-        "runtime_seconds": 0.29377270000986755,
+        "runtime_seconds": 0.20052070007659495,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -595,11 +595,11 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "072ec10b9ba7ce09717f609c",
+      "job_id": "5c8f6a6b010415a1ea3423a0",
       "status": "FEASIBLE",
       "objective": -1.5,
-      "runtime_seconds": 23.355785400024615,
-      "turnaround_seconds": 26.381248399964534,
+      "runtime_seconds": 18.806816200027242,
+      "turnaround_seconds": 22.01021390000824,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -607,7 +607,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.500001,
-        "runtime_seconds": 0.29377270000986755,
+        "runtime_seconds": 0.20052070007659495,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -657,11 +657,11 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "95749549cb48f114441b797b",
+      "job_id": "b3e9fafe9f4df9cd011aac2a",
       "status": "FEASIBLE",
       "objective": -1.5,
-      "runtime_seconds": 23.330190500011668,
-      "turnaround_seconds": 23.57785700005479,
+      "runtime_seconds": 18.827718100044876,
+      "turnaround_seconds": 21.861770499963313,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -669,7 +669,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.500001,
-        "runtime_seconds": 0.29377270000986755,
+        "runtime_seconds": 0.20052070007659495,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -719,11 +719,11 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "348063f1cb3e9d91bdc605d7",
+      "job_id": "cb6b440f26e32007b0bb45c7",
       "status": "FEASIBLE",
       "objective": 11.999999999999998,
-      "runtime_seconds": 27.032794300001115,
-      "turnaround_seconds": 29.520779000013135,
+      "runtime_seconds": 27.034979499992914,
+      "turnaround_seconds": 29.98089979996439,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -731,11 +731,11 @@
       "reference": {
         "status": "TIME_LIMIT_REACHED",
         "objective": 13.999999999999915,
-        "runtime_seconds": 30.009333199937828,
+        "runtime_seconds": 30.004332300042734,
         "mip_gap": 1.0,
         "version": "1.15.1"
       },
-      "message": "Branch-and-bound stopped at the time limit (27 s, 57778 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
+      "message": "Branch-and-bound stopped at the time limit (27 s, 73218 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -782,11 +782,11 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "62fae0958dfecbc84fbf8d2b",
+      "job_id": "62dc06ab87738ddb2e3e9e02",
       "status": "FEASIBLE",
       "objective": 11.999999999999998,
-      "runtime_seconds": 27.028842800064012,
-      "turnaround_seconds": 30.248663099948317,
+      "runtime_seconds": 27.038478899979964,
+      "turnaround_seconds": 30.161683200043626,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -794,11 +794,11 @@
       "reference": {
         "status": "TIME_LIMIT_REACHED",
         "objective": 13.999999999999915,
-        "runtime_seconds": 30.009333199937828,
+        "runtime_seconds": 30.004332300042734,
         "mip_gap": 1.0,
         "version": "1.15.1"
       },
-      "message": "Branch-and-bound stopped at the time limit (27 s, 58670 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
+      "message": "Branch-and-bound stopped at the time limit (27 s, 72281 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -844,11 +844,11 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "2c63f91716f2dbf8e890c854",
+      "job_id": "944125650daae8a7cbc6fdb9",
       "status": "FEASIBLE",
       "objective": 12.0,
-      "runtime_seconds": 27.036210999940522,
-      "turnaround_seconds": 30.223614600021392,
+      "runtime_seconds": 27.022288899985142,
+      "turnaround_seconds": 30.16196930001024,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -856,11 +856,11 @@
       "reference": {
         "status": "TIME_LIMIT_REACHED",
         "objective": 13.999999999999915,
-        "runtime_seconds": 30.009333199937828,
+        "runtime_seconds": 30.004332300042734,
         "mip_gap": 1.0,
         "version": "1.15.1"
       },
-      "message": "Branch-and-bound stopped at the time limit (27 s, 57808 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
+      "message": "Branch-and-bound stopped at the time limit (27 s, 56200 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -906,11 +906,11 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "db4b34b56f4e7fc15535b0de",
+      "job_id": "0517a8dfed46ac46e2356721",
       "status": "FEASIBLE",
-      "objective": -9425.864845696002,
-      "runtime_seconds": 27.045593600021675,
-      "turnaround_seconds": 30.078749799984507,
+      "objective": -9430.336616408,
+      "runtime_seconds": 27.034003800014034,
+      "turnaround_seconds": 29.821556400042027,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -918,11 +918,11 @@
       "reference": {
         "status": "TIME_LIMIT_REACHED",
         "objective": -9421.387448424,
-        "runtime_seconds": 30.01478660001885,
+        "runtime_seconds": 30.00437260000035,
         "mip_gap": 0.008850784695829984,
         "version": "1.15.1"
       },
-      "message": "Branch-and-bound stopped at the time limit (27 s, 61371 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
+      "message": "Branch-and-bound stopped at the time limit (27 s, 65757 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -930,7 +930,7 @@
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
         "message": "Solution verified.",
-        "recomputed_objective": -9425.864845696002
+        "recomputed_objective": -9430.336616408
       },
       "routing": {
         "preferred_device": "cpu",
@@ -969,11 +969,11 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "26f078a7098b6754d7a6061d",
+      "job_id": "afaefeb9017c8a457077af82",
       "status": "FEASIBLE",
       "objective": -9441.184307408,
-      "runtime_seconds": 24.320391799905337,
-      "turnaround_seconds": 27.374469699920155,
+      "runtime_seconds": 22.716505700023845,
+      "turnaround_seconds": 23.203281500027515,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -981,7 +981,7 @@
       "reference": {
         "status": "TIME_LIMIT_REACHED",
         "objective": -9421.387448424,
-        "runtime_seconds": 30.01478660001885,
+        "runtime_seconds": 30.00437260000035,
         "mip_gap": 0.008850784695829984,
         "version": "1.15.1"
       },
@@ -1031,11 +1031,11 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "ca228359c334c0f685f38c32",
+      "job_id": "0b5ce295cee65b67e6d8e9bc",
       "status": "FEASIBLE",
       "objective": -9432.954064407999,
-      "runtime_seconds": 27.03590440005064,
-      "turnaround_seconds": 30.164137899992056,
+      "runtime_seconds": 27.03559389989823,
+      "turnaround_seconds": 30.202115199994296,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1043,11 +1043,11 @@
       "reference": {
         "status": "TIME_LIMIT_REACHED",
         "objective": -9421.387448424,
-        "runtime_seconds": 30.01478660001885,
+        "runtime_seconds": 30.00437260000035,
         "mip_gap": 0.008850784695829984,
         "version": "1.15.1"
       },
-      "message": "Branch-and-bound stopped at the time limit (27 s, 62987 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
+      "message": "Branch-and-bound stopped at the time limit (27 s, 66141 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -1092,11 +1092,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "683f398563d1c1054d92f199",
+      "job_id": "c5191cf151a4ddc354a4284d",
       "status": "OPTIMAL",
       "objective": -1.25,
-      "runtime_seconds": 0.00011260004248470068,
-      "turnaround_seconds": 2.2633421999635175,
+      "runtime_seconds": 0.000125400023534894,
+      "turnaround_seconds": 2.3955835999222472,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1104,7 +1104,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.25,
-        "runtime_seconds": 0.0011775000020861626,
+        "runtime_seconds": 0.0009444999741390347,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -1153,11 +1153,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "3bec0f591912a6c28e0d4d0d",
+      "job_id": "57131926181d5331b3ae495e",
       "status": "OPTIMAL",
       "objective": -1.2499999999982918,
-      "runtime_seconds": 0.00024039996787905693,
-      "turnaround_seconds": 0.20597160002216697,
+      "runtime_seconds": 0.0002633000258356333,
+      "turnaround_seconds": 3.0323095000348985,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1165,7 +1165,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.25,
-        "runtime_seconds": 0.0011775000020861626,
+        "runtime_seconds": 0.0009444999741390347,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -1214,11 +1214,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "ae6b8781afee0a43d1602346",
+      "job_id": "2d8f7eff3a79022dcd714bfa",
       "status": "OPTIMAL",
       "objective": 30000000.0,
-      "runtime_seconds": 9.709992446005344e-05,
-      "turnaround_seconds": 2.2741711999988183,
+      "runtime_seconds": 9.760004468262196e-05,
+      "turnaround_seconds": 2.427125300047919,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1226,7 +1226,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 30000000.0,
-        "runtime_seconds": 0.0005589999491348863,
+        "runtime_seconds": 0.0008744000224396586,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -1275,11 +1275,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "2aed1f2b63e9fd916e3598aa",
+      "job_id": "c24d6972babcb365d76370b9",
       "status": "OPTIMAL",
       "objective": 29999999.99967302,
-      "runtime_seconds": 0.00024150009267032146,
-      "turnaround_seconds": 3.0537187999580055,
+      "runtime_seconds": 0.000282099936157465,
+      "turnaround_seconds": 3.0139816999435425,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1287,7 +1287,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 30000000.0,
-        "runtime_seconds": 0.0005589999491348863,
+        "runtime_seconds": 0.0008744000224396586,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -1337,11 +1337,11 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "65fa5c9eb46e382cc76d2284",
+      "job_id": "efe4514cc79276d4c7792b9b",
       "status": "OPTIMAL",
       "objective": 100.0,
-      "runtime_seconds": 0.0002880999818444252,
-      "turnaround_seconds": 2.2784983000019565,
+      "runtime_seconds": 0.00026899995282292366,
+      "turnaround_seconds": 2.404252100037411,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1349,7 +1349,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 100.0,
-        "runtime_seconds": 0.0008572000078856945,
+        "runtime_seconds": 0.000645900028757751,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -1400,11 +1400,11 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "7163992d05ca9e19fe5b2f6e",
+      "job_id": "cc5759db1c989313092b126c",
       "status": "OPTIMAL",
       "objective": 100.0,
-      "runtime_seconds": 0.00029880006331950426,
-      "turnaround_seconds": 3.233538099913858,
+      "runtime_seconds": 0.00025399995502084494,
+      "turnaround_seconds": 3.2046283999225125,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1412,7 +1412,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 100.0,
-        "runtime_seconds": 0.0008572000078856945,
+        "runtime_seconds": 0.000645900028757751,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -1462,11 +1462,11 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "d2a71f9eef741342fe52b7e6",
+      "job_id": "4234ae67facac2d0c46db2a4",
       "status": "OPTIMAL",
       "objective": 100.0,
-      "runtime_seconds": 0.00026270002126693726,
-      "turnaround_seconds": 3.0560828000307083,
+      "runtime_seconds": 0.00025049992837011814,
+      "turnaround_seconds": 3.0275725999381393,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1474,7 +1474,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 100.0,
-        "runtime_seconds": 0.0008572000078856945,
+        "runtime_seconds": 0.000645900028757751,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -1523,11 +1523,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "8e6f4f0a83aa4f7d6b3d95bd",
+      "job_id": "3e2c837908a8765ffb0b4c1d",
       "status": "OPTIMAL",
       "objective": 201.99999999999991,
-      "runtime_seconds": 0.0007273000665009022,
-      "turnaround_seconds": 2.29463349992875,
+      "runtime_seconds": 0.000789899961091578,
+      "turnaround_seconds": 2.6011592999566346,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1535,7 +1535,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 201.99999999999994,
-        "runtime_seconds": 0.0018993000267073512,
+        "runtime_seconds": 0.002118299948051572,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -1584,11 +1584,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "faf799fab56951d5778b3543",
+      "job_id": "f9f1162e575ec96194c70b49",
       "status": "OPTIMAL",
       "objective": 202.00000000080883,
-      "runtime_seconds": 0.0010144999250769615,
-      "turnaround_seconds": 3.1069671999430284,
+      "runtime_seconds": 0.0010112000163644552,
+      "turnaround_seconds": 3.1108585000038147,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1596,7 +1596,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 201.99999999999994,
-        "runtime_seconds": 0.0018993000267073512,
+        "runtime_seconds": 0.002118299948051572,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -1645,11 +1645,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "97f9f9308728a927376b883d",
+      "job_id": "3bc599195d03079b8363723f",
       "status": "OPTIMAL",
       "objective": 504.6000000000004,
-      "runtime_seconds": 0.009430699981749058,
-      "turnaround_seconds": 2.3723178000655025,
+      "runtime_seconds": 0.00672339997254312,
+      "turnaround_seconds": 2.51342700002715,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1657,7 +1657,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 504.6000000000004,
-        "runtime_seconds": 0.010284099960699677,
+        "runtime_seconds": 0.0071341999573633075,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -1706,11 +1706,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "77cc7abd84e3beadc1240f03",
+      "job_id": "8924ef4dcd72939349e2e232",
       "status": "OPTIMAL",
       "objective": 504.6000000036868,
-      "runtime_seconds": 0.008553800056688488,
-      "turnaround_seconds": 3.1786789000034332,
+      "runtime_seconds": 0.007001399993896484,
+      "turnaround_seconds": 3.194452799973078,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1718,7 +1718,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 504.6000000000004,
-        "runtime_seconds": 0.010284099960699677,
+        "runtime_seconds": 0.0071341999573633075,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -1767,11 +1767,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "bac50e91332a7425835105ed",
+      "job_id": "2ae97c42816c735e79e163ca",
       "status": "OPTIMAL",
       "objective": 1009.0000000000014,
-      "runtime_seconds": 0.08275599998887628,
-      "turnaround_seconds": 2.4572934999596328,
+      "runtime_seconds": 0.06536829995457083,
+      "turnaround_seconds": 2.617589700035751,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1779,7 +1779,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 1009.0000000000015,
-        "runtime_seconds": 0.04540559998713434,
+        "runtime_seconds": 0.03525320009794086,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -1828,11 +1828,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "99d61485ddebba620a9348b0",
+      "job_id": "0cfcaf1cbb5eadca3b70eae9",
       "status": "OPTIMAL",
       "objective": 1009.0000000400751,
-      "runtime_seconds": 0.04596110002603382,
-      "turnaround_seconds": 3.5559064000844955,
+      "runtime_seconds": 0.03450760000851005,
+      "turnaround_seconds": 3.413635600009002,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1840,7 +1840,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 1009.0000000000015,
-        "runtime_seconds": 0.04540559998713434,
+        "runtime_seconds": 0.03525320009794086,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -1889,11 +1889,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "123623a0076a35e13c318e7c",
+      "job_id": "054ee654ca1d7d41aa6b1be8",
       "status": "OPTIMAL",
       "objective": 1513.3999999999976,
-      "runtime_seconds": 0.36733859998639673,
-      "turnaround_seconds": 2.6152912999968976,
+      "runtime_seconds": 0.3067887000506744,
+      "turnaround_seconds": 2.9524969999911264,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1901,7 +1901,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 1513.3999999999976,
-        "runtime_seconds": 0.1587811999488622,
+        "runtime_seconds": 0.11837439995724708,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -1950,11 +1950,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "30b3de34b0db44bcdb8de5a1",
+      "job_id": "c9b0fcf92ac370cb2fe71070",
       "status": "OPTIMAL",
       "objective": 1513.4000004520094,
-      "runtime_seconds": 0.12653580005280674,
-      "turnaround_seconds": 3.972763799945824,
+      "runtime_seconds": 0.10144030000083148,
+      "turnaround_seconds": 3.882217500009574,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1962,7 +1962,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 1513.3999999999976,
-        "runtime_seconds": 0.1587811999488622,
+        "runtime_seconds": 0.11837439995724708,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2011,11 +2011,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "7673a71907b30108a897b333",
+      "job_id": "964d8022912b54e1d5130250",
       "status": "OPTIMAL",
       "objective": 2017.7999999999934,
-      "runtime_seconds": 1.263690200052224,
-      "turnaround_seconds": 3.387237900053151,
+      "runtime_seconds": 0.9442705999827012,
+      "turnaround_seconds": 3.56914889998734,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2023,7 +2023,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 2017.7999999999936,
-        "runtime_seconds": 0.7049036000389606,
+        "runtime_seconds": 0.5273993000155315,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2072,11 +2072,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "2cf2779166fcac08a6c3b3d2",
+      "job_id": "160460c73ade52800c0c7f2a",
       "status": "OPTIMAL",
       "objective": 2017.800000009963,
-      "runtime_seconds": 0.2744392000604421,
-      "turnaround_seconds": 4.782006399938837,
+      "runtime_seconds": 0.2115389999235049,
+      "turnaround_seconds": 4.87118030001875,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2084,7 +2084,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 2017.7999999999936,
-        "runtime_seconds": 0.7049036000389606,
+        "runtime_seconds": 0.5273993000155315,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2133,11 +2133,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "d6dba49801bad75301e43305",
+      "job_id": "c661101c3d1c41a7e7496ef4",
       "status": "OPTIMAL",
       "objective": 675000.0,
-      "runtime_seconds": 0.00013229995965957642,
-      "turnaround_seconds": 2.272664700052701,
+      "runtime_seconds": 0.00010659999679774046,
+      "turnaround_seconds": 2.6096110000507906,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2145,7 +2145,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 675000.0,
-        "runtime_seconds": 0.001038899994455278,
+        "runtime_seconds": 0.0008721000049263239,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2194,11 +2194,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "682cf814a625a60971fea14a",
+      "job_id": "726b0bdeeba05d20f1929bff",
       "status": "OPTIMAL",
       "objective": 674999.9999667553,
-      "runtime_seconds": 0.00044490001164376736,
-      "turnaround_seconds": 3.3065519999945536,
+      "runtime_seconds": 0.0002578999847173691,
+      "turnaround_seconds": 3.076276100007817,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2206,7 +2206,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 675000.0,
-        "runtime_seconds": 0.001038899994455278,
+        "runtime_seconds": 0.0008721000049263239,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2255,11 +2255,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "0a377190c18955ba6c7ded49",
+      "job_id": "58d480a9283e238dd02515c6",
       "status": "OPTIMAL",
       "objective": 7200.0,
-      "runtime_seconds": 0.00012609991244971752,
-      "turnaround_seconds": 2.3047606999753043,
+      "runtime_seconds": 9.750004392117262e-05,
+      "turnaround_seconds": 2.6299689000006765,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2267,7 +2267,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 7200.0,
-        "runtime_seconds": 0.0010686999885365367,
+        "runtime_seconds": 0.0009761999826878309,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2316,11 +2316,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "ea1ec95956d44fbef34d7be1",
+      "job_id": "de20f4d2950f5dfd8993e8e5",
       "status": "OPTIMAL",
       "objective": 7200.000000026874,
-      "runtime_seconds": 0.00035200000274926424,
-      "turnaround_seconds": 3.06298369995784,
+      "runtime_seconds": 0.00044239999260753393,
+      "turnaround_seconds": 3.2017443999648094,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2328,7 +2328,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 7200.0,
-        "runtime_seconds": 0.0010686999885365367,
+        "runtime_seconds": 0.0009761999826878309,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2377,11 +2377,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "f9b39beadde29f897c685984",
+      "job_id": "286cb4e5afc1d13b66524b5e",
       "status": "OPTIMAL",
       "objective": 2700.0,
-      "runtime_seconds": 0.00013699999544769526,
-      "turnaround_seconds": 2.4560971000464633,
+      "runtime_seconds": 0.00011119991540908813,
+      "turnaround_seconds": 2.6014329000608996,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2389,7 +2389,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 2700.0,
-        "runtime_seconds": 0.0005763999652117491,
+        "runtime_seconds": 0.0005152999656274915,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2438,11 +2438,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "979b312620168b88fe6060bf",
+      "job_id": "69ece735aa7e416dce74e4db",
       "status": "OPTIMAL",
       "objective": 2700.000000099279,
-      "runtime_seconds": 0.0003981000045314431,
-      "turnaround_seconds": 3.145983599941246,
+      "runtime_seconds": 0.0003978000022470951,
+      "turnaround_seconds": 3.253147999988869,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2450,7 +2450,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 2700.0,
-        "runtime_seconds": 0.0005763999652117491,
+        "runtime_seconds": 0.0005152999656274915,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2500,11 +2500,11 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "3b3bd48e25707bd412097a1b",
+      "job_id": "2be3a351b2b7ee5ecf2b3320",
       "status": "OPTIMAL",
       "objective": 550.0,
-      "runtime_seconds": 0.0003923000767827034,
-      "turnaround_seconds": 2.266122700064443,
+      "runtime_seconds": 0.00040879996959120035,
+      "turnaround_seconds": 1.99838380003348,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2512,7 +2512,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 550.0,
-        "runtime_seconds": 0.014775800053030252,
+        "runtime_seconds": 0.012811099993996322,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -2563,11 +2563,11 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "2315d2cd22f5b3cb47345b90",
+      "job_id": "d6eb15cf47bbd28175cd3760",
       "status": "OPTIMAL",
       "objective": 550.0,
-      "runtime_seconds": 0.0006486999336630106,
-      "turnaround_seconds": 3.294197399984114,
+      "runtime_seconds": 0.00030019995756447315,
+      "turnaround_seconds": 3.25311699998565,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2575,7 +2575,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 550.0,
-        "runtime_seconds": 0.014775800053030252,
+        "runtime_seconds": 0.012811099993996322,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -2625,11 +2625,11 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "64195156f522e33cd02b9dfb",
+      "job_id": "401f86d7614c6b457ac5c722",
       "status": "OPTIMAL",
       "objective": 550.0,
-      "runtime_seconds": 0.0003515999997034669,
-      "turnaround_seconds": 3.2255342000862584,
+      "runtime_seconds": 0.0002960000419989228,
+      "turnaround_seconds": 3.224393800017424,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2637,7 +2637,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 550.0,
-        "runtime_seconds": 0.014775800053030252,
+        "runtime_seconds": 0.012811099993996322,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -2686,11 +2686,11 @@
       "configuration": {
         "qpAlgorithm": "ipm"
       },
-      "job_id": "ff158188c0f73cd5754b0a48",
+      "job_id": "f3d3ea6dd876ed2409bf1a26",
       "status": "OPTIMAL",
       "objective": -2.0,
-      "runtime_seconds": 0.00018839992117136717,
-      "turnaround_seconds": 2.3161355999764055,
+      "runtime_seconds": 0.00016569998115301132,
+      "turnaround_seconds": 2.3976734000025317,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2698,7 +2698,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.999999999999995,
-        "runtime_seconds": 0.0007530000293627381,
+        "runtime_seconds": 0.0018693000311031938,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2747,11 +2747,11 @@
       "configuration": {
         "qpAlgorithm": "frank_wolfe"
       },
-      "job_id": "a10e155040e7f46b85a64dcd",
+      "job_id": "4d1bb84ef71f947948a377fe",
       "status": "OPTIMAL",
       "objective": -2.0,
-      "runtime_seconds": 0.0005599999567493796,
-      "turnaround_seconds": 3.224718700046651,
+      "runtime_seconds": 0.0005299000767990947,
+      "turnaround_seconds": 3.2879802000243217,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2759,11 +2759,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.999999999999995,
-        "runtime_seconds": 0.0007530000293627381,
+        "runtime_seconds": 0.0018693000311031938,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Convex QP solved by Frank-Wolfe with LP linearization oracle (earlier approach; default QP path is Mehrotra IPM \u00e2\u20ac\u201d set SOVEREIGN_QP_ALGORITHM=frank_wolfe to force this).",
+      "message": "Convex QP solved by Frank-Wolfe with LP linearization oracle (earlier approach; default QP path is Mehrotra IPM).",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -2808,11 +2808,11 @@
       "configuration": {
         "qpAlgorithm": "ipm"
       },
-      "job_id": "35f9e6b53bf30312fddef7d0",
+      "job_id": "3b04840f148ec5104c161876",
       "status": "OPTIMAL",
       "objective": 1.9999999996220788,
-      "runtime_seconds": 0.0001545000122860074,
-      "turnaround_seconds": 2.3269174000015482,
+      "runtime_seconds": 0.0001498000929132104,
+      "turnaround_seconds": 2.4801202999660745,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2820,7 +2820,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 1.9999999999999998,
-        "runtime_seconds": 0.001057300018146634,
+        "runtime_seconds": 0.0008148000342771411,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2869,11 +2869,11 @@
       "configuration": {
         "qpAlgorithm": "frank_wolfe"
       },
-      "job_id": "368ec1ae1c3ec73a7d65a843",
+      "job_id": "b00f81c05398d78785a5017d",
       "status": "OPTIMAL",
       "objective": 2.0,
-      "runtime_seconds": 0.00016139994841068983,
-      "turnaround_seconds": 3.2179252000059932,
+      "runtime_seconds": 0.00014070002362132072,
+      "turnaround_seconds": 3.2233657999895513,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2881,11 +2881,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 1.9999999999999998,
-        "runtime_seconds": 0.001057300018146634,
+        "runtime_seconds": 0.0008148000342771411,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Convex QP solved by Frank-Wolfe with LP linearization oracle (earlier approach; default QP path is Mehrotra IPM \u00e2\u20ac\u201d set SOVEREIGN_QP_ALGORITHM=frank_wolfe to force this).",
+      "message": "Convex QP solved by Frank-Wolfe with LP linearization oracle (earlier approach; default QP path is Mehrotra IPM).",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -2930,11 +2930,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "10a3ecaf1619469d00ca4682",
+      "job_id": "1845641b71e91f0f5a3ad9b7",
       "status": "OPTIMAL",
       "objective": 37175.761943396574,
-      "runtime_seconds": 0.23555680003482848,
-      "turnaround_seconds": 2.4062367000151426,
+      "runtime_seconds": 0.1944249999942258,
+      "turnaround_seconds": 2.6260682999854907,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2942,7 +2942,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 37175.761943396436,
-        "runtime_seconds": 0.08469270006753504,
+        "runtime_seconds": 0.06713189999572933,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2991,11 +2991,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "367808055995ce5c4d51346a",
+      "job_id": "182189c4f09ffb12c29474a3",
       "status": "OPTIMAL",
       "objective": 37175.761931149886,
-      "runtime_seconds": 0.25757370004430413,
-      "turnaround_seconds": 3.495794099988416,
+      "runtime_seconds": 0.22700989991426468,
+      "turnaround_seconds": 3.4954756000079215,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3003,7 +3003,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 37175.761943396436,
-        "runtime_seconds": 0.08469270006753504,
+        "runtime_seconds": 0.06713189999572933,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -3052,11 +3052,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "db2997de9b89a2a14d3368f7",
+      "job_id": "33490d9630d06cb6c10d1032",
       "status": "OPTIMAL",
       "objective": 59174.29816757092,
-      "runtime_seconds": 1.1417878000065684,
-      "turnaround_seconds": 3.18210730003193,
+      "runtime_seconds": 0.9312494000187144,
+      "turnaround_seconds": 3.14997389994096,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3064,7 +3064,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 59174.298167570734,
-        "runtime_seconds": 0.3308326998958364,
+        "runtime_seconds": 0.26807069999631494,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -3113,11 +3113,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "6feb746187e6c7dffb6840e3",
+      "job_id": "37fb27b838c09fe766c1a746",
       "status": "OPTIMAL",
       "objective": 59174.298167497785,
-      "runtime_seconds": 1.1889663999900222,
-      "turnaround_seconds": 4.3870075000450015,
+      "runtime_seconds": 1.0784618000034243,
+      "turnaround_seconds": 4.470820200047456,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3125,7 +3125,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 59174.298167570734,
-        "runtime_seconds": 0.3308326998958364,
+        "runtime_seconds": 0.26807069999631494,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -3174,11 +3174,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "fafc6701ed5e88335995e0fb",
+      "job_id": "d238b15c56cc7ab6978d3d20",
       "status": "OPTIMAL",
       "objective": 91500.1974783319,
-      "runtime_seconds": 3.9157454000087455,
-      "turnaround_seconds": 5.404839299968444,
+      "runtime_seconds": 2.9467458999715745,
+      "turnaround_seconds": 4.64841919997707,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3186,7 +3186,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 91500.19747833154,
-        "runtime_seconds": 0.9811794999986887,
+        "runtime_seconds": 0.7099855000851676,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -3235,11 +3235,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "bd98f1cff51600e6f42259f4",
+      "job_id": "61301d7ccb13611c093cb871",
       "status": "OPTIMAL",
       "objective": 91500.19742444395,
-      "runtime_seconds": 7.730451799929142,
-      "turnaround_seconds": 11.060443200054578,
+      "runtime_seconds": 6.242679699906148,
+      "turnaround_seconds": 9.664442299981602,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3247,7 +3247,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 91500.19747833154,
-        "runtime_seconds": 0.9811794999986887,
+        "runtime_seconds": 0.7099855000851676,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -3296,11 +3296,11 @@
       "configuration": {
         "qpAlgorithm": "ipm"
       },
-      "job_id": "fb14cd134dbf6422e08afde7",
+      "job_id": "e49215729919a38bbd61b905",
       "status": "OPTIMAL",
       "objective": -0.1849816431569199,
-      "runtime_seconds": 0.04674360004719347,
-      "turnaround_seconds": 2.3082377000246197,
+      "runtime_seconds": 0.04205779999028891,
+      "turnaround_seconds": 2.6015711999498308,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3308,7 +3308,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -0.1849816443799799,
-        "runtime_seconds": 0.01521910005249083,
+        "runtime_seconds": 0.011908099986612797,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -3357,11 +3357,11 @@
       "configuration": {
         "qpAlgorithm": "frank_wolfe"
       },
-      "job_id": "868adf7a8459db4f41bc08ac",
-      "status": "OPTIMAL",
+      "job_id": "5952806a04157c33d58e1dc8",
+      "status": "FEASIBLE",
       "objective": -0.1844093054520936,
-      "runtime_seconds": 0.44984850008040667,
-      "turnaround_seconds": 3.610647000023164,
+      "runtime_seconds": 0.4047331999754533,
+      "turnaround_seconds": 3.637474299990572,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3369,11 +3369,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -0.1849816443799799,
-        "runtime_seconds": 0.01521910005249083,
+        "runtime_seconds": 0.011908099986612797,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Convex QP solved by Frank-Wolfe with LP linearization oracle (earlier approach; default QP path is Mehrotra IPM \u00e2\u20ac\u201d set SOVEREIGN_QP_ALGORITHM=frank_wolfe to force this).",
+      "message": "Frank-Wolfe stopped after 200 iterations with relative gap 0.000966; the point is feasible but optimality is not proven. Use the default Mehrotra IPM for an optimal solution.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -3418,11 +3418,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "66746d29a6621f428224e67a",
+      "job_id": "9efdc166eff50b46d05ac96e",
       "status": "OPTIMAL",
       "objective": 21329.7060606061,
-      "runtime_seconds": 0.13114209997002035,
-      "turnaround_seconds": 2.6386202999856323,
+      "runtime_seconds": 0.10061750002205372,
+      "turnaround_seconds": 2.5919885999755934,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3430,7 +3430,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 21329.70606060608,
-        "runtime_seconds": 0.031115700025111437,
+        "runtime_seconds": 0.02404619997832924,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -3479,11 +3479,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "ed72200ec79fca1dbc36c16f",
+      "job_id": "65ae97debbba570334203860",
       "status": "OPTIMAL",
       "objective": 21329.70606259925,
-      "runtime_seconds": 0.025088599999435246,
-      "turnaround_seconds": 3.266845800098963,
+      "runtime_seconds": 0.020233399933204055,
+      "turnaround_seconds": 3.4257011999143288,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3491,7 +3491,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 21329.70606060608,
-        "runtime_seconds": 0.031115700025111437,
+        "runtime_seconds": 0.02404619997832924,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -3540,11 +3540,11 @@
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "c888b71c3bd198755b1c64ba",
+      "job_id": "b982b2e15f8cb54cbe32c8ee",
       "status": "OPTIMAL",
       "objective": 106185.7357575748,
-      "runtime_seconds": 3.4624212000053376,
-      "turnaround_seconds": 5.580130099900998,
+      "runtime_seconds": 2.8524768999777734,
+      "turnaround_seconds": 5.2596660000272095,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3552,7 +3552,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 106185.73575757477,
-        "runtime_seconds": 0.37679460004437715,
+        "runtime_seconds": 0.17420349991880357,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -3601,11 +3601,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "8b81adfc451bc5909ec6f0fa",
+      "job_id": "7b6a33ec24062d4086d05183",
       "status": "OPTIMAL",
       "objective": 106185.73575779606,
-      "runtime_seconds": 0.18324739998206496,
-      "turnaround_seconds": 4.2501868000254035,
+      "runtime_seconds": 0.15031199995428324,
+      "turnaround_seconds": 4.235934800002724,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3613,7 +3613,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 106185.73575757477,
-        "runtime_seconds": 0.37679460004437715,
+        "runtime_seconds": 0.17420349991880357,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -3662,11 +3662,11 @@
       "configuration": {
         "qpAlgorithm": "ipm"
       },
-      "job_id": "0ab075b7530c113a01b03d1e",
+      "job_id": "6b941ae441a6b47d98bfb2d0",
       "status": "OPTIMAL",
       "objective": -0.1944651286560086,
-      "runtime_seconds": 0.0628593999426812,
-      "turnaround_seconds": 2.0993248999584466,
+      "runtime_seconds": 0.05161299998871982,
+      "turnaround_seconds": 2.512065300019458,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3674,7 +3674,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -0.19446512875558752,
-        "runtime_seconds": 0.42613979999441653,
+        "runtime_seconds": 0.31401670002378523,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -3723,11 +3723,11 @@
       "configuration": {
         "qpAlgorithm": "frank_wolfe"
       },
-      "job_id": "08c98f8fe533237b3bcaa82d",
+      "job_id": "0fdfcf4258fc948618adac89",
       "status": "TIME_LIMIT",
       "objective": null,
       "runtime_seconds": 30,
-      "turnaround_seconds": 33.588194800075144,
+      "turnaround_seconds": 33.63531499996316,
       "verified": false,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -3735,7 +3735,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -0.19446512875558752,
-        "runtime_seconds": 0.42613979999441653,
+        "runtime_seconds": 0.31401670002378523,
         "mip_gap": null,
         "version": "1.15.1"
       },
