@@ -295,6 +295,32 @@ def fit_completion(completion):
             "error": "Solver result exceeded the hosted 4 MB response limit; use a smaller model or a coordinator with large-result storage."}
 
 
+def describe_request(req, gpu_name):
+    if req.get("solver") == "highs":
+        return "HiGHS reference on CPU"
+    execution = req.get("executionDevice", req.get("device"))
+    if req.get("device") == "auto" and execution == "cuda":
+        return f"device auto, engine picks CPU or GPU ({gpu_name}) per model"
+    return f"device GPU ({gpu_name})" if execution == "cuda" else "device CPU"
+
+
+def describe_outcome(completion, gpu_name):
+    result = completion.get("result")
+    warning = str(completion.get("error") or "").strip().splitlines()
+    if not result:
+        return "failed: " + (warning[0][:200] if warning else "unknown error")
+    seconds = result.get("runtime_seconds")
+    time_text = f" in {seconds:.3f}s" if isinstance(seconds, (int, float)) else ""
+    if result.get("solver") == "highs":
+        where = "on CPU (HiGHS reference)"
+    elif result.get("gpu_used"):
+        where = (f"on GPU ({gpu_name}: {result.get('gpu_factorizations', 0)} factorizations, "
+                 f"{result.get('gpu_operations', 0)} GPU ops)")
+    else:
+        where = "on CPU"
+    return f"{result.get('status')}{time_text} {where}" + (f"; {warning[0][:200]}" if warning else "")
+
+
 def run(client, engine, once=False):
     caps = capabilities(engine)
     print(f"Connected worker: {caps['hostname']} | {describe_gpu(caps)}", flush=True)
@@ -313,7 +339,8 @@ def run(client, engine, once=False):
         try:
             job = client.post("/api/worker/claim", caps)["job"]
             if job:
-                print(f"Running job {job['id']}", flush=True)
+                gpu_name = caps["gpu_name"] or "GPU"
+                print(f"Running job {job['id']}: {describe_request(job['request'], gpu_name)}", flush=True)
                 completion = execute(client, engine, job)
                 if completion:
                     completion = fit_completion(completion)
@@ -321,7 +348,7 @@ def run(client, engine, once=False):
                     while True:
                         try:
                             client.post("/api/worker/complete", completion)
-                            print(f"Returned job {job['id']}", flush=True)
+                            print(f"Returned job {job['id']}: {describe_outcome(completion, gpu_name)}", flush=True)
                             break
                         except urllib.error.HTTPError as exc:
                             if exc.code == 409:
