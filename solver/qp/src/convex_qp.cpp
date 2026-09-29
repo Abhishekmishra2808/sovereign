@@ -19,8 +19,11 @@ int var_index(const OptimizationModel& m, const std::string& name) {
   return -1;
 }
 
+// Q and c describe the minimization form: a maximize objective is negated as
+// a whole, quadratic part included.
 void build_q(const OptimizationModel& model, std::vector<double>& Q, std::size_t n) {
   Q.assign(n * n, 0.0);
+  const double sign = (model.sense == Sense::Maximize) ? -1.0 : 1.0;
   for (const auto& row : model.objective.quadratic) {
     const int i = var_index(model, row.first);
     if (i < 0) continue;
@@ -29,11 +32,12 @@ void build_q(const OptimizationModel& model, std::vector<double>& Q, std::size_t
       if (j < 0) continue;
       // The objective is 1/2 sum q_ij x_i x_j over the stored terms, so a term
       // (i, j) contributes q_ij / 2 to each of the symmetric entries Q_ij, Q_ji.
+      const double q = sign * col.second;
       if (i == j) {
-        Q[static_cast<std::size_t>(i) * n + static_cast<std::size_t>(i)] += col.second;
+        Q[static_cast<std::size_t>(i) * n + static_cast<std::size_t>(i)] += q;
       } else {
-        Q[static_cast<std::size_t>(j) * n + static_cast<std::size_t>(i)] += 0.5 * col.second;
-        Q[static_cast<std::size_t>(i) * n + static_cast<std::size_t>(j)] += 0.5 * col.second;
+        Q[static_cast<std::size_t>(j) * n + static_cast<std::size_t>(i)] += 0.5 * q;
+        Q[static_cast<std::size_t>(i) * n + static_cast<std::size_t>(j)] += 0.5 * q;
       }
     }
   }

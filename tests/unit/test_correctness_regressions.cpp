@@ -240,6 +240,23 @@ TEST(QpAccuracy, OffDiagonalHessianTermsCountOnce) {
   EXPECT_NEAR(fw.objective_value, -0.4, 1e-4);
 }
 
+TEST(QpAccuracy, FrankWolfeMaximizesConcaveObjective) {
+  // max 2x - x^2 on [0, 10] peaks at x = 1 with value 1. Negating only the
+  // linear part turns this into a nonconvex minimization that runs to x = 10.
+  OptimizationModel m;
+  m.problem_type = ProblemType::QP;
+  m.sense = Sense::Maximize;
+  m.variables.push_back(make_var("x", VariableType::Continuous, 0.0, 10.0));
+  m.objective.linear = {{"x", 2.0}};
+  m.objective.quadratic["x"]["x"] = -2.0;
+  m.constraints.push_back(make_cons("c", {{"x", 1.0}}, ConstraintSense::Le, 10.0));
+
+  const SolverResult fw = ConvexQpSolver().solve(m);
+  EXPECT_NE(fw.status, SolverStatus::Error);
+  EXPECT_NEAR(fw.primal.at("x"), 1.0, 1e-3);
+  EXPECT_NEAR(fw.objective_value, 1.0, 1e-5);
+}
+
 namespace {
 
 // Portfolio-style convex QP: a diagonally dominant covariance with a few
