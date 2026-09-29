@@ -1,14 +1,20 @@
 {
-  "generated_at": "2026-09-26T23:10:47.560145+00:00",
+  "generated_at": "2026-09-29T06:32:41.844514+00:00",
   "platform": "Windows-10-10.0.26200-SP0",
-  "cpu_threads": 16,
-  "gpu": "NVIDIA GeForce RTX 5050 Laptop GPU",
+  "cpu_threads": 12,
+  "gpu": "NVIDIA GeForce RTX 2050",
   "engine": {
-    "cuda_available": false,
-    "gpu_acceleration": "sparse-matrix-vector",
-    "version": "1.1.0"
+    "cuda_available": true,
+    "cuda_backend": "driver-api",
+    "cuda_driver_version": "12.5",
+    "cuda_reason": "",
+    "gpu_acceleration": "dense-lu,sparse-matrix-vector",
+    "gpu_compute_capability": "8.6",
+    "gpu_memory_mb": 4095,
+    "gpu_name": "NVIDIA GeForce RTX 2050",
+    "version": "1.2.0"
   },
-  "time_limit_seconds": 3,
+  "time_limit_seconds": 30,
   "note": "Measured through a local HTTP coordinator and outbound worker using the same protocol as Render. All runs in this report use CPU. No live Render deployment or GPU speedup is claimed.",
   "rows": [
     {
@@ -21,18 +27,19 @@
         "rows": 27,
         "nonzeros": 83,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "LP",
         "estimated": true
       },
-      "profile": "Revised simplex",
+      "profile": "Dual simplex",
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "f7fb2ebc306525ba03e928e6",
+      "job_id": "0498f8f1e5442d1cfe45958c",
       "status": "OPTIMAL",
-      "objective": -464.75314285714285,
-      "runtime_seconds": 0.0006518,
-      "turnaround_seconds": 3.1089934000046924,
+      "objective": -464.7531428571429,
+      "runtime_seconds": 0.0003334000939503312,
+      "turnaround_seconds": 2.633747100015171,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -40,19 +47,19 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -464.75314285714285,
-        "runtime_seconds": 0.017746099969372153,
+        "runtime_seconds": 0.0016365000046789646,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "message": "Optimal solution found by bounded dual simplex.",
       "verification": {
         "is_valid": true,
         "issues": [],
         "max_bound_violation": 0.0,
-        "max_constraint_violation": 8.526512829121202e-14,
+        "max_constraint_violation": 5.684341886080802e-14,
         "max_integrality_violation": 0.0,
         "message": "Solution verified.",
-        "recomputed_objective": -464.75314285714285
+        "recomputed_objective": -464.7531428571429
       },
       "routing": {
         "preferred_device": "cpu",
@@ -62,10 +69,12 @@
           "rows": 27,
           "nonzeros": 83,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "LP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 27,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -79,6 +88,7 @@
         "rows": 27,
         "nonzeros": 83,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "LP",
         "estimated": true
       },
@@ -86,11 +96,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "0ba8ce1869b48cbdd4ddb693",
+      "job_id": "cd539ccb6712cb76b9131019",
       "status": "OPTIMAL",
-      "objective": -464.7531428511401,
-      "runtime_seconds": 0.0003066,
-      "turnaround_seconds": 0.19553859997540712,
+      "objective": -464.7531428511402,
+      "runtime_seconds": 0.0005743000656366348,
+      "turnaround_seconds": 3.111644299933687,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -98,19 +108,19 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -464.75314285714285,
-        "runtime_seconds": 0.017746099969372153,
+        "runtime_seconds": 0.0016365000046789646,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: dense LU (25 x 25).",
       "verification": {
         "is_valid": true,
         "issues": [],
         "max_bound_violation": 0.0,
-        "max_constraint_violation": 1.701470941983601e-12,
+        "max_constraint_violation": 1.7053025658242404e-12,
         "max_integrality_violation": 0.0,
         "message": "Solution verified.",
-        "recomputed_objective": -464.7531428511401
+        "recomputed_objective": -464.7531428511402
       },
       "routing": {
         "preferred_device": "cpu",
@@ -120,10 +130,12 @@
           "rows": 27,
           "nonzeros": 83,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "LP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 27,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -131,12 +143,13 @@
       "dataset": "flugpl",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_flugpl.html",
-      "sha256": "2cc1c052e8e7aeae0a8146cb64c57963c70d3e1f900fc5d7f153986bef283468",
+      "sha256": "a1f0cb79a95639450dd984473a00efca24365457153d7fcb859c6581ddab4c2c",
       "shape": {
         "columns": 18,
         "rows": 18,
         "nonzeros": 46,
         "integer_variables": 11,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -145,33 +158,31 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "329ea34c35c5316519172828",
-      "status": "NUMERICAL_ERROR",
-      "objective": null,
-      "runtime_seconds": 0.0007739,
-      "turnaround_seconds": 2.7298340999986976,
-      "verified": false,
+      "job_id": "e58b442de52b99b5d124f3e0",
+      "status": "OPTIMAL",
+      "objective": 1201500.0,
+      "runtime_seconds": 0.4579601999139413,
+      "turnaround_seconds": 2.1272874999558553,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
-      "match": false,
+      "match": true,
       "reference": {
         "status": "OPTIMAL",
         "objective": 1201500.0,
-        "runtime_seconds": 0.12265639996621758,
+        "runtime_seconds": 0.22254470002371818,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Solver result did not pass verification.",
+      "message": "Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",
       "verification": {
-        "is_valid": false,
-        "issues": [
-          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
-        ],
+        "is_valid": true,
+        "issues": [],
         "max_bound_violation": 0.0,
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
-        "message": "Verification skipped for non-feasible status.",
-        "recomputed_objective": 0.0
+        "message": "Solution verified.",
+        "recomputed_objective": 1201500.0
       },
       "routing": {
         "preferred_device": "cpu",
@@ -181,10 +192,12 @@
           "rows": 18,
           "nonzeros": 46,
           "integer_variables": 11,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 18,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -192,12 +205,13 @@
       "dataset": "flugpl",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_flugpl.html",
-      "sha256": "2cc1c052e8e7aeae0a8146cb64c57963c70d3e1f900fc5d7f153986bef283468",
+      "sha256": "a1f0cb79a95639450dd984473a00efca24365457153d7fcb859c6581ddab4c2c",
       "shape": {
         "columns": 18,
         "rows": 18,
         "nonzeros": 46,
         "integer_variables": 11,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -207,33 +221,31 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "99bb05e8b604e416ac769355",
-      "status": "NUMERICAL_ERROR",
-      "objective": null,
-      "runtime_seconds": 0.0004798,
-      "turnaround_seconds": 3.146226899989415,
-      "verified": false,
+      "job_id": "a72acc4276763ede8ff70d21",
+      "status": "OPTIMAL",
+      "objective": 1201500.0,
+      "runtime_seconds": 0.8531349999830127,
+      "turnaround_seconds": 3.885196299990639,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
-      "match": false,
+      "match": true,
       "reference": {
         "status": "OPTIMAL",
         "objective": 1201500.0,
-        "runtime_seconds": 0.12265639996621758,
+        "runtime_seconds": 0.22254470002371818,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Solver result did not pass verification.",
+      "message": "Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",
       "verification": {
-        "is_valid": false,
-        "issues": [
-          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
-        ],
+        "is_valid": true,
+        "issues": [],
         "max_bound_violation": 0.0,
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
-        "message": "Verification skipped for non-feasible status.",
-        "recomputed_objective": 0.0
+        "message": "Solution verified.",
+        "recomputed_objective": 1201500.0
       },
       "routing": {
         "preferred_device": "cpu",
@@ -243,10 +255,12 @@
           "rows": 18,
           "nonzeros": 46,
           "integer_variables": 11,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 18,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -254,12 +268,13 @@
       "dataset": "flugpl",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_flugpl.html",
-      "sha256": "2cc1c052e8e7aeae0a8146cb64c57963c70d3e1f900fc5d7f153986bef283468",
+      "sha256": "a1f0cb79a95639450dd984473a00efca24365457153d7fcb859c6581ddab4c2c",
       "shape": {
         "columns": 18,
         "rows": 18,
         "nonzeros": 46,
         "integer_variables": 11,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -268,24 +283,32 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "37c3957091befa46fa894849",
-      "status": "TIME_LIMIT",
-      "objective": null,
-      "runtime_seconds": 3,
-      "turnaround_seconds": 6.029095500009134,
-      "verified": false,
+      "job_id": "e08685dbd49f500aab7bfbdd",
+      "status": "OPTIMAL",
+      "objective": 1201500.0,
+      "runtime_seconds": 0.7408769000321627,
+      "turnaround_seconds": 3.9081104000797495,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
-      "match": false,
+      "match": true,
       "reference": {
         "status": "OPTIMAL",
         "objective": 1201500.0,
-        "runtime_seconds": 0.12265639996621758,
+        "runtime_seconds": 0.22254470002371818,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Time limit reached (3 seconds).",
-      "verification": null,
+      "message": "Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 1201500.0
+      },
       "routing": {
         "preferred_device": "cpu",
         "reason": "CPU selected manually.",
@@ -294,10 +317,12 @@
           "rows": 18,
           "nonzeros": 46,
           "integer_variables": 11,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 18,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -305,12 +330,13 @@
       "dataset": "gt2",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_gt2.html",
-      "sha256": "e4ce723153bf4e2bcac95236c209334c346c10b95284e3a5bfb7ce7e3fcceecc",
+      "sha256": "3ddd85dc12f8460a92b36b1424a00b563170d56ee615340dec037d7a875e9050",
       "shape": {
         "columns": 188,
         "rows": 29,
         "nonzeros": 376,
         "integer_variables": 188,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -319,24 +345,32 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "3d5056e3cdf8218f0f77e74c",
-      "status": "TIME_LIMIT",
-      "objective": null,
-      "runtime_seconds": 3,
-      "turnaround_seconds": 5.015281400003005,
-      "verified": false,
+      "job_id": "d61873f855e1ba5e23d9de49",
+      "status": "OPTIMAL",
+      "objective": 21166.0,
+      "runtime_seconds": 22.665615700068884,
+      "turnaround_seconds": 24.693331000045873,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
-      "match": false,
+      "match": true,
       "reference": {
         "status": "OPTIMAL",
         "objective": 21166.0,
-        "runtime_seconds": 0.1169886999996379,
+        "runtime_seconds": 0.08356089994776994,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Time limit reached (3 seconds).",
-      "verification": null,
+      "message": "Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 21166.0
+      },
       "routing": {
         "preferred_device": "cpu",
         "reason": "CPU selected manually.",
@@ -345,10 +379,12 @@
           "rows": 29,
           "nonzeros": 376,
           "integer_variables": 188,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 29,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -356,12 +392,13 @@
       "dataset": "gt2",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_gt2.html",
-      "sha256": "e4ce723153bf4e2bcac95236c209334c346c10b95284e3a5bfb7ce7e3fcceecc",
+      "sha256": "3ddd85dc12f8460a92b36b1424a00b563170d56ee615340dec037d7a875e9050",
       "shape": {
         "columns": 188,
         "rows": 29,
         "nonzeros": 376,
         "integer_variables": 188,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -371,24 +408,32 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "2a3534b33fc70e91e63ef3f5",
-      "status": "TIME_LIMIT",
-      "objective": null,
-      "runtime_seconds": 3,
-      "turnaround_seconds": 6.2040263999952,
-      "verified": false,
+      "job_id": "d7bd9a6a687c831708704b86",
+      "status": "FEASIBLE",
+      "objective": 53344.0,
+      "runtime_seconds": 27.049335599993356,
+      "turnaround_seconds": 30.142823700094596,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
       "match": false,
       "reference": {
         "status": "OPTIMAL",
         "objective": 21166.0,
-        "runtime_seconds": 0.1169886999996379,
+        "runtime_seconds": 0.08356089994776994,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Time limit reached (3 seconds).",
-      "verification": null,
+      "message": "Branch-and-bound stopped at the time limit (27 s, 66774 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 53344.0
+      },
       "routing": {
         "preferred_device": "cpu",
         "reason": "CPU selected manually.",
@@ -397,10 +442,12 @@
           "rows": 29,
           "nonzeros": 376,
           "integer_variables": 188,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 29,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -408,12 +455,13 @@
       "dataset": "gt2",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_gt2.html",
-      "sha256": "e4ce723153bf4e2bcac95236c209334c346c10b95284e3a5bfb7ce7e3fcceecc",
+      "sha256": "3ddd85dc12f8460a92b36b1424a00b563170d56ee615340dec037d7a875e9050",
       "shape": {
         "columns": 188,
         "rows": 29,
         "nonzeros": 376,
         "integer_variables": 188,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -422,24 +470,32 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "0130c80a08e3b710c378fedf",
-      "status": "TIME_LIMIT",
-      "objective": null,
-      "runtime_seconds": 3,
-      "turnaround_seconds": 6.178138200019021,
-      "verified": false,
+      "job_id": "14256e0486f98952656ea2c0",
+      "status": "OPTIMAL",
+      "objective": 21166.0,
+      "runtime_seconds": 4.920660699950531,
+      "turnaround_seconds": 8.081057199975476,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
-      "match": false,
+      "match": true,
       "reference": {
         "status": "OPTIMAL",
         "objective": 21166.0,
-        "runtime_seconds": 0.1169886999996379,
+        "runtime_seconds": 0.08356089994776994,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Time limit reached (3 seconds).",
-      "verification": null,
+      "message": "Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 21166.0
+      },
       "routing": {
         "preferred_device": "cpu",
         "reason": "CPU selected manually.",
@@ -448,10 +504,12 @@
           "rows": 29,
           "nonzeros": 376,
           "integer_variables": 188,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 29,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -459,12 +517,13 @@
       "dataset": "b-ball",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_b-ball.html",
-      "sha256": "830233a1edda6de7b01a4ba4a5023af667463dbf47255ffeb28051859086264a",
+      "sha256": "b0d21fd470e519128ac6003ea3f3a46625d7b987494532c5bfcc10dacd04d0a6",
       "shape": {
         "columns": 100,
         "rows": 30,
         "nonzeros": 209,
         "integer_variables": 88,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -473,24 +532,32 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "d75bfebdb84473f4dec87670",
-      "status": "TIME_LIMIT",
-      "objective": null,
-      "runtime_seconds": 3,
-      "turnaround_seconds": 5.474575600004755,
-      "verified": false,
+      "job_id": "58d560334913d4e55bf9c71f",
+      "status": "FEASIBLE",
+      "objective": -1.5,
+      "runtime_seconds": 26.590462399995886,
+      "turnaround_seconds": 28.42910720000509,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
       "match": false,
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.500001,
-        "runtime_seconds": 0.24602620000950992,
+        "runtime_seconds": 0.29377270000986755,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Time limit reached (3 seconds).",
-      "verification": null,
+      "message": "Branch-and-bound stopped at the node limit (100000 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -1.5
+      },
       "routing": {
         "preferred_device": "cpu",
         "reason": "CPU selected manually.",
@@ -499,10 +566,12 @@
           "rows": 30,
           "nonzeros": 209,
           "integer_variables": 88,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 30,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -510,12 +579,13 @@
       "dataset": "b-ball",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_b-ball.html",
-      "sha256": "830233a1edda6de7b01a4ba4a5023af667463dbf47255ffeb28051859086264a",
+      "sha256": "b0d21fd470e519128ac6003ea3f3a46625d7b987494532c5bfcc10dacd04d0a6",
       "shape": {
         "columns": 100,
         "rows": 30,
         "nonzeros": 209,
         "integer_variables": 88,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -525,24 +595,32 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "8c2820a7eb82986c45083e2c",
-      "status": "TIME_LIMIT",
-      "objective": null,
-      "runtime_seconds": 3,
-      "turnaround_seconds": 6.168657500005793,
-      "verified": false,
+      "job_id": "072ec10b9ba7ce09717f609c",
+      "status": "FEASIBLE",
+      "objective": -1.5,
+      "runtime_seconds": 23.355785400024615,
+      "turnaround_seconds": 26.381248399964534,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
       "match": false,
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.500001,
-        "runtime_seconds": 0.24602620000950992,
+        "runtime_seconds": 0.29377270000986755,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Time limit reached (3 seconds).",
-      "verification": null,
+      "message": "Branch-and-bound stopped at the node limit (100000 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -1.5
+      },
       "routing": {
         "preferred_device": "cpu",
         "reason": "CPU selected manually.",
@@ -551,10 +629,12 @@
           "rows": 30,
           "nonzeros": 209,
           "integer_variables": 88,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 30,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -562,12 +642,13 @@
       "dataset": "b-ball",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_b-ball.html",
-      "sha256": "830233a1edda6de7b01a4ba4a5023af667463dbf47255ffeb28051859086264a",
+      "sha256": "b0d21fd470e519128ac6003ea3f3a46625d7b987494532c5bfcc10dacd04d0a6",
       "shape": {
         "columns": 100,
         "rows": 30,
         "nonzeros": 209,
         "integer_variables": 88,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -576,24 +657,32 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "31cc6c391b168cbd9fb22a91",
-      "status": "TIME_LIMIT",
-      "objective": null,
-      "runtime_seconds": 3,
-      "turnaround_seconds": 6.1816869000322185,
-      "verified": false,
+      "job_id": "95749549cb48f114441b797b",
+      "status": "FEASIBLE",
+      "objective": -1.5,
+      "runtime_seconds": 23.330190500011668,
+      "turnaround_seconds": 23.57785700005479,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
       "match": false,
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.500001,
-        "runtime_seconds": 0.24602620000950992,
+        "runtime_seconds": 0.29377270000986755,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Time limit reached (3 seconds).",
-      "verification": null,
+      "message": "Branch-and-bound stopped at the node limit (100000 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -1.5
+      },
       "routing": {
         "preferred_device": "cpu",
         "reason": "CPU selected manually.",
@@ -602,10 +691,12 @@
           "rows": 30,
           "nonzeros": 209,
           "integer_variables": 88,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 30,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -613,12 +704,13 @@
       "dataset": "pk1",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_pk1.html",
-      "sha256": "439c3bb58b76d817b963a2fe779931c885f303512223a215977557f3713665ad",
+      "sha256": "13851ed426a2dfd7c6af7b021236553c391d77a675ab9223dd9135d3351c2e66",
       "shape": {
         "columns": 86,
         "rows": 45,
         "nonzeros": 915,
         "integer_variables": 55,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -627,33 +719,31 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "9f29315ae6b21a9bb9b19b18",
-      "status": "NUMERICAL_ERROR",
-      "objective": null,
-      "runtime_seconds": 1.6348338,
-      "turnaround_seconds": 4.494620200013742,
-      "verified": false,
+      "job_id": "348063f1cb3e9d91bdc605d7",
+      "status": "FEASIBLE",
+      "objective": 11.999999999999998,
+      "runtime_seconds": 27.032794300001115,
+      "turnaround_seconds": 29.520779000013135,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
       "match": false,
       "reference": {
         "status": "TIME_LIMIT_REACHED",
-        "objective": 18.0,
-        "runtime_seconds": 3.0021411000052467,
+        "objective": 13.999999999999915,
+        "runtime_seconds": 30.009333199937828,
         "mip_gap": 1.0,
         "version": "1.15.1"
       },
-      "message": "Solver result did not pass verification.",
+      "message": "Branch-and-bound stopped at the time limit (27 s, 57778 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
       "verification": {
-        "is_valid": false,
-        "issues": [
-          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
-        ],
+        "is_valid": true,
+        "issues": [],
         "max_bound_violation": 0.0,
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
-        "message": "Verification skipped for non-feasible status.",
-        "recomputed_objective": 0.0
+        "message": "Solution verified.",
+        "recomputed_objective": 11.999999999999998
       },
       "routing": {
         "preferred_device": "cpu",
@@ -663,10 +753,12 @@
           "rows": 45,
           "nonzeros": 915,
           "integer_variables": 55,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 45,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -674,12 +766,13 @@
       "dataset": "pk1",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_pk1.html",
-      "sha256": "439c3bb58b76d817b963a2fe779931c885f303512223a215977557f3713665ad",
+      "sha256": "13851ed426a2dfd7c6af7b021236553c391d77a675ab9223dd9135d3351c2e66",
       "shape": {
         "columns": 86,
         "rows": 45,
         "nonzeros": 915,
         "integer_variables": 55,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -689,33 +782,31 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "42ee858a70001b5d53d07802",
-      "status": "NUMERICAL_ERROR",
-      "objective": null,
-      "runtime_seconds": 1.8540029,
-      "turnaround_seconds": 4.95703729998786,
-      "verified": false,
+      "job_id": "62fae0958dfecbc84fbf8d2b",
+      "status": "FEASIBLE",
+      "objective": 11.999999999999998,
+      "runtime_seconds": 27.028842800064012,
+      "turnaround_seconds": 30.248663099948317,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
       "match": false,
       "reference": {
         "status": "TIME_LIMIT_REACHED",
-        "objective": 18.0,
-        "runtime_seconds": 3.0021411000052467,
+        "objective": 13.999999999999915,
+        "runtime_seconds": 30.009333199937828,
         "mip_gap": 1.0,
         "version": "1.15.1"
       },
-      "message": "Solver result did not pass verification.",
+      "message": "Branch-and-bound stopped at the time limit (27 s, 58670 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
       "verification": {
-        "is_valid": false,
-        "issues": [
-          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
-        ],
+        "is_valid": true,
+        "issues": [],
         "max_bound_violation": 0.0,
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
-        "message": "Verification skipped for non-feasible status.",
-        "recomputed_objective": 0.0
+        "message": "Solution verified.",
+        "recomputed_objective": 11.999999999999998
       },
       "routing": {
         "preferred_device": "cpu",
@@ -725,10 +816,12 @@
           "rows": 45,
           "nonzeros": 915,
           "integer_variables": 55,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 45,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -736,12 +829,13 @@
       "dataset": "pk1",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_pk1.html",
-      "sha256": "439c3bb58b76d817b963a2fe779931c885f303512223a215977557f3713665ad",
+      "sha256": "13851ed426a2dfd7c6af7b021236553c391d77a675ab9223dd9135d3351c2e66",
       "shape": {
         "columns": 86,
         "rows": 45,
         "nonzeros": 915,
         "integer_variables": 55,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -750,24 +844,32 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "05cd407f7a3cb80901ddb80f",
-      "status": "TIME_LIMIT",
-      "objective": null,
-      "runtime_seconds": 3,
-      "turnaround_seconds": 6.009432399994694,
-      "verified": false,
+      "job_id": "2c63f91716f2dbf8e890c854",
+      "status": "FEASIBLE",
+      "objective": 12.0,
+      "runtime_seconds": 27.036210999940522,
+      "turnaround_seconds": 30.223614600021392,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
       "match": false,
       "reference": {
         "status": "TIME_LIMIT_REACHED",
-        "objective": 18.0,
-        "runtime_seconds": 3.0021411000052467,
+        "objective": 13.999999999999915,
+        "runtime_seconds": 30.009333199937828,
         "mip_gap": 1.0,
         "version": "1.15.1"
       },
-      "message": "Time limit reached (3 seconds).",
-      "verification": null,
+      "message": "Branch-and-bound stopped at the time limit (27 s, 57808 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 12.0
+      },
       "routing": {
         "preferred_device": "cpu",
         "reason": "CPU selected manually.",
@@ -776,10 +878,12 @@
           "rows": 45,
           "nonzeros": 915,
           "integer_variables": 55,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 45,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -787,12 +891,13 @@
       "dataset": "gen-ip016",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_gen-ip016.html",
-      "sha256": "ef4c1352e88333b701065dc279b9d27f71cf0c5d89ae6e5b57d9504aa83f6eba",
+      "sha256": "486fc81a093d278ab259ccebf885ad74692aa31f58bb359704375e74ede42fb5",
       "shape": {
         "columns": 28,
         "rows": 24,
         "nonzeros": 672,
         "integer_variables": 28,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -801,33 +906,31 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "8d5aadcb170fd2385f0ab81b",
-      "status": "NUMERICAL_ERROR",
-      "objective": null,
-      "runtime_seconds": 0.0007404,
-      "turnaround_seconds": 2.9959702999913134,
-      "verified": false,
+      "job_id": "db4b34b56f4e7fc15535b0de",
+      "status": "FEASIBLE",
+      "objective": -9425.864845696002,
+      "runtime_seconds": 27.045593600021675,
+      "turnaround_seconds": 30.078749799984507,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
       "match": false,
       "reference": {
         "status": "TIME_LIMIT_REACHED",
-        "objective": -9405.178445272,
-        "runtime_seconds": 3.0036459999973886,
-        "mip_gap": 0.010635657043455699,
+        "objective": -9421.387448424,
+        "runtime_seconds": 30.01478660001885,
+        "mip_gap": 0.008850784695829984,
         "version": "1.15.1"
       },
-      "message": "Solver result did not pass verification.",
+      "message": "Branch-and-bound stopped at the time limit (27 s, 61371 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
       "verification": {
-        "is_valid": false,
-        "issues": [
-          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
-        ],
+        "is_valid": true,
+        "issues": [],
         "max_bound_violation": 0.0,
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
-        "message": "Verification skipped for non-feasible status.",
-        "recomputed_objective": 0.0
+        "message": "Solution verified.",
+        "recomputed_objective": -9425.864845696002
       },
       "routing": {
         "preferred_device": "cpu",
@@ -837,10 +940,12 @@
           "rows": 24,
           "nonzeros": 672,
           "integer_variables": 28,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 24,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -848,12 +953,13 @@
       "dataset": "gen-ip016",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_gen-ip016.html",
-      "sha256": "ef4c1352e88333b701065dc279b9d27f71cf0c5d89ae6e5b57d9504aa83f6eba",
+      "sha256": "486fc81a093d278ab259ccebf885ad74692aa31f58bb359704375e74ede42fb5",
       "shape": {
         "columns": 28,
         "rows": 24,
         "nonzeros": 672,
         "integer_variables": 28,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -863,33 +969,31 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "de6b45c735ba7ac9a5024067",
-      "status": "NUMERICAL_ERROR",
-      "objective": null,
-      "runtime_seconds": 0.0006319,
-      "turnaround_seconds": 2.964936600008514,
-      "verified": false,
+      "job_id": "26f078a7098b6754d7a6061d",
+      "status": "FEASIBLE",
+      "objective": -9441.184307408,
+      "runtime_seconds": 24.320391799905337,
+      "turnaround_seconds": 27.374469699920155,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
       "match": false,
       "reference": {
         "status": "TIME_LIMIT_REACHED",
-        "objective": -9405.178445272,
-        "runtime_seconds": 3.0036459999973886,
-        "mip_gap": 0.010635657043455699,
+        "objective": -9421.387448424,
+        "runtime_seconds": 30.01478660001885,
+        "mip_gap": 0.008850784695829984,
         "version": "1.15.1"
       },
-      "message": "Solver result did not pass verification.",
+      "message": "Branch-and-bound stopped at the node limit (100000 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
       "verification": {
-        "is_valid": false,
-        "issues": [
-          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
-        ],
+        "is_valid": true,
+        "issues": [],
         "max_bound_violation": 0.0,
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
-        "message": "Verification skipped for non-feasible status.",
-        "recomputed_objective": 0.0
+        "message": "Solution verified.",
+        "recomputed_objective": -9441.184307408
       },
       "routing": {
         "preferred_device": "cpu",
@@ -899,10 +1003,12 @@
           "rows": 24,
           "nonzeros": 672,
           "integer_variables": 28,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 24,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -910,12 +1016,13 @@
       "dataset": "gen-ip016",
       "suite": "MIPLIB official",
       "source": "https://miplib.zib.de/instance_details_gen-ip016.html",
-      "sha256": "ef4c1352e88333b701065dc279b9d27f71cf0c5d89ae6e5b57d9504aa83f6eba",
+      "sha256": "486fc81a093d278ab259ccebf885ad74692aa31f58bb359704375e74ede42fb5",
       "shape": {
         "columns": 28,
         "rows": 24,
         "nonzeros": 672,
         "integer_variables": 28,
+        "bounded_columns": 0,
         "problem_type": "MILP",
         "estimated": true
       },
@@ -924,24 +1031,32 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "c05ecaa6752dc4dc328094ff",
-      "status": "TIME_LIMIT",
-      "objective": null,
-      "runtime_seconds": 3,
-      "turnaround_seconds": 6.241761299956124,
-      "verified": false,
+      "job_id": "ca228359c334c0f685f38c32",
+      "status": "FEASIBLE",
+      "objective": -9432.954064407999,
+      "runtime_seconds": 27.03590440005064,
+      "turnaround_seconds": 30.164137899992056,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
       "match": false,
       "reference": {
         "status": "TIME_LIMIT_REACHED",
-        "objective": -9405.178445272,
-        "runtime_seconds": 3.0036459999973886,
-        "mip_gap": 0.010635657043455699,
+        "objective": -9421.387448424,
+        "runtime_seconds": 30.01478660001885,
+        "mip_gap": 0.008850784695829984,
         "version": "1.15.1"
       },
-      "message": "Time limit reached (3 seconds).",
-      "verification": null,
+      "message": "Branch-and-bound stopped at the time limit (27 s, 62987 nodes explored). Reporting the incumbent as FEASIBLE; optimality is NOT proven. Open nodes remain in the queue.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -9432.954064407999
+      },
       "routing": {
         "preferred_device": "cpu",
         "reason": "CPU selected manually.",
@@ -950,10 +1065,12 @@
           "rows": 24,
           "nonzeros": 672,
           "integer_variables": 28,
+          "bounded_columns": 0,
           "problem_type": "MILP",
           "estimated": true
         },
-        "policy": "structural-v1",
+        "dense_order": 24,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -967,18 +1084,19 @@
         "rows": 3,
         "nonzeros": 12,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "LP",
         "estimated": false
       },
-      "profile": "Revised simplex",
+      "profile": "Dual simplex",
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "f1098f0d58fc675013d2f227",
+      "job_id": "683f398563d1c1054d92f199",
       "status": "OPTIMAL",
-      "objective": -1.2500000000000002,
-      "runtime_seconds": 9.96e-05,
-      "turnaround_seconds": 2.906151300005149,
+      "objective": -1.25,
+      "runtime_seconds": 0.00011260004248470068,
+      "turnaround_seconds": 2.2633421999635175,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -986,19 +1104,19 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.25,
-        "runtime_seconds": 0.0007810000097379088,
+        "runtime_seconds": 0.0011775000020861626,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "message": "Optimal solution found by bounded dual simplex.",
       "verification": {
         "is_valid": true,
         "issues": [],
         "max_bound_violation": 0.0,
-        "max_constraint_violation": 1.1102230246251565e-16,
+        "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
         "message": "Solution verified.",
-        "recomputed_objective": -1.2500000000000002
+        "recomputed_objective": -1.25
       },
       "routing": {
         "preferred_device": "cpu",
@@ -1008,10 +1126,12 @@
           "rows": 3,
           "nonzeros": 12,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 3,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1025,6 +1145,7 @@
         "rows": 3,
         "nonzeros": 12,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "LP",
         "estimated": false
       },
@@ -1032,11 +1153,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "111dad006e42af5557d0d254",
+      "job_id": "3bec0f591912a6c28e0d4d0d",
       "status": "OPTIMAL",
       "objective": -1.2499999999982918,
-      "runtime_seconds": 0.0001367,
-      "turnaround_seconds": 3.0999861999880522,
+      "runtime_seconds": 0.00024039996787905693,
+      "turnaround_seconds": 0.20597160002216697,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1044,11 +1165,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.25,
-        "runtime_seconds": 0.0007810000097379088,
+        "runtime_seconds": 0.0011775000020861626,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: dense LU (3 x 3).",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -1066,10 +1187,12 @@
           "rows": 3,
           "nonzeros": 12,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 3,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1083,18 +1206,19 @@
         "rows": 2,
         "nonzeros": 4,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "LP",
         "estimated": false
       },
-      "profile": "Revised simplex",
+      "profile": "Dual simplex",
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "a6bb3595507537b97e16bc6d",
+      "job_id": "ae6b8781afee0a43d1602346",
       "status": "OPTIMAL",
       "objective": 30000000.0,
-      "runtime_seconds": 9.63e-05,
-      "turnaround_seconds": 2.7513958000345156,
+      "runtime_seconds": 9.709992446005344e-05,
+      "turnaround_seconds": 2.2741711999988183,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1102,11 +1226,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 30000000.0,
-        "runtime_seconds": 0.0006418999982997775,
+        "runtime_seconds": 0.0005589999491348863,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "message": "Optimal solution found by bounded dual simplex.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -1124,10 +1248,12 @@
           "rows": 2,
           "nonzeros": 4,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 2,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1141,6 +1267,7 @@
         "rows": 2,
         "nonzeros": 4,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "LP",
         "estimated": false
       },
@@ -1148,11 +1275,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "c54d18c882e3e69f97b9cf7f",
+      "job_id": "2aed1f2b63e9fd916e3598aa",
       "status": "OPTIMAL",
       "objective": 29999999.99967302,
-      "runtime_seconds": 0.000149,
-      "turnaround_seconds": 3.1492709000012837,
+      "runtime_seconds": 0.00024150009267032146,
+      "turnaround_seconds": 3.0537187999580055,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1160,11 +1287,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 30000000.0,
-        "runtime_seconds": 0.0006418999982997775,
+        "runtime_seconds": 0.0005589999491348863,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: dense LU (1 x 1).",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -1182,10 +1309,12 @@
           "rows": 2,
           "nonzeros": 4,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 2,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1199,6 +1328,7 @@
         "rows": 1,
         "nonzeros": 2,
         "integer_variables": 2,
+        "bounded_columns": 2,
         "problem_type": "MILP",
         "estimated": false
       },
@@ -1207,11 +1337,11 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "122776affb23ccb4311f82eb",
+      "job_id": "65fa5c9eb46e382cc76d2284",
       "status": "OPTIMAL",
       "objective": 100.0,
-      "runtime_seconds": 0.0004627,
-      "turnaround_seconds": 2.7623929000110365,
+      "runtime_seconds": 0.0002880999818444252,
+      "turnaround_seconds": 2.2784983000019565,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1219,7 +1349,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 100.0,
-        "runtime_seconds": 0.0008971000206656754,
+        "runtime_seconds": 0.0008572000078856945,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -1241,10 +1371,12 @@
           "rows": 1,
           "nonzeros": 2,
           "integer_variables": 2,
+          "bounded_columns": 2,
           "problem_type": "MILP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 3,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1258,6 +1390,7 @@
         "rows": 1,
         "nonzeros": 2,
         "integer_variables": 2,
+        "bounded_columns": 2,
         "problem_type": "MILP",
         "estimated": false
       },
@@ -1267,11 +1400,11 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "9700248d1b39ed092a998e4b",
+      "job_id": "7163992d05ca9e19fe5b2f6e",
       "status": "OPTIMAL",
       "objective": 100.0,
-      "runtime_seconds": 0.0001173,
-      "turnaround_seconds": 0.1698290000203997,
+      "runtime_seconds": 0.00029880006331950426,
+      "turnaround_seconds": 3.233538099913858,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1279,7 +1412,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 100.0,
-        "runtime_seconds": 0.0008971000206656754,
+        "runtime_seconds": 0.0008572000078856945,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -1301,10 +1434,12 @@
           "rows": 1,
           "nonzeros": 2,
           "integer_variables": 2,
+          "bounded_columns": 2,
           "problem_type": "MILP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 3,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1318,6 +1453,7 @@
         "rows": 1,
         "nonzeros": 2,
         "integer_variables": 2,
+        "bounded_columns": 2,
         "problem_type": "MILP",
         "estimated": false
       },
@@ -1326,11 +1462,11 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "44ad67d4b6b534ad266fb460",
+      "job_id": "d2a71f9eef741342fe52b7e6",
       "status": "OPTIMAL",
       "objective": 100.0,
-      "runtime_seconds": 0.0002056,
-      "turnaround_seconds": 3.1026425000163727,
+      "runtime_seconds": 0.00026270002126693726,
+      "turnaround_seconds": 3.0560828000307083,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1338,7 +1474,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 100.0,
-        "runtime_seconds": 0.0008971000206656754,
+        "runtime_seconds": 0.0008572000078856945,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
@@ -1360,10 +1496,12 @@
           "rows": 1,
           "nonzeros": 2,
           "integer_variables": 2,
+          "bounded_columns": 2,
           "problem_type": "MILP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 3,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1377,18 +1515,19 @@
         "rows": 40,
         "nonzeros": 800,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "LP",
         "estimated": false
       },
-      "profile": "Revised simplex",
+      "profile": "Dual simplex",
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "491ce033f4afdf690298b432",
+      "job_id": "8e6f4f0a83aa4f7d6b3d95bd",
       "status": "OPTIMAL",
-      "objective": 201.99999999999994,
-      "runtime_seconds": 0.0074187,
-      "turnaround_seconds": 2.809154399961699,
+      "objective": 201.99999999999991,
+      "runtime_seconds": 0.0007273000665009022,
+      "turnaround_seconds": 2.29463349992875,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1396,11 +1535,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 201.99999999999994,
-        "runtime_seconds": 0.001982100016903132,
+        "runtime_seconds": 0.0018993000267073512,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "message": "Optimal solution found by bounded dual simplex.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -1408,7 +1547,7 @@
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
         "message": "Solution verified.",
-        "recomputed_objective": 201.99999999999994
+        "recomputed_objective": 201.99999999999991
       },
       "routing": {
         "preferred_device": "cpu",
@@ -1418,10 +1557,12 @@
           "rows": 40,
           "nonzeros": 800,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 40,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1435,6 +1576,7 @@
         "rows": 40,
         "nonzeros": 800,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "LP",
         "estimated": false
       },
@@ -1442,11 +1584,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "ec2b45ce5370cfb611b311c8",
+      "job_id": "faf799fab56951d5778b3543",
       "status": "OPTIMAL",
-      "objective": 202.0000000008087,
-      "runtime_seconds": 0.0015816,
-      "turnaround_seconds": 3.144277499988675,
+      "objective": 202.00000000080883,
+      "runtime_seconds": 0.0010144999250769615,
+      "turnaround_seconds": 3.1069671999430284,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1454,11 +1596,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 201.99999999999994,
-        "runtime_seconds": 0.001982100016903132,
+        "runtime_seconds": 0.0018993000267073512,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: dense LU (40 x 40).",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -1466,7 +1608,7 @@
         "max_constraint_violation": 1.5987211554602254e-14,
         "max_integrality_violation": 0.0,
         "message": "Solution verified.",
-        "recomputed_objective": 202.0000000008087
+        "recomputed_objective": 202.00000000080883
       },
       "routing": {
         "preferred_device": "cpu",
@@ -1476,10 +1618,12 @@
           "rows": 40,
           "nonzeros": 800,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 40,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1493,18 +1637,19 @@
         "rows": 100,
         "nonzeros": 5000,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "LP",
         "estimated": false
       },
-      "profile": "Revised simplex",
+      "profile": "Dual simplex",
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "045679fbafafd96d0a28322c",
+      "job_id": "97f9f9308728a927376b883d",
       "status": "OPTIMAL",
       "objective": 504.6000000000004,
-      "runtime_seconds": 0.9789567,
-      "turnaround_seconds": 3.8952332000480965,
+      "runtime_seconds": 0.009430699981749058,
+      "turnaround_seconds": 2.3723178000655025,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1512,11 +1657,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 504.6000000000004,
-        "runtime_seconds": 0.009527500020340085,
+        "runtime_seconds": 0.010284099960699677,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "message": "Optimal solution found by bounded dual simplex.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -1534,10 +1679,12 @@
           "rows": 100,
           "nonzeros": 5000,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 100,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1551,6 +1698,7 @@
         "rows": 100,
         "nonzeros": 5000,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "LP",
         "estimated": false
       },
@@ -1558,11 +1706,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "e0011a4505e7f8dc52d5ba77",
+      "job_id": "77cc7abd84e3beadc1240f03",
       "status": "OPTIMAL",
-      "objective": 504.60000000368524,
-      "runtime_seconds": 0.0213351,
-      "turnaround_seconds": 3.208051500027068,
+      "objective": 504.6000000036868,
+      "runtime_seconds": 0.008553800056688488,
+      "turnaround_seconds": 3.1786789000034332,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1570,19 +1718,19 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 504.6000000000004,
-        "runtime_seconds": 0.009527500020340085,
+        "runtime_seconds": 0.010284099960699677,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: dense LU (100 x 100).",
       "verification": {
         "is_valid": true,
         "issues": [],
         "max_bound_violation": 0.0,
-        "max_constraint_violation": 1.2434497875801753e-14,
+        "max_constraint_violation": 1.4210854715202004e-14,
         "max_integrality_violation": 0.0,
         "message": "Solution verified.",
-        "recomputed_objective": 504.60000000368524
+        "recomputed_objective": 504.6000000036868
       },
       "routing": {
         "preferred_device": "cpu",
@@ -1592,10 +1740,12 @@
           "rows": 100,
           "nonzeros": 5000,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 100,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1609,68 +1759,19 @@
         "rows": 200,
         "nonzeros": 20000,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "LP",
         "estimated": false
       },
-      "profile": "Revised simplex",
+      "profile": "Dual simplex",
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "6113a331d4e0ad7390d0b8e3",
-      "status": "TIME_LIMIT",
-      "objective": null,
-      "runtime_seconds": 3,
-      "turnaround_seconds": 5.557082500017714,
-      "verified": false,
-      "gpu_used": false,
-      "gpu_operations": 0,
-      "match": false,
-      "reference": {
-        "status": "OPTIMAL",
-        "objective": 1009.0000000000015,
-        "runtime_seconds": 0.03418760001659393,
-        "mip_gap": null,
-        "version": "1.15.1"
-      },
-      "message": "Time limit reached (3 seconds).",
-      "verification": null,
-      "routing": {
-        "preferred_device": "cpu",
-        "reason": "CPU selected manually.",
-        "shape": {
-          "columns": 10000,
-          "rows": 200,
-          "nonzeros": 20000,
-          "integer_variables": 0,
-          "problem_type": "LP",
-          "estimated": false
-        },
-        "policy": "structural-v1",
-        "execution_device": "cpu"
-      }
-    },
-    {
-      "dataset": "transport_100x100",
-      "suite": "Synthetic scale",
-      "source": "Repository generator",
-      "sha256": "1f797eaa21487599ef3e7ed35d09d38fddd60b027f12dd920236f590e309b84c",
-      "shape": {
-        "columns": 10000,
-        "rows": 200,
-        "nonzeros": 20000,
-        "integer_variables": 0,
-        "problem_type": "LP",
-        "estimated": false
-      },
-      "profile": "Interior point",
-      "configuration": {
-        "algorithm": "ipm"
-      },
-      "job_id": "171b7afd6ff2bf64287a7de6",
+      "job_id": "bac50e91332a7425835105ed",
       "status": "OPTIMAL",
-      "objective": 1009.0000000400709,
-      "runtime_seconds": 0.3638774,
-      "turnaround_seconds": 3.8928976000170223,
+      "objective": 1009.0000000000014,
+      "runtime_seconds": 0.08275599998887628,
+      "turnaround_seconds": 2.4572934999596328,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1678,19 +1779,19 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 1009.0000000000015,
-        "runtime_seconds": 0.03418760001659393,
+        "runtime_seconds": 0.04540559998713434,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "message": "Optimal solution found by bounded dual simplex.",
       "verification": {
         "is_valid": true,
         "issues": [],
         "max_bound_violation": 0.0,
-        "max_constraint_violation": 3.552713678800501e-14,
+        "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
         "message": "Solution verified.",
-        "recomputed_objective": 1009.0000000400709
+        "recomputed_objective": 1009.0000000000014
       },
       "routing": {
         "preferred_device": "cpu",
@@ -1700,10 +1801,317 @@
           "rows": 200,
           "nonzeros": 20000,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 200,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "transport_100x100",
+      "suite": "Synthetic scale",
+      "source": "Repository generator",
+      "sha256": "1f797eaa21487599ef3e7ed35d09d38fddd60b027f12dd920236f590e309b84c",
+      "shape": {
+        "columns": 10000,
+        "rows": 200,
+        "nonzeros": 20000,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "99d61485ddebba620a9348b0",
+      "status": "OPTIMAL",
+      "objective": 1009.0000000400751,
+      "runtime_seconds": 0.04596110002603382,
+      "turnaround_seconds": 3.5559064000844955,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 1009.0000000000015,
+        "runtime_seconds": 0.04540559998713434,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: sparse LDL^T with minimum-degree ordering (nnz(L) = 14950, dense triangle 20100), up to 1 dependent rows dropped per iteration.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 1.8829382497642655e-13,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 1009.0000000400751
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 10000,
+          "rows": 200,
+          "nonzeros": 20000,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 200,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "transport_150x150",
+      "suite": "Synthetic scale",
+      "source": "Repository generator",
+      "sha256": "39d9094576c2062a22787923c7964b1f21ed36c29e5898578812eaa6cdf2a273",
+      "shape": {
+        "columns": 22500,
+        "rows": 300,
+        "nonzeros": 45000,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Dual simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "123623a0076a35e13c318e7c",
+      "status": "OPTIMAL",
+      "objective": 1513.3999999999976,
+      "runtime_seconds": 0.36733859998639673,
+      "turnaround_seconds": 2.6152912999968976,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 1513.3999999999976,
+        "runtime_seconds": 0.1587811999488622,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by bounded dual simplex.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 1513.3999999999976
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 22500,
+          "rows": 300,
+          "nonzeros": 45000,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 300,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "transport_150x150",
+      "suite": "Synthetic scale",
+      "source": "Repository generator",
+      "sha256": "39d9094576c2062a22787923c7964b1f21ed36c29e5898578812eaa6cdf2a273",
+      "shape": {
+        "columns": 22500,
+        "rows": 300,
+        "nonzeros": 45000,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "30b3de34b0db44bcdb8de5a1",
+      "status": "OPTIMAL",
+      "objective": 1513.4000004520094,
+      "runtime_seconds": 0.12653580005280674,
+      "turnaround_seconds": 3.972763799945824,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 1513.3999999999976,
+        "runtime_seconds": 0.1587811999488622,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: sparse LDL^T with minimum-degree ordering (nnz(L) = 33675, dense triangle 45150), up to 1 dependent rows dropped per iteration.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 7.212008767965017e-13,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 1513.4000004520094
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 22500,
+          "rows": 300,
+          "nonzeros": 45000,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 300,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "transport_200x200",
+      "suite": "Synthetic scale",
+      "source": "Repository generator",
+      "sha256": "1d923ddf2a89458aa57970423ced3ad852bfde3ba6c67ce0313a0cd572a9dc27",
+      "shape": {
+        "columns": 40000,
+        "rows": 400,
+        "nonzeros": 80000,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Dual simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "7673a71907b30108a897b333",
+      "status": "OPTIMAL",
+      "objective": 2017.7999999999934,
+      "runtime_seconds": 1.263690200052224,
+      "turnaround_seconds": 3.387237900053151,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 2017.7999999999936,
+        "runtime_seconds": 0.7049036000389606,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by bounded dual simplex.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 2017.7999999999934
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 40000,
+          "rows": 400,
+          "nonzeros": 80000,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 400,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "transport_200x200",
+      "suite": "Synthetic scale",
+      "source": "Repository generator",
+      "sha256": "1d923ddf2a89458aa57970423ced3ad852bfde3ba6c67ce0313a0cd572a9dc27",
+      "shape": {
+        "columns": 40000,
+        "rows": 400,
+        "nonzeros": 80000,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "2cf2779166fcac08a6c3b3d2",
+      "status": "OPTIMAL",
+      "objective": 2017.800000009963,
+      "runtime_seconds": 0.2744392000604421,
+      "turnaround_seconds": 4.782006399938837,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 2017.7999999999936,
+        "runtime_seconds": 0.7049036000389606,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: sparse LDL^T with minimum-degree ordering (nnz(L) = 59900, dense triangle 80200), up to 1 dependent rows dropped per iteration.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 1.1013412404281553e-13,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 2017.800000009963
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 40000,
+          "rows": 400,
+          "nonzeros": 80000,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 400,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1717,40 +2125,39 @@
         "rows": 5,
         "nonzeros": 10,
         "integer_variables": 0,
+        "bounded_columns": 2,
         "problem_type": "LP",
         "estimated": false
       },
-      "profile": "Revised simplex",
+      "profile": "Dual simplex",
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "dc218c2b3d7ebcbe6a5e5f4b",
-      "status": "NUMERICAL_ERROR",
-      "objective": null,
-      "runtime_seconds": 0.0002133,
-      "turnaround_seconds": 2.847958800033666,
-      "verified": false,
+      "job_id": "d6dba49801bad75301e43305",
+      "status": "OPTIMAL",
+      "objective": 675000.0,
+      "runtime_seconds": 0.00013229995965957642,
+      "turnaround_seconds": 2.272664700052701,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
-      "match": false,
+      "match": true,
       "reference": {
         "status": "OPTIMAL",
         "objective": 675000.0,
-        "runtime_seconds": 0.0009611999848857522,
+        "runtime_seconds": 0.001038899994455278,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Solver result did not pass verification.",
+      "message": "Optimal solution found by bounded dual simplex.",
       "verification": {
-        "is_valid": false,
-        "issues": [
-          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
-        ],
+        "is_valid": true,
+        "issues": [],
         "max_bound_violation": 0.0,
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
-        "message": "Verification skipped for non-feasible status.",
-        "recomputed_objective": 0.0
+        "message": "Solution verified.",
+        "recomputed_objective": 675000.0
       },
       "routing": {
         "preferred_device": "cpu",
@@ -1760,10 +2167,12 @@
           "rows": 5,
           "nonzeros": 10,
           "integer_variables": 0,
+          "bounded_columns": 2,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 7,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1777,6 +2186,7 @@
         "rows": 5,
         "nonzeros": 10,
         "integer_variables": 0,
+        "bounded_columns": 2,
         "problem_type": "LP",
         "estimated": false
       },
@@ -1784,11 +2194,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "9d6da05fe962791c6732cfff",
+      "job_id": "682cf814a625a60971fea14a",
       "status": "OPTIMAL",
-      "objective": 674999.999966755,
-      "runtime_seconds": 0.0001494,
-      "turnaround_seconds": 3.0363094999920577,
+      "objective": 674999.9999667553,
+      "runtime_seconds": 0.00044490001164376736,
+      "turnaround_seconds": 3.3065519999945536,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1796,11 +2206,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 675000.0,
-        "runtime_seconds": 0.0009611999848857522,
+        "runtime_seconds": 0.001038899994455278,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: dense LU (5 x 5).",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -1808,7 +2218,7 @@
         "max_constraint_violation": 2.546585164964199e-11,
         "max_integrality_violation": 0.0,
         "message": "Solution verified.",
-        "recomputed_objective": 674999.999966755
+        "recomputed_objective": 674999.9999667553
       },
       "routing": {
         "preferred_device": "cpu",
@@ -1818,10 +2228,12 @@
           "rows": 5,
           "nonzeros": 10,
           "integer_variables": 0,
+          "bounded_columns": 2,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 7,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1835,18 +2247,19 @@
         "rows": 3,
         "nonzeros": 7,
         "integer_variables": 0,
+        "bounded_columns": 3,
         "problem_type": "LP",
         "estimated": false
       },
-      "profile": "Revised simplex",
+      "profile": "Dual simplex",
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "bd2dfc82cd435d6251f1f4a8",
+      "job_id": "0a377190c18955ba6c7ded49",
       "status": "OPTIMAL",
-      "objective": 7200.000000000002,
-      "runtime_seconds": 0.0009975,
-      "turnaround_seconds": 2.8021171999862418,
+      "objective": 7200.0,
+      "runtime_seconds": 0.00012609991244971752,
+      "turnaround_seconds": 2.3047606999753043,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1854,11 +2267,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 7200.0,
-        "runtime_seconds": 0.0008213000255636871,
+        "runtime_seconds": 0.0010686999885365367,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "message": "Optimal solution found by bounded dual simplex.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -1866,7 +2279,7 @@
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
         "message": "Solution verified.",
-        "recomputed_objective": 7200.000000000002
+        "recomputed_objective": 7200.0
       },
       "routing": {
         "preferred_device": "cpu",
@@ -1876,10 +2289,12 @@
           "rows": 3,
           "nonzeros": 7,
           "integer_variables": 0,
+          "bounded_columns": 3,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 6,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1893,6 +2308,7 @@
         "rows": 3,
         "nonzeros": 7,
         "integer_variables": 0,
+        "bounded_columns": 3,
         "problem_type": "LP",
         "estimated": false
       },
@@ -1900,11 +2316,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "6ea3244b8bfb55aab2b728b1",
+      "job_id": "ea1ec95956d44fbef34d7be1",
       "status": "OPTIMAL",
       "objective": 7200.000000026874,
-      "runtime_seconds": 0.000133,
-      "turnaround_seconds": 0.1847210000269115,
+      "runtime_seconds": 0.00035200000274926424,
+      "turnaround_seconds": 3.06298369995784,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1912,11 +2328,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 7200.0,
-        "runtime_seconds": 0.0008213000255636871,
+        "runtime_seconds": 0.0010686999885365367,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: dense LU (5 x 5).",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -1934,10 +2350,12 @@
           "rows": 3,
           "nonzeros": 7,
           "integer_variables": 0,
+          "bounded_columns": 3,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 6,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -1951,18 +2369,19 @@
         "rows": 1,
         "nonzeros": 3,
         "integer_variables": 0,
+        "bounded_columns": 3,
         "problem_type": "LP",
         "estimated": false
       },
-      "profile": "Revised simplex",
+      "profile": "Dual simplex",
       "configuration": {
         "algorithm": "simplex"
       },
-      "job_id": "ac156e32cff7bddefe406f19",
+      "job_id": "f9b39beadde29f897c685984",
       "status": "OPTIMAL",
       "objective": 2700.0,
-      "runtime_seconds": 0.0001486,
-      "turnaround_seconds": 2.8639651000266895,
+      "runtime_seconds": 0.00013699999544769526,
+      "turnaround_seconds": 2.4560971000464633,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -1970,11 +2389,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 2700.0,
-        "runtime_seconds": 0.000522000016644597,
+        "runtime_seconds": 0.0005763999652117491,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by revised simplex (product-form basis updates).",
+      "message": "Optimal solution found by bounded dual simplex.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -1992,10 +2411,12 @@
           "rows": 1,
           "nonzeros": 3,
           "integer_variables": 0,
+          "bounded_columns": 3,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 4,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -2009,6 +2430,7 @@
         "rows": 1,
         "nonzeros": 3,
         "integer_variables": 0,
+        "bounded_columns": 3,
         "problem_type": "LP",
         "estimated": false
       },
@@ -2016,11 +2438,11 @@
       "configuration": {
         "algorithm": "ipm"
       },
-      "job_id": "e71d94bae8cf0e30271c2cfd",
+      "job_id": "979b312620168b88fe6060bf",
       "status": "OPTIMAL",
       "objective": 2700.000000099279,
-      "runtime_seconds": 0.0002021,
-      "turnaround_seconds": 3.124402099987492,
+      "runtime_seconds": 0.0003981000045314431,
+      "turnaround_seconds": 3.145983599941246,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2028,11 +2450,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 2700.0,
-        "runtime_seconds": 0.000522000016644597,
+        "runtime_seconds": 0.0005763999652117491,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal solution found by primal-dual interior-point (Mehrotra).",
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: dense LU (4 x 4).",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -2050,10 +2472,12 @@
           "rows": 1,
           "nonzeros": 3,
           "integer_variables": 0,
+          "bounded_columns": 3,
           "problem_type": "LP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 4,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -2067,6 +2491,7 @@
         "rows": 6,
         "nonzeros": 14,
         "integer_variables": 2,
+        "bounded_columns": 6,
         "problem_type": "MILP",
         "estimated": false
       },
@@ -2075,33 +2500,31 @@
         "algorithm": "simplex",
         "branchRule": "strong"
       },
-      "job_id": "c00c315f210411134e8726c2",
-      "status": "NUMERICAL_ERROR",
-      "objective": null,
-      "runtime_seconds": 0.0001597,
-      "turnaround_seconds": 2.6557292999932542,
-      "verified": false,
+      "job_id": "3b3bd48e25707bd412097a1b",
+      "status": "OPTIMAL",
+      "objective": 550.0,
+      "runtime_seconds": 0.0003923000767827034,
+      "turnaround_seconds": 2.266122700064443,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
-      "match": false,
+      "match": true,
       "reference": {
         "status": "OPTIMAL",
         "objective": 550.0,
-        "runtime_seconds": 0.016230700013693422,
+        "runtime_seconds": 0.014775800053030252,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Solver result did not pass verification.",
+      "message": "Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",
       "verification": {
-        "is_valid": false,
-        "issues": [
-          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
-        ],
+        "is_valid": true,
+        "issues": [],
         "max_bound_violation": 0.0,
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
-        "message": "Verification skipped for non-feasible status.",
-        "recomputed_objective": 0.0
+        "message": "Solution verified.",
+        "recomputed_objective": 550.0
       },
       "routing": {
         "preferred_device": "cpu",
@@ -2111,10 +2534,12 @@
           "rows": 6,
           "nonzeros": 14,
           "integer_variables": 2,
+          "bounded_columns": 6,
           "problem_type": "MILP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 12,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -2128,6 +2553,7 @@
         "rows": 6,
         "nonzeros": 14,
         "integer_variables": 2,
+        "bounded_columns": 6,
         "problem_type": "MILP",
         "estimated": false
       },
@@ -2137,33 +2563,31 @@
         "milpMethod": "branch_and_bound",
         "branchRule": "most_fractional"
       },
-      "job_id": "b0598b0412b83c3f5576689a",
-      "status": "NUMERICAL_ERROR",
-      "objective": null,
-      "runtime_seconds": 0.0001786,
-      "turnaround_seconds": 3.074525200005155,
-      "verified": false,
+      "job_id": "2315d2cd22f5b3cb47345b90",
+      "status": "OPTIMAL",
+      "objective": 550.0,
+      "runtime_seconds": 0.0006486999336630106,
+      "turnaround_seconds": 3.294197399984114,
+      "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
-      "match": false,
+      "match": true,
       "reference": {
         "status": "OPTIMAL",
         "objective": 550.0,
-        "runtime_seconds": 0.016230700013693422,
+        "runtime_seconds": 0.014775800053030252,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Solver result did not pass verification.",
+      "message": "Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",
       "verification": {
-        "is_valid": false,
-        "issues": [
-          "Solver status does not provide a feasible primal solution: NUMERICAL_ERROR"
-        ],
+        "is_valid": true,
+        "issues": [],
         "max_bound_violation": 0.0,
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
-        "message": "Verification skipped for non-feasible status.",
-        "recomputed_objective": 0.0
+        "message": "Solution verified.",
+        "recomputed_objective": 550.0
       },
       "routing": {
         "preferred_device": "cpu",
@@ -2173,10 +2597,12 @@
           "rows": 6,
           "nonzeros": 14,
           "integer_variables": 2,
+          "bounded_columns": 6,
           "problem_type": "MILP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 12,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -2190,6 +2616,7 @@
         "rows": 6,
         "nonzeros": 14,
         "integer_variables": 2,
+        "bounded_columns": 6,
         "problem_type": "MILP",
         "estimated": false
       },
@@ -2198,23 +2625,23 @@
         "algorithm": "ipm",
         "branchRule": "pseudocost"
       },
-      "job_id": "5c8ee37511416cab4f534602",
-      "status": "FEASIBLE",
-      "objective": 550.0000000003491,
-      "runtime_seconds": 0.0016375,
-      "turnaround_seconds": 3.1330566000542603,
+      "job_id": "64195156f522e33cd02b9dfb",
+      "status": "OPTIMAL",
+      "objective": 550.0,
+      "runtime_seconds": 0.0003515999997034669,
+      "turnaround_seconds": 3.2255342000862584,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
-      "match": false,
+      "match": true,
       "reference": {
         "status": "OPTIMAL",
         "objective": 550.0,
-        "runtime_seconds": 0.016230700013693422,
+        "runtime_seconds": 0.014775800053030252,
         "mip_gap": 0.0,
         "version": "1.15.1"
       },
-      "message": "Integer feasible solution found, but the search is INCOMPLETE: one or more node LPs failed, so their subtrees were dropped without being explored or proved infeasible. Optimality is NOT certified. See warnings for the per-node reason.",
+      "message": "Optimal integer solution found by branch-and-cut. Tree exhausted with no dropped subtrees, so the bound is proven.",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -2222,7 +2649,7 @@
         "max_constraint_violation": 0.0,
         "max_integrality_violation": 0.0,
         "message": "Solution verified.",
-        "recomputed_objective": 550.0000000003491
+        "recomputed_objective": 550.0
       },
       "routing": {
         "preferred_device": "cpu",
@@ -2232,10 +2659,12 @@
           "rows": 6,
           "nonzeros": 14,
           "integer_variables": 2,
+          "bounded_columns": 6,
           "problem_type": "MILP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 12,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -2249,6 +2678,7 @@
         "rows": 1,
         "nonzeros": 2,
         "integer_variables": 0,
+        "bounded_columns": 2,
         "problem_type": "QP",
         "estimated": false
       },
@@ -2256,11 +2686,11 @@
       "configuration": {
         "qpAlgorithm": "ipm"
       },
-      "job_id": "256a274d9a363920af8524e8",
+      "job_id": "ff158188c0f73cd5754b0a48",
       "status": "OPTIMAL",
       "objective": -2.0,
-      "runtime_seconds": 9.87e-05,
-      "turnaround_seconds": 2.8035256000002846,
+      "runtime_seconds": 0.00018839992117136717,
+      "turnaround_seconds": 2.3161355999764055,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2268,11 +2698,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.999999999999995,
-        "runtime_seconds": 0.003906900004949421,
+        "runtime_seconds": 0.0007530000293627381,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal convex QP found by Mehrotra predictor-corrector IPM (Hessian in KKT (1,1) block).",
+      "message": "Optimal convex QP found by Mehrotra predictor-corrector IPM. KKT system: dense LU (8 x 8).",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -2290,10 +2720,12 @@
           "rows": 1,
           "nonzeros": 2,
           "integer_variables": 0,
+          "bounded_columns": 2,
           "problem_type": "QP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 5,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -2307,6 +2739,7 @@
         "rows": 1,
         "nonzeros": 2,
         "integer_variables": 0,
+        "bounded_columns": 2,
         "problem_type": "QP",
         "estimated": false
       },
@@ -2314,11 +2747,11 @@
       "configuration": {
         "qpAlgorithm": "frank_wolfe"
       },
-      "job_id": "b534c4c17ca02a049b69a737",
+      "job_id": "a10e155040e7f46b85a64dcd",
       "status": "OPTIMAL",
       "objective": -2.0,
-      "runtime_seconds": 0.0004591,
-      "turnaround_seconds": 3.088596799992956,
+      "runtime_seconds": 0.0005599999567493796,
+      "turnaround_seconds": 3.224718700046651,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2326,7 +2759,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": -1.999999999999995,
-        "runtime_seconds": 0.003906900004949421,
+        "runtime_seconds": 0.0007530000293627381,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2348,10 +2781,12 @@
           "rows": 1,
           "nonzeros": 2,
           "integer_variables": 0,
+          "bounded_columns": 2,
           "problem_type": "QP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 5,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -2365,6 +2800,7 @@
         "rows": 1,
         "nonzeros": 2,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "QP",
         "estimated": false
       },
@@ -2372,11 +2808,11 @@
       "configuration": {
         "qpAlgorithm": "ipm"
       },
-      "job_id": "225b12b1bbca980c2ad90151",
+      "job_id": "35f9e6b53bf30312fddef7d0",
       "status": "OPTIMAL",
       "objective": 1.9999999996220788,
-      "runtime_seconds": 9.13e-05,
-      "turnaround_seconds": 2.803704399964772,
+      "runtime_seconds": 0.0001545000122860074,
+      "turnaround_seconds": 2.3269174000015482,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2384,11 +2820,11 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 1.9999999999999998,
-        "runtime_seconds": 0.0010131000308319926,
+        "runtime_seconds": 0.001057300018146634,
         "mip_gap": null,
         "version": "1.15.1"
       },
-      "message": "Optimal convex QP found by Mehrotra predictor-corrector IPM (Hessian in KKT (1,1) block).",
+      "message": "Optimal convex QP found by Mehrotra predictor-corrector IPM. KKT system: dense LU (4 x 4).",
       "verification": {
         "is_valid": true,
         "issues": [],
@@ -2406,10 +2842,12 @@
           "rows": 1,
           "nonzeros": 2,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "QP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 3,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     },
@@ -2423,6 +2861,7 @@
         "rows": 1,
         "nonzeros": 2,
         "integer_variables": 0,
+        "bounded_columns": 0,
         "problem_type": "QP",
         "estimated": false
       },
@@ -2430,11 +2869,11 @@
       "configuration": {
         "qpAlgorithm": "frank_wolfe"
       },
-      "job_id": "8802ebed43067bdd0cc864a6",
+      "job_id": "368ec1ae1c3ec73a7d65a843",
       "status": "OPTIMAL",
       "objective": 2.0,
-      "runtime_seconds": 9.57e-05,
-      "turnaround_seconds": 3.092898699978832,
+      "runtime_seconds": 0.00016139994841068983,
+      "turnaround_seconds": 3.2179252000059932,
       "verified": true,
       "gpu_used": false,
       "gpu_operations": 0,
@@ -2442,7 +2881,7 @@
       "reference": {
         "status": "OPTIMAL",
         "objective": 1.9999999999999998,
-        "runtime_seconds": 0.0010131000308319926,
+        "runtime_seconds": 0.001057300018146634,
         "mip_gap": null,
         "version": "1.15.1"
       },
@@ -2464,19 +2903,868 @@
           "rows": 1,
           "nonzeros": 2,
           "integer_variables": 0,
+          "bounded_columns": 0,
           "problem_type": "QP",
           "estimated": false
         },
-        "policy": "structural-v1",
+        "dense_order": 3,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "plan_600x900",
+      "suite": "GPU showcase",
+      "source": "Repository generator (benchmarks/tools/generate_gpu_showcase.py)",
+      "sha256": "ae4d78b25d5f7688c565dc6aa1ebb5d646645685e630551f6590c4c652c38693",
+      "shape": {
+        "columns": 900,
+        "rows": 600,
+        "nonzeros": 5400,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Dual simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "10a3ecaf1619469d00ca4682",
+      "status": "OPTIMAL",
+      "objective": 37175.761943396574,
+      "runtime_seconds": 0.23555680003482848,
+      "turnaround_seconds": 2.4062367000151426,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 37175.761943396436,
+        "runtime_seconds": 0.08469270006753504,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by bounded dual simplex.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 3.495870259939693e-12,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 37175.761943396574
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 900,
+          "rows": 600,
+          "nonzeros": 5400,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 600,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "plan_600x900",
+      "suite": "GPU showcase",
+      "source": "Repository generator (benchmarks/tools/generate_gpu_showcase.py)",
+      "sha256": "ae4d78b25d5f7688c565dc6aa1ebb5d646645685e630551f6590c4c652c38693",
+      "shape": {
+        "columns": 900,
+        "rows": 600,
+        "nonzeros": 5400,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "367808055995ce5c4d51346a",
+      "status": "OPTIMAL",
+      "objective": 37175.761931149886,
+      "runtime_seconds": 0.25757370004430413,
+      "turnaround_seconds": 3.495794099988416,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 37175.761943396436,
+        "runtime_seconds": 0.08469270006753504,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: sparse LDL^T with minimum-degree ordering (nnz(L) = 117839, dense triangle 180300).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 37175.761931149886
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 900,
+          "rows": 600,
+          "nonzeros": 5400,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 600,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "plan_1000x1500",
+      "suite": "GPU showcase",
+      "source": "Repository generator (benchmarks/tools/generate_gpu_showcase.py)",
+      "sha256": "981bc2c5d765cb5c41cb2cfebc5a130570f65dcc13572df2695747e6c4a0e19b",
+      "shape": {
+        "columns": 1500,
+        "rows": 1000,
+        "nonzeros": 9000,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Dual simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "db2997de9b89a2a14d3368f7",
+      "status": "OPTIMAL",
+      "objective": 59174.29816757092,
+      "runtime_seconds": 1.1417878000065684,
+      "turnaround_seconds": 3.18210730003193,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 59174.298167570734,
+        "runtime_seconds": 0.3308326998958364,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by bounded dual simplex.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 7.048583938740194e-12,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 59174.29816757092
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 1500,
+          "rows": 1000,
+          "nonzeros": 9000,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 1000,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "plan_1000x1500",
+      "suite": "GPU showcase",
+      "source": "Repository generator (benchmarks/tools/generate_gpu_showcase.py)",
+      "sha256": "981bc2c5d765cb5c41cb2cfebc5a130570f65dcc13572df2695747e6c4a0e19b",
+      "shape": {
+        "columns": 1500,
+        "rows": 1000,
+        "nonzeros": 9000,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "6feb746187e6c7dffb6840e3",
+      "status": "OPTIMAL",
+      "objective": 59174.298167497785,
+      "runtime_seconds": 1.1889663999900222,
+      "turnaround_seconds": 4.3870075000450015,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 59174.298167570734,
+        "runtime_seconds": 0.3308326998958364,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: sparse LDL^T with minimum-degree ordering (nnz(L) = 316337, dense triangle 500500).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 1.8957280190079473e-11,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 59174.298167497785
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 1500,
+          "rows": 1000,
+          "nonzeros": 9000,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 1000,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "plan_1500x2200",
+      "suite": "GPU showcase",
+      "source": "Repository generator (benchmarks/tools/generate_gpu_showcase.py)",
+      "sha256": "7b21bb6cbc552a7d541fd78446be15aa2ea744ad48d5b82981873a428a933259",
+      "shape": {
+        "columns": 2200,
+        "rows": 1500,
+        "nonzeros": 13200,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Dual simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "fafc6701ed5e88335995e0fb",
+      "status": "OPTIMAL",
+      "objective": 91500.1974783319,
+      "runtime_seconds": 3.9157454000087455,
+      "turnaround_seconds": 5.404839299968444,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 91500.19747833154,
+        "runtime_seconds": 0.9811794999986887,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by bounded dual simplex.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 4.355626970209414e-11,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 91500.1974783319
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2200,
+          "rows": 1500,
+          "nonzeros": 13200,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 1500,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "plan_1500x2200",
+      "suite": "GPU showcase",
+      "source": "Repository generator (benchmarks/tools/generate_gpu_showcase.py)",
+      "sha256": "7b21bb6cbc552a7d541fd78446be15aa2ea744ad48d5b82981873a428a933259",
+      "shape": {
+        "columns": 2200,
+        "rows": 1500,
+        "nonzeros": 13200,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "bd98f1cff51600e6f42259f4",
+      "status": "OPTIMAL",
+      "objective": 91500.19742444395,
+      "runtime_seconds": 7.730451799929142,
+      "turnaround_seconds": 11.060443200054578,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 91500.19747833154,
+        "runtime_seconds": 0.9811794999986887,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: sparse LDL^T with minimum-degree ordering (nnz(L) = 686716, dense triangle 1125750).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 91500.19742444395
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 2200,
+          "rows": 1500,
+          "nonzeros": 13200,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 1500,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "portfolio_qp_600",
+      "suite": "GPU showcase",
+      "source": "Repository generator (benchmarks/tools/generate_gpu_showcase.py)",
+      "sha256": "70be42a85c5f1e6ced09c345d7ffb53f3e36df5efc6c09004ca34d7ae4591623",
+      "shape": {
+        "columns": 600,
+        "rows": 41,
+        "nonzeros": 1200,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "QP",
+        "estimated": false
+      },
+      "profile": "QP interior point",
+      "configuration": {
+        "qpAlgorithm": "ipm"
+      },
+      "job_id": "fb14cd134dbf6422e08afde7",
+      "status": "OPTIMAL",
+      "objective": -0.1849816431569199,
+      "runtime_seconds": 0.04674360004719347,
+      "turnaround_seconds": 2.3082377000246197,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -0.1849816443799799,
+        "runtime_seconds": 0.01521910005249083,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal convex QP found by Mehrotra predictor-corrector IPM. KKT system: sparse quasi-definite LDL^T with minimum-degree ordering (order 681, nnz(L) = 43283, dense triangle 232221).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 6.661338147750939e-16,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -0.1849816431569199
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 600,
+          "rows": 41,
+          "nonzeros": 1200,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "QP",
+          "estimated": false
+        },
+        "dense_order": 641,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "portfolio_qp_600",
+      "suite": "GPU showcase",
+      "source": "Repository generator (benchmarks/tools/generate_gpu_showcase.py)",
+      "sha256": "70be42a85c5f1e6ced09c345d7ffb53f3e36df5efc6c09004ca34d7ae4591623",
+      "shape": {
+        "columns": 600,
+        "rows": 41,
+        "nonzeros": 1200,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "QP",
+        "estimated": false
+      },
+      "profile": "Frank-Wolfe",
+      "configuration": {
+        "qpAlgorithm": "frank_wolfe"
+      },
+      "job_id": "868adf7a8459db4f41bc08ac",
+      "status": "OPTIMAL",
+      "objective": -0.1844093054520936,
+      "runtime_seconds": 0.44984850008040667,
+      "turnaround_seconds": 3.610647000023164,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -0.1849816443799799,
+        "runtime_seconds": 0.01521910005249083,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Convex QP solved by Frank-Wolfe with LP linearization oracle (earlier approach; default QP path is Mehrotra IPM \u00e2\u20ac\u201d set SOVEREIGN_QP_ALGORITHM=frank_wolfe to force this).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 0.0,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -0.1844093054520936
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 600,
+          "rows": 41,
+          "nonzeros": 1200,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "QP",
+          "estimated": false
+        },
+        "dense_order": 641,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "staircase_20x100",
+      "suite": "Sparse scale",
+      "source": "Repository generator (benchmarks/tools/generate_sparse_scale.py)",
+      "sha256": "5c1f993edc49413df112b1e94f0defbe6b9f627594d912708dd3c1a27936c109",
+      "shape": {
+        "columns": 4000,
+        "rows": 2100,
+        "nonzeros": 7980,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Dual simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "66746d29a6621f428224e67a",
+      "status": "OPTIMAL",
+      "objective": 21329.7060606061,
+      "runtime_seconds": 0.13114209997002035,
+      "turnaround_seconds": 2.6386202999856323,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 21329.70606060608,
+        "runtime_seconds": 0.031115700025111437,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by bounded dual simplex.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 2.842170943040401e-14,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 21329.7060606061
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 4000,
+          "rows": 2100,
+          "nonzeros": 7980,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 2100,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "staircase_20x100",
+      "suite": "Sparse scale",
+      "source": "Repository generator (benchmarks/tools/generate_sparse_scale.py)",
+      "sha256": "5c1f993edc49413df112b1e94f0defbe6b9f627594d912708dd3c1a27936c109",
+      "shape": {
+        "columns": 4000,
+        "rows": 2100,
+        "nonzeros": 7980,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "ed72200ec79fca1dbc36c16f",
+      "status": "OPTIMAL",
+      "objective": 21329.70606259925,
+      "runtime_seconds": 0.025088599999435246,
+      "turnaround_seconds": 3.266845800098963,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 21329.70606060608,
+        "runtime_seconds": 0.031115700025111437,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: sparse LDL^T with minimum-degree ordering (nnz(L) = 15641, dense triangle 2164240).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 5.400124791776761e-13,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 21329.70606259925
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 4000,
+          "rows": 2100,
+          "nonzeros": 7980,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 2100,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "staircase_50x200",
+      "suite": "Sparse scale",
+      "source": "Repository generator (benchmarks/tools/generate_sparse_scale.py)",
+      "sha256": "9e6fe6991730edb996bf7ad20d11719374042d7a07742abd60b55d989e03d220",
+      "shape": {
+        "columns": 20000,
+        "rows": 10200,
+        "nonzeros": 39950,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Dual simplex",
+      "configuration": {
+        "algorithm": "simplex"
+      },
+      "job_id": "c888b71c3bd198755b1c64ba",
+      "status": "OPTIMAL",
+      "objective": 106185.7357575748,
+      "runtime_seconds": 3.4624212000053376,
+      "turnaround_seconds": 5.580130099900998,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 106185.73575757477,
+        "runtime_seconds": 0.37679460004437715,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by bounded dual simplex.",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 3.410605131648481e-13,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 106185.7357575748
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 20000,
+          "rows": 10200,
+          "nonzeros": 39950,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 10200,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "staircase_50x200",
+      "suite": "Sparse scale",
+      "source": "Repository generator (benchmarks/tools/generate_sparse_scale.py)",
+      "sha256": "9e6fe6991730edb996bf7ad20d11719374042d7a07742abd60b55d989e03d220",
+      "shape": {
+        "columns": 20000,
+        "rows": 10200,
+        "nonzeros": 39950,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "LP",
+        "estimated": false
+      },
+      "profile": "Interior point",
+      "configuration": {
+        "algorithm": "ipm"
+      },
+      "job_id": "8b81adfc451bc5909ec6f0fa",
+      "status": "OPTIMAL",
+      "objective": 106185.73575779606,
+      "runtime_seconds": 0.18324739998206496,
+      "turnaround_seconds": 4.2501868000254035,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": 106185.73575757477,
+        "runtime_seconds": 0.37679460004437715,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: sparse LDL^T with minimum-degree ordering (nnz(L) = 90722, dense triangle 51516325).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 6.750155989720952e-13,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": 106185.73575779606
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 20000,
+          "rows": 10200,
+          "nonzeros": 39950,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "LP",
+          "estimated": false
+        },
+        "dense_order": 10200,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "portfolio_qp_5000",
+      "suite": "Sparse scale",
+      "source": "Repository generator (benchmarks/tools/generate_sparse_scale.py)",
+      "sha256": "fc9de51c0d57fe68133cdfdb59cd5759cd7693bc52a61b2245cacd07be9c5f7a",
+      "shape": {
+        "columns": 5000,
+        "rows": 101,
+        "nonzeros": 10000,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "QP",
+        "estimated": false
+      },
+      "profile": "QP interior point",
+      "configuration": {
+        "qpAlgorithm": "ipm"
+      },
+      "job_id": "0ab075b7530c113a01b03d1e",
+      "status": "OPTIMAL",
+      "objective": -0.1944651286560086,
+      "runtime_seconds": 0.0628593999426812,
+      "turnaround_seconds": 2.0993248999584466,
+      "verified": true,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": true,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -0.19446512875558752,
+        "runtime_seconds": 0.42613979999441653,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Optimal convex QP found by Mehrotra predictor-corrector IPM. KKT system: sparse quasi-definite LDL^T with minimum-degree ordering (order 5201, nnz(L) = 49604, dense triangle 13527801).",
+      "verification": {
+        "is_valid": true,
+        "issues": [],
+        "max_bound_violation": 0.0,
+        "max_constraint_violation": 1.368638535836908e-11,
+        "max_integrality_violation": 0.0,
+        "message": "Solution verified.",
+        "recomputed_objective": -0.1944651286560086
+      },
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 5000,
+          "rows": 101,
+          "nonzeros": 10000,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "QP",
+          "estimated": false
+        },
+        "dense_order": 5101,
+        "policy": "measured-dense-v3",
+        "execution_device": "cpu"
+      }
+    },
+    {
+      "dataset": "portfolio_qp_5000",
+      "suite": "Sparse scale",
+      "source": "Repository generator (benchmarks/tools/generate_sparse_scale.py)",
+      "sha256": "fc9de51c0d57fe68133cdfdb59cd5759cd7693bc52a61b2245cacd07be9c5f7a",
+      "shape": {
+        "columns": 5000,
+        "rows": 101,
+        "nonzeros": 10000,
+        "integer_variables": 0,
+        "bounded_columns": 0,
+        "problem_type": "QP",
+        "estimated": false
+      },
+      "profile": "Frank-Wolfe",
+      "configuration": {
+        "qpAlgorithm": "frank_wolfe"
+      },
+      "job_id": "08c98f8fe533237b3bcaa82d",
+      "status": "TIME_LIMIT",
+      "objective": null,
+      "runtime_seconds": 30,
+      "turnaround_seconds": 33.588194800075144,
+      "verified": false,
+      "gpu_used": false,
+      "gpu_operations": 0,
+      "match": false,
+      "reference": {
+        "status": "OPTIMAL",
+        "objective": -0.19446512875558752,
+        "runtime_seconds": 0.42613979999441653,
+        "mip_gap": null,
+        "version": "1.15.1"
+      },
+      "message": "Time limit reached (30 seconds).",
+      "verification": null,
+      "routing": {
+        "preferred_device": "cpu",
+        "reason": "CPU selected manually.",
+        "shape": {
+          "columns": 5000,
+          "rows": 101,
+          "nonzeros": 10000,
+          "integer_variables": 0,
+          "bounded_columns": 0,
+          "problem_type": "QP",
+          "estimated": false
+        },
+        "dense_order": 5101,
+        "policy": "measured-dense-v3",
         "execution_device": "cpu"
       }
     }
   ],
+  "skipped": [],
   "summary": {
-    "comparisons": 43,
-    "verified_optimum_matches": 23,
-    "verified_results": 24,
-    "numerical_errors": 9,
-    "time_limits": 10
+    "comparisons": 61,
+    "verified_optimum_matches": 49,
+    "verified_results": 60,
+    "numerical_errors": 0,
+    "time_limits": 1
   }
 }

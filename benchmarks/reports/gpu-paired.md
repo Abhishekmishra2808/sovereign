@@ -1,5 +1,9 @@
 # Paired CPU/CUDA whole-solver measurements
 
+Historical: engine 1.1.0, which offloaded only sparse matrix-vector products. The
+current engine factors the interior-point system on the GPU; see
+[gpu-dense-ipm.md](gpu-dense-ipm.md).
+
 Five measured pairs per model, plus one warmup pair, on the same CUDA-enabled
 Sovereign executable and machine. CPU/CUDA execution order alternated. All
 measured runs returned `OPTIMAL`, passed primal verification, and matched

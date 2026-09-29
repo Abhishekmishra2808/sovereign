@@ -7,7 +7,6 @@ import json
 import math
 import os
 import platform
-import secrets
 import socket
 import subprocess
 import sys
@@ -17,6 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+from api.cloud import MAX_MODEL_CHARACTERS
 from api.datasets import CASES, dataset
 from worker.runner import highs_reference
 
@@ -40,13 +40,14 @@ def write_report(report):
         ref = r["reference"]
         lines.append(f"| {r['dataset']} | {r['suite']} | {r['profile']} | {r['status']} | {r.get('objective')} | {r['runtime_seconds']:.4f} | {r['verified']} | {ref.get('status')} | {ref.get('objective')} | {ref.get('runtime_seconds',0):.4f} | {r['match']} |")
     lines += ["", "## Coverage and limits", "", "- Netlib: AFIRO. Official MIPLIB: flugpl, gt2, b-ball, pk1, gen-ip016 (original MPS passed independently to each solver).",
-              "- Synthetic robustness: degeneracy, ill-conditioning, weak relaxation. Synthetic transport: 400, 2,500, and 10,000 variables.",
+              "- Synthetic robustness: degeneracy, ill-conditioning, weak relaxation. Synthetic scale: transport LPs to 40,000 variables, planning LPs to 1,500 rows x 2,200 variables, staircase LPs to 10,200 rows x 20,000 variables and portfolio QPs to 5,000 assets.",
               "- Repository industrial examples: refinery, blending, power dispatch, logistics. These are not claimed as published or proprietary industrial data.",
               "- QP examples compared with HiGHS using the quadratic Hessian, not an LP relaxation.",
-              "- Mittelmann and QPLIB instances are not bundled or tested. Million-variable scale is shown only on synthetic structured LP/QP (scale-ladder.md); full GPU acceleration and GPU speedups are not established.",
-              "- GPU runs are not claimed when no CUDA-enabled engine is available. Auto-routing policy tests are separate from GPU performance evidence.",
+              "- Mittelmann and QPLIB instances are not bundled or tested. Million-variable scale is shown only on synthetic structured LP/QP (scale-ladder.md).",
+              "- GPU: measured separately in gpu-dense-ipm.md. CUDA interior point is 1.6x faster only on the 1,500-row dense planning LP; the sparse CPU path wins on the other models tested.",
               "- Only OPTIMAL + independent verification + reference OPTIMAL + objective tolerance agreement counts as a match. Failed verification and timeouts remain visible.",
               "- HiGHS is used only in this benchmark harness, never to solve production jobs."]
+    lines += [f"- Not run: {s['dataset']} ({s['reason']})." for s in report.get("skipped", [])]
     target.with_suffix(".md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -70,17 +71,19 @@ def main():
         gpu = "No NVIDIA GPU detected"
     report = {"generated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
               "platform": platform.platform(), "cpu_threads": os.cpu_count(), "gpu": gpu, "engine": caps,
-              "time_limit_seconds": args.timeout, "note": "Measured through a local HTTP coordinator and outbound worker using the same protocol as Render. All runs in this report use CPU. No live Render deployment or GPU speedup is claimed.", "rows": []}
+              "time_limit_seconds": args.timeout, "note": "Measured through a local HTTP coordinator and outbound worker using the same protocol as Render. All runs in this report use CPU. No live Render deployment or GPU speedup is claimed.", "rows": [], "skipped": []}
     with tempfile.TemporaryDirectory() as folder:
         with socket.socket() as sock:
             sock.bind(("127.0.0.1", 0)); port = sock.getsockname()[1]
-        env = {**os.environ, "SOVEREIGN_DB": str(Path(folder) / "workspace.db"), "SOVEREIGN_ADMIN_TOKEN": secrets.token_urlsafe(32)}
+        # A throwaway SQLite store and the coordinator's local test sign-in; never a hosted database.
+        env = {k: v for k, v in os.environ.items() if k not in ("MONGODB_URI", "SOVEREIGN_MONGODB_URI", "VERCEL")}
+        env.update({"SOVEREIGN_DB": str(Path(folder) / "workspace.db"), "SOVEREIGN_TEST_AUTH": "1"})
         url = f"http://127.0.0.1:{port}"
         server = subprocess.Popen([sys.executable, "-m", "uvicorn", "api.cloud:app", "--port", str(port)], cwd=ROOT, env=env,
                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         worker = None
         try:
-            with httpx.Client(base_url=url, headers={"Authorization": "Bearer " + env["SOVEREIGN_ADMIN_TOKEN"]}, timeout=15) as client:
+            with httpx.Client(base_url=url, headers={"Authorization": "Bearer test-firebase-token"}, timeout=15) as client:
                 for _ in range(100):
                     try:
                         if client.get("/api/health").status_code == 200: break
@@ -95,6 +98,11 @@ def main():
                 for dataset_id, suite, relative, _ in CASES:
                     entry = dataset(dataset_id)
                     path = ROOT / relative
+                    if len(entry["modelJson"]) > MAX_MODEL_CHARACTERS:
+                        reason = f"{len(entry['modelJson']) / 1e6:.1f} MB exceeds the hosted job limit ({MAX_MODEL_CHARACTERS / 1e6:.1f} MB)"
+                        report["skipped"].append({"dataset": dataset_id, "suite": suite, "reason": reason})
+                        print(f"Skipped: {dataset_id} ({reason})", flush=True)
+                        continue
                     print(f"Reference: {dataset_id} ({suite})", flush=True)
                     try:
                         proc = subprocess.run([sys.executable, __file__, "--reference", str(path), "--timeout", str(args.timeout)],
@@ -103,7 +111,7 @@ def main():
                     except subprocess.TimeoutExpired:
                         reference = {"status": "TIME_LIMIT", "runtime_seconds": args.timeout + 20}
                     kind = entry["shape"]["problem_type"].upper()
-                    profiles = [("Revised simplex", {"algorithm": "simplex"}), ("Interior point", {"algorithm": "ipm"})]
+                    profiles = [("Dual simplex", {"algorithm": "simplex"}), ("Interior point", {"algorithm": "ipm"})]
                     if kind == "MILP":
                         profiles = [("Branch & cut / strong", {"algorithm": "simplex", "branchRule": "strong"}),
                                     ("Branch & bound / fractional", {"algorithm": "simplex", "milpMethod": "branch_and_bound", "branchRule": "most_fractional"}),
@@ -113,7 +121,7 @@ def main():
                     for label, config in profiles:
                         start = time.perf_counter()
                         submitted = client.post("/api/jobs", json={"name": f"{dataset_id} · {label}", "modelJson": entry["modelJson"],
-                            "modelFormat": entry["modelFormat"], "device": "cpu", "maxNodes": 2000,
+                            "modelFormat": entry["modelFormat"], "device": "cpu", "maxNodes": 100000,
                             "timeLimitSeconds": args.timeout, **config})
                         submitted.raise_for_status()
                         job_id = submitted.json()["jobId"]

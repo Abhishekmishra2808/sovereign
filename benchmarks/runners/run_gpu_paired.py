@@ -37,7 +37,7 @@ def gpu_identity() -> str:
 def invoke(engine: Path, model: Path, device: str, timeout: float):
     env = os.environ.copy()
     env.update(SOVEREIGN_DEVICE=device, SOVEREIGN_LP_ALGORITHM="ipm",
-               SOVEREIGN_PRESOLVE="1")
+               SOVEREIGN_QP_ALGORITHM="ipm", SOVEREIGN_PRESOLVE="1")
     start = time.perf_counter()
     try:
         proc = subprocess.run([str(engine), "solve", str(model), "--verify"],
