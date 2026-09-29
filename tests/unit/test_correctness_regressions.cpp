@@ -19,6 +19,7 @@
 #include "sovereign/qp_interior_point.hpp"
 #include "sovereign/json_io.hpp"
 #include "sovereign/lp_solver.hpp"
+#include "sovereign/mps_io.hpp"
 #include "sovereign/revised_simplex.hpp"
 #include "sovereign/types.hpp"
 #include "sovereign/verifier.hpp"
@@ -635,4 +636,21 @@ TEST(MiplibNode, PresolveRejectsInfeasibleFlugplBranch) {
     EXPECT_EQ(r.nodes, 1);
     EXPECT_FALSE(r.has_objective_value);
   }
+}
+
+TEST(MiplibIncumbent, FlugplStrongBranchingIncumbentPassesVerification) {
+  // With cMIR cuts, strong branching accepted a node LP point that violated an
+  // original flugpl row by 1.4e-5 (objective 1201499.99927 instead of 1201500).
+  const std::string path =
+      std::string(SOVEREIGN_TEST_DATA_DIR) + "/../../benchmarks/datasets/miplib/official/flugpl.mps";
+  const OptimizationModel model = load_model_from_file(path);
+  BranchAndBoundOptions opt;
+  opt.branch_rule = BranchRule::StrongBranching;
+  opt.time_limit_seconds = 20.0;
+  const SolverResult r = BranchAndBoundSolver(opt).solve(model);
+  EXPECT_EQ(r.status, SolverStatus::Optimal);
+  EXPECT_NEAR(r.objective_value, 1201500.0, 1e-6 * 1201500.0);
+  const VerificationResult v = SolutionVerifier().verify(model, r, 1e-6);
+  EXPECT_TRUE(v.is_valid);
+  EXPECT_TRUE(v.max_constraint_violation <= 1e-6);
 }

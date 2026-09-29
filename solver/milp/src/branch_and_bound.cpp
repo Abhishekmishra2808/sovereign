@@ -238,6 +238,40 @@ SolverResult solve_node_lp(const OptimizationModel& node_model,
   return result;
 }
 
+// An integer-feasible node LP point satisfies the node's rows (cuts included)
+// only to the LP tolerance, and rounding its integers moves the original rows
+// further. Re-solving the continuous part with the integers fixed makes the
+// incumbent satisfy the original rows. If that LP fails, the point is kept.
+void polish_incumbent(const OptimizationModel& milp, std::unordered_map<std::string, double>& x,
+                      double& objective, const RevisedSimplexOptions& lp_opt) {
+  OptimizationModel fixed = milp;
+  bool any_continuous = false;
+  for (auto& v : fixed.variables) {
+    if (!is_integer_type(v.type)) {
+      any_continuous = true;
+      continue;
+    }
+    auto it = x.find(v.name);
+    if (it == x.end()) return;
+    v.lower_bound = v.upper_bound = std::round(it->second);
+  }
+  if (!any_continuous) return;
+  const SolverResult r = solve_node_lp(fixed, lp_opt);
+  if (r.status != SolverStatus::Optimal || !r.has_objective_value) return;
+  std::unordered_map<std::string, double> polished = x;
+  for (const auto& v : fixed.variables) {
+    if (is_integer_type(v.type)) {
+      polished[v.name] = v.lower_bound;
+      continue;
+    }
+    auto it = r.primal.find(v.name);
+    if (it == r.primal.end()) return;
+    polished[v.name] = it->second;
+  }
+  x = std::move(polished);
+  objective = r.objective_value;
+}
+
 #if defined(_WIN32)
 struct ParallelLpJob {
   const OptimizationModel* model = nullptr;
@@ -602,6 +636,15 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
   bool has_incumbent = false;
   double incumbent = 0.0;
   std::unordered_map<std::string, double> incumbent_x;
+  auto offer_incumbent = [&](std::unordered_map<std::string, double> x, double objective) {
+    if (!better_incumbent(sense, objective, incumbent, has_incumbent)) return false;
+    polish_incumbent(model, x, objective, lp_opt);
+    if (!better_incumbent(sense, objective, incumbent, has_incumbent)) return false;
+    has_incumbent = true;
+    incumbent = objective;
+    incumbent_x = std::move(x);
+    return true;
+  };
   std::int64_t nodes = 0;
   std::int64_t lp_iterations = 0;
   std::int64_t next_id = 1;
@@ -866,10 +909,7 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
                              has_incumbent ? &incumbent : nullptr);
         dive_lps += h.lp_solves;
       }
-      if (h.found && better_incumbent(sense, h.objective, incumbent, has_incumbent)) {
-        has_incumbent = true;
-        incumbent = h.objective;
-        incumbent_x = h.primal;
+      if (h.found && offer_incumbent(h.primal, h.objective)) {
         warnings.push_back("Heuristic incumbent via " + h.method);
       }
     }
@@ -886,11 +926,7 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
     if (is_integer_feasible(node_model, lp.primal, options_.integer_tol)) {
       auto x = lp.primal;
       snap_integer_primal(node_model, x, options_.integer_tol);
-      if (better_incumbent(sense, lp.objective_value, incumbent, has_incumbent)) {
-        has_incumbent = true;
-        incumbent = lp.objective_value;
-        incumbent_x = x;
-      }
+      offer_incumbent(std::move(x), lp.objective_value);
       continue;
     }
 
@@ -921,11 +957,7 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
     if (bvar < 0) {
       auto x = lp.primal;
       snap_integer_primal(node_model, x, options_.integer_tol);
-      if (better_incumbent(sense, lp.objective_value, incumbent, has_incumbent)) {
-        has_incumbent = true;
-        incumbent = lp.objective_value;
-        incumbent_x = x;
-      }
+      offer_incumbent(std::move(x), lp.objective_value);
       continue;
     }
 
