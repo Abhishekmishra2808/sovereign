@@ -4,6 +4,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
+#include <limits>
+#include <string>
 #include <vector>
 
 namespace sovereign {
@@ -131,8 +134,13 @@ SolverResult ConvexQpSolver::solve(const OptimizationModel& model) const {
     x[i] = it == start.primal.end() ? model.variables[i].lower_bound : it->second;
   }
 
-  // Frank-Wolfe: linearize QP and optimize over the polytope with LP
+  // Frank-Wolfe: linearize QP and optimize over the polytope with LP.
+  // For a convex objective the FW gap g'(x - s) bounds f(x) - f*, so it is the
+  // only thing allowed to certify optimality; stopping for any other reason
+  // leaves a feasible point whose optimality is not proven.
   std::int64_t iters = 0;
+  double relative_gap = std::numeric_limits<double>::infinity();
+  bool converged = false;
   for (int k = 0; k < options_.max_iterations; ++k) {
     std::vector<double> g = gradient_min(Q, c, x, n);
 
@@ -159,7 +167,11 @@ SolverResult ConvexQpSolver::solve(const OptimizationModel& model) const {
     // FW gap
     double gap = 0.0;
     for (std::size_t i = 0; i < n; ++i) gap += g[i] * (x[i] - s[i]);
-    if (gap <= options_.optimality_tol) break;
+    relative_gap = std::max(0.0, gap) / (1.0 + std::abs(qp_value_min(Q, c, x, n)));
+    if (relative_gap <= options_.optimality_tol) {
+      converged = true;
+      break;
+    }
 
     // Exact line search on quadratic: min_{a in [0,1]} f(x + a(d)) d=s-x
     std::vector<double> d(n);
@@ -194,17 +206,23 @@ SolverResult ConvexQpSolver::solve(const OptimizationModel& model) const {
     }
   }
 
-  result.status = SolverStatus::Optimal;
+  result.status = converged ? SolverStatus::Optimal : SolverStatus::Feasible;
   result.has_objective_value = true;
   result.objective_value = obj;
   result.iterations = iters;
-  result.message = "Convex QP solved by Frank-Wolfe with LP linearization oracle "
-                   "(earlier approach; default QP path is Mehrotra IPM — "
-                   "set SOVEREIGN_QP_ALGORITHM=frank_wolfe to force this).";
+  if (std::isfinite(relative_gap)) result.optimality_gap = relative_gap;
+  char gap_text[64];
+  std::snprintf(gap_text, sizeof(gap_text), "%.3g", relative_gap);
+  result.message = converged
+      ? "Convex QP solved by Frank-Wolfe with LP linearization oracle "
+        "(earlier approach; default QP path is Mehrotra IPM)."
+      : std::string("Frank-Wolfe stopped after ") + std::to_string(iters) +
+            " iterations with relative gap " + gap_text +
+            "; the point is feasible but optimality is not proven. "
+            "Use the default Mehrotra IPM for an optimal solution.";
   for (std::size_t i = 0; i < n; ++i) {
     result.primal[model.variables[i].name] = x[i];
   }
-  (void)qp_value_min;
   return result;
 }
 
