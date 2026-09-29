@@ -34,10 +34,12 @@ PROFILES = {
 CPU_ONLY_PROFILES = {"lp_simplex", "qp_fw", "milp_bc", "milp_bb", "lp_ipm_cpu", "qp_ipm_cpu"}
 
 PRESETS = [
-    {"id": "quick", "label": "Quick demo", "description": "One model from every family. About a minute on a laptop.",
+    {"id": "quick", "label": "Quick demo",
+     "description": "One model from every family, up to a 1,500-row multi-plant product mix. One to two minutes on a laptop.",
      "datasets": ["afiro", "flugpl-lp", "gt2-lp", "kuhn_degeneracy", "illconditioned", "weak_lp_relaxation",
-                  "industrial_blending_lp", "industrial_logistics_milp", "sample_qp", "transport_20x20"],
-     "profiles": ["lp_simplex", "lp_ipm", "milp_bc", "qp_ipm"]},
+                  "industrial_blending_lp", "industrial_logistics_milp", "industrial_product_mix_lp", "sample_qp",
+                  "transport_20x20"],
+     "profiles": ["lp_simplex", "lp_ipm", "milp_bc", "qp_ipm"], "device": "auto", "timeLimitSeconds": 60},
     {"id": "lp", "label": "Netlib + MIPLIB relaxations", "description": "Official public files, solved as LPs.",
      "datasets": ["afiro", *[f"{n}-lp" for n in RELAXED_MIPLIB]], "profiles": ["lp_simplex", "lp_ipm"]},
     {"id": "robustness", "label": "Robustness", "description": "Degenerate, ill-conditioned and weak-relaxation models.",

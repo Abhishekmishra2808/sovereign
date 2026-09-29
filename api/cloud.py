@@ -554,7 +554,7 @@ def claim(body: Capabilities, worker_id: str = Depends(worker_auth)):
                             for w in store.online_workers(now - LEASE_SECONDS, user_id))
                         if gpu_online:
                             continue
-                        routing["reason"] = "Large sparse model; CPU fallback because no matching CUDA worker is online."
+                        routing["reason"] = "Large interior-point model; CPU fallback because no matching CUDA worker is online."
             routing["execution_device"] = execution
             req["routing"] = routing
             req["executionDevice"] = execution

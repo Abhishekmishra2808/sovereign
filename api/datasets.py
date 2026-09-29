@@ -15,7 +15,8 @@ CASES = [
       for n in ("transport_20x20", "transport_50x50", "transport_100x100",
                 "transport_150x150", "transport_200x200")],
     *[(n, "Industrial example", f"examples/models/{n}.json", "Repository example; not a published industrial dataset")
-      for n in ("industrial_refinery_lp", "industrial_blending_lp", "industrial_power_dispatch_lp", "industrial_logistics_milp")],
+      for n in ("industrial_refinery_lp", "industrial_blending_lp", "industrial_power_dispatch_lp", "industrial_logistics_milp",
+                "industrial_product_mix_lp")],
     *[(n, "QP example", f"examples/models/{n}.json", "Repository example; not QPLIB") for n in ("sample_qp", "qp_ge")],
     *[(n, "GPU showcase", f"benchmarks/datasets/gpu/{n}.json", "Repository generator (benchmarks/tools/generate_gpu_showcase.py)")
       for n in ("plan_600x900", "plan_1000x1500", "plan_1500x2200", "portfolio_qp_600")],
