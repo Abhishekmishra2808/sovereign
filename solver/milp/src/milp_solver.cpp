@@ -38,6 +38,9 @@ SolverResult MilpSolver::solve(const OptimizationModel& model) const {
   if (const char* cf = std::getenv("SOVEREIGN_CUT_FREQUENCY")) {
     opt.cut_frequency = std::atoi(cf);
   }
+  if (const char* cd = std::getenv("SOVEREIGN_CMIR_MAX_DEPTH")) {
+    opt.cmir_max_depth = std::atoi(cd);
+  }
   if (const char* mn = std::getenv("SOVEREIGN_MAX_NODES")) {
     opt.max_nodes = std::atoi(mn);
   }

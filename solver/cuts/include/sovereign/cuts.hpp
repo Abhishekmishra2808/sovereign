@@ -27,6 +27,15 @@ std::vector<Cut> generate_mir_cuts(const OptimizationModel& milp,
                                    double int_tol = 1e-6,
                                    int max_cuts = 8);
 
+// Complemented MIR cuts from single rows (any sense), over integer and
+// continuous variables with at least one finite bound. Most efficacious first.
+// Only the first `row_count` constraints are used as base rows.
+std::vector<Cut> generate_cmir_cuts(const OptimizationModel& milp,
+                                    const std::unordered_map<std::string, double>& x,
+                                    double int_tol = 1e-6,
+                                    int max_cuts = 8,
+                                    std::size_t row_count = static_cast<std::size_t>(-1));
+
 // Independent safety net for ANY cut, including ones added by hand.
 //
 // A cut is only valid if it does not remove a point we already know is

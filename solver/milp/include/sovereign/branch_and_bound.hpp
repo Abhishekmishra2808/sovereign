@@ -31,6 +31,9 @@ struct BranchAndBoundOptions {
   // (0 = every node; 1 = every node; k = every k depths). Root always eligible.
   int cut_frequency = 1;
   int max_cuts_per_node = 20;
+  // MIR separation costs an LP re-solve whenever it finds a cut, so below this
+  // depth the tree keeps only the cheap cover and rounding cuts.
+  int cmir_max_depth = 4;
   BranchRule branch_rule = BranchRule::StrongBranching;
   int strong_branch_candidates = 4;
   int reliability_threshold = 4;

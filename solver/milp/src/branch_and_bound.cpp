@@ -313,13 +313,16 @@ void solve_two_lps_parallel(const OptimizationModel& down, const OptimizationMod
 int apply_cuts(OptimizationModel& model, const std::unordered_map<std::string, double>& x,
                double integer_tol, int max_cuts,
                const std::vector<std::unordered_map<std::string, double>>& reference_points,
-               std::vector<std::string>* rejections) {
+               std::vector<std::string>* rejections, std::size_t base_rows, bool with_cmir) {
   auto covers = generate_cover_cuts(model, x, integer_tol);
+  std::vector<Cut> cmir;
+  if (with_cmir) cmir = generate_cmir_cuts(model, x, integer_tol, 8, base_rows);
   auto gomory = generate_mir_cuts(model, x, integer_tol);
 
   std::vector<Cut> candidates;
-  candidates.reserve(covers.size() + gomory.size());
+  candidates.reserve(covers.size() + cmir.size() + gomory.size());
   for (const auto& c : covers) candidates.push_back(c);
+  for (const auto& c : cmir) candidates.push_back(c);
   for (const auto& c : gomory) candidates.push_back(c);
 
   int added = 0;
@@ -602,9 +605,16 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
   std::int64_t nodes = 0;
   std::int64_t lp_iterations = 0;
   std::int64_t next_id = 1;
-  double best_bound = (sense == Sense::Minimize) ? -std::numeric_limits<double>::infinity()
-                                                 : std::numeric_limits<double>::infinity();
-  bool found_finite_bound = false;
+  // The global bound is the weakest bound of every node not yet resolved: the
+  // open ones, plus those closed without being solved (pruned against the
+  // incumbent within mip_gap, or dropped because their LP failed).
+  const double no_bound = (sense == Sense::Minimize) ? std::numeric_limits<double>::infinity()
+                                                     : -std::numeric_limits<double>::infinity();
+  auto weaker = [&](double a, double b) {
+    return sense == Sense::Minimize ? std::min(a, b) : std::max(a, b);
+  };
+  double closed_bound = no_bound;
+  auto close_node = [&](double bound) { closed_bound = weaker(closed_bound, bound); };
   std::vector<std::string> warnings;
   std::vector<std::string> cut_rejections;
   std::size_t cut_rejection_count = 0;
@@ -635,6 +645,13 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
   };
   auto empty_queue = [&]() {
     return plunge.empty() && (sense == Sense::Minimize ? pq_min.empty() : pq_max.empty());
+  };
+  auto global_bound = [&]() {
+    double b = closed_bound;
+    for (const auto& n : plunge) b = weaker(b, n.bound);
+    if (sense == Sense::Minimize && !pq_min.empty()) b = weaker(b, pq_min.top().bound);
+    if (sense == Sense::Maximize && !pq_max.empty()) b = weaker(b, pq_max.top().bound);
+    return b;
   };
   auto pop_node = [&]() {
     SearchNode n;
@@ -710,6 +727,7 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
                 << " heur " << t_heur << " branch " << t_branch << ")\n";
     }
     if (can_prune_by_bound(sense, node.bound, incumbent, has_incumbent, options_.mip_gap)) {
+      close_node(node.bound);
       continue;
     }
 
@@ -756,6 +774,7 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
       // Distinguish the reason, because "ran out of iterations" and "the basis
       // went singular" call for completely different responses.
       any_node_lp_error = true;
+      close_node(node.bound);
       std::ostringstream oss;
       oss << "Node LP returned " << to_string(lp.status)
           << " (subtree dropped, optimality not certified)";
@@ -789,7 +808,8 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
         std::vector<std::string> rejections;
         const int added = apply_cuts(node_model, lp.primal, options_.integer_tol,
                                      options_.max_cuts_per_node, reference_points,
-                                     &rejections);
+                                     &rejections, model.constraints.size(),
+                                     node.depth <= options_.cmir_max_depth);
         for (auto& r : rejections) note_cut_rejection(std::move(r));
         if (added == 0) break;
         cuts_added_here += added;
@@ -856,21 +876,6 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
     t_heur += now_seconds() - t0;
 
     node.bound = lp.objective_value;
-    if (!found_finite_bound) {
-      best_bound = lp.objective_value;
-      found_finite_bound = true;
-    } else if (sense == Sense::Minimize) {
-      best_bound = std::min(best_bound, lp.objective_value);
-    } else {
-      best_bound = std::max(best_bound, lp.objective_value);
-    }
-    if (sense == Sense::Minimize && !pq_min.empty()) {
-      best_bound = std::min(best_bound, pq_min.top().bound);
-    } else if (sense == Sense::Maximize && !pq_max.empty()) {
-      best_bound = std::max(best_bound, pq_max.top().bound);
-    }
-    best_bound = (sense == Sense::Minimize) ? std::min(best_bound, lp.objective_value)
-                                            : std::max(best_bound, lp.objective_value);
 
     // Accept integer-feasible nodes BEFORE bound pruning. Pruning on
     // relative_gap <= mip_gap when the LP objective is within mip_gap of the
@@ -891,6 +896,7 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
 
     if (can_prune_by_bound(sense, lp.objective_value, incumbent, has_incumbent,
                            options_.mip_gap)) {
+      close_node(lp.objective_value);
       continue;
     }
 
@@ -971,8 +977,9 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
   result.warnings = warnings;
 
   if (has_incumbent) {
-    if (found_finite_bound) {
-      result.optimality_gap = std::max(0.0, relative_gap(sense, best_bound, incumbent));
+    const double bound = weaker(global_bound(), incumbent);
+    if (std::isfinite(bound)) {
+      result.optimality_gap = std::max(0.0, relative_gap(sense, bound, incumbent));
     }
     if (hit_node_limit) {
       // message was already set at the point we broke out of the loop.

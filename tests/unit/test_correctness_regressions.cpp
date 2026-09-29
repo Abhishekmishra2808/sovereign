@@ -453,20 +453,31 @@ TEST(CutValidity, GateAcceptsGenuinelyValidCut) {
   EXPECT_TRUE(why.empty());
 }
 
-TEST(CutValidity, GateRejectsMalformedBinaryCoefficient) {
+TEST(CutValidity, GateRejectsCutNoPointInTheBoxSatisfies) {
   OptimizationModel model;
   model.problem_type = ProblemType::MILP;
   model.variables.push_back(make_var("a", VariableType::Binary, 0.0, 1.0));
+  model.variables.push_back(make_var("b", VariableType::Integer, 2.0, 5.0));
 
   Constraint cut;
   cut.name = "weird";
   cut.sense = ConstraintSense::Le;
-  cut.rhs = 0.5;
-  cut.linear["a"] = 3.0;  // > 1 on a binary is meaningless
+  cut.rhs = 1.5;
+  cut.linear["a"] = 3.0;
+  cut.linear["b"] = 1.0;  // b >= 2, so the left side is never below 2
 
   std::vector<std::unordered_map<std::string, double>> refs;
-  const std::string why = check_cut_validity(model, cut, refs, 1e-6);
-  EXPECT_FALSE(why.empty());
+  EXPECT_FALSE(check_cut_validity(model, cut, refs, 1e-6).empty());
+
+  // A MIR-style cut with a coefficient above 1 and a complemented (negative)
+  // binary is satisfiable and must not be rejected on its coefficients.
+  Constraint mir;
+  mir.name = "cmir";
+  mir.sense = ConstraintSense::Le;
+  mir.rhs = 3.0;
+  mir.linear["a"] = -2.0;
+  mir.linear["b"] = 1.0;
+  EXPECT_TRUE(check_cut_validity(model, mir, refs, 1e-6).empty());
 }
 
 // ---------------------------------------------------------------------------
