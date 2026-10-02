@@ -762,7 +762,7 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
 
     SearchNode node = pop_node();
     ++nodes;
-    if (log_progress && nodes % 500 == 0) {
+    if (log_progress && (nodes <= 20 || nodes % 500 == 0)) {
       std::cerr << "[bb] nodes=" << nodes << " open=" << (pq_min.size() + pq_max.size() + plunge.size())
                 << " incumbent=" << (has_incumbent ? std::to_string(incumbent) : "-")
                 << " node_bound=" << node.bound << " depth=" << node.depth

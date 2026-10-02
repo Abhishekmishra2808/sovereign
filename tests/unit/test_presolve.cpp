@@ -105,6 +105,49 @@ TEST(PresolveTest, EqualitySubstitution) {
   EXPECT_TRUE(SolutionVerifier().verify(m, r).is_valid);
 }
 
+TEST(PresolveTest, FixingLaterVariableKeepsEarlierNames) {
+  // c is fixed; a and b come before it and must survive compaction intact.
+  OptimizationModel m;
+  m.problem_type = ProblemType::LP;
+  m.sense = Sense::Minimize;
+  m.variables.push_back(Variable{"a", VariableType::Continuous, 0.0, 10.0});
+  m.variables.push_back(Variable{"b", VariableType::Continuous, 0.0, 10.0});
+  m.variables.push_back(Variable{"c", VariableType::Continuous, 2.0, 2.0});
+  m.objective.linear = {{"a", 1.0}, {"b", 2.0}};
+  m.constraints.push_back(Constraint{"sum", {{"a", 1.0}, {"b", 1.0}, {"c", 1.0}}, ConstraintSense::Eq, 7.0});
+  m.constraints.push_back(Constraint{"cap", {{"a", 1.0}, {"b", -1.0}}, ConstraintSense::Le, 3.0});
+
+  PresolveResult p = Presolver().run(m);
+  EXPECT_FALSE(p.infeasible);
+  for (const auto& v : p.reduced.variables) EXPECT_FALSE(v.name.empty());
+
+  SolverResult r = OptimizationEngine().solve(m);
+  EXPECT_EQ(r.status, SolverStatus::Optimal);
+  EXPECT_NEAR(r.primal.at("a"), 4.0, 1e-5);
+  EXPECT_NEAR(r.primal.at("b"), 1.0, 1e-5);
+  EXPECT_TRUE(SolutionVerifier().verify(m, r).is_valid);
+}
+
+TEST(PresolveTest, SubstitutionKeepsUpperBoundOfEliminatedVariable) {
+  // 2x - y = 0 eliminates x = y/2; x <= 3 must become y <= 6 even though y has
+  // no upper bound of its own, or the recovered x leaves its range.
+  OptimizationModel m;
+  m.problem_type = ProblemType::LP;
+  m.sense = Sense::Minimize;
+  m.variables.push_back(Variable{"x", VariableType::Continuous, 0.0, 3.0});
+  m.variables.push_back(Variable{"y", VariableType::Continuous, 0.0, 1e30});
+  m.variables.push_back(Variable{"z", VariableType::Continuous, 0.0, 1e30});
+  m.objective.linear = {{"x", -1.0}, {"z", 1.0}};
+  m.constraints.push_back(Constraint{"link", {{"x", 2.0}, {"y", -1.0}}, ConstraintSense::Eq, 0.0});
+  m.constraints.push_back(Constraint{"use", {{"y", 1.0}, {"z", -1.0}}, ConstraintSense::Le, 100.0});
+
+  SolverResult r = OptimizationEngine().solve(m);
+  EXPECT_EQ(r.status, SolverStatus::Optimal);
+  EXPECT_NEAR(r.primal.at("x"), 3.0, 1e-5);
+  EXPECT_NEAR(r.objective_value, -3.0, 1e-5);
+  EXPECT_TRUE(SolutionVerifier().verify(m, r).is_valid);
+}
+
 TEST(PresolveTest, UnconstrainedDualFix) {
   OptimizationModel m;
   m.problem_type = ProblemType::LP;

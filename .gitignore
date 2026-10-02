@@ -45,3 +45,4 @@ build-session/
 /deploy.sh
 /nginx.conf
 /benchmarks/datasets/ladder/
+/benchmarks/datasets/coverage/

@@ -7,6 +7,9 @@
 #include "sovereign/qp_solver.hpp"
 
 #include <chrono>
+#include <cmath>
+#include <limits>
+#include <string>
 #include <unordered_map>
 
 #if defined(_WIN32)
@@ -52,6 +55,37 @@ double evaluate_objective(const OptimizationModel& model,
     }
   }
   return obj;
+}
+
+// Largest bound or row violation of x on the original model, relative to
+// 1 + |bound|. A missing or non-finite value counts as an infinite violation.
+double max_relative_violation(const OptimizationModel& model,
+                              const std::unordered_map<std::string, double>& x) {
+  constexpr double inf = std::numeric_limits<double>::infinity();
+  double worst = 0.0;
+  for (const auto& v : model.variables) {
+    const auto it = x.find(v.name);
+    if (it == x.end() || !std::isfinite(it->second)) return inf;
+    const double val = it->second;
+    if (val < v.lower_bound) worst = std::max(worst, (v.lower_bound - val) / (1.0 + std::abs(v.lower_bound)));
+    if (val > v.upper_bound) worst = std::max(worst, (val - v.upper_bound) / (1.0 + std::abs(v.upper_bound)));
+  }
+  for (const auto& c : model.constraints) {
+    double lhs = 0.0;
+    for (const auto& kv : c.linear) {
+      const auto it = x.find(kv.first);
+      if (it != x.end()) lhs += kv.second * it->second;
+    }
+    const double viol = c.sense == ConstraintSense::Le   ? lhs - c.rhs
+                        : c.sense == ConstraintSense::Ge ? c.rhs - lhs
+                                                         : std::abs(lhs - c.rhs);
+    worst = std::max(worst, viol / (1.0 + std::abs(c.rhs)));
+  }
+  return worst;
+}
+
+bool has_primal(const SolverResult& r) {
+  return r.status == SolverStatus::Optimal || r.status == SolverStatus::Feasible;
 }
 
 }  // namespace
@@ -107,6 +141,26 @@ SolverResult OptimizationEngine::solve(const OptimizationModel& model, const Eng
         result.status == SolverStatus::Feasible) {
       result.objective_value = evaluate_objective(model, result.primal);
       result.has_objective_value = true;
+    }
+  }
+
+  // Presolve's reductions are checked rather than trusted: an infeasibility
+  // claim, or a recovered point that violates the original model, is solved
+  // again without presolve. A presolve fault then costs time, not correctness.
+  if (presolved) {
+    std::string why;
+    if (prep.infeasible) {
+      why = "presolve reported infeasibility (" + prep.message + ")";
+    } else if (has_primal(result) && max_relative_violation(model, result.primal) > 1e-6) {
+      why = "the presolved solution violated the original model";
+    }
+    if (!why.empty()) {
+      result = LpSolver().solve(model, options.lp_algorithm);
+      if (has_primal(result)) {
+        result.objective_value = evaluate_objective(model, result.primal);
+        result.has_objective_value = true;
+      }
+      result.warnings.push_back("Re-solved without presolve because " + why + ".");
     }
   }
 

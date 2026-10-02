@@ -31,6 +31,11 @@ struct DualSimplexOptions {
   // Dual steepest-edge pricing (weights start at 1 and are updated exactly
   // from then on); false = largest primal infeasibility.
   bool steepest_edge = true;
+  // Robustness features, on by default; the switches exist so the ablation in
+  // benchmarks/reports/ROBUSTNESS.md can show what each one buys.
+  bool scaling = true;          // geometric power-of-two row/column scaling
+  bool harris = true;           // two-pass Harris ratio test (else textbook min-ratio)
+  bool widen_bounds = true;     // widen active temporary bounds instead of giving up
 };
 
 // Bounded-variable dual simplex for an LP (variable types are ignored).

@@ -21,6 +21,7 @@ constexpr double kInfBound = 1e20;
 // sitting on one of these at the end has no certified answer, so the solve
 // reports failure instead of trusting it.
 constexpr double kArtificialBound = 1e7;
+constexpr double kMaxArtificialBound = 1e13;
 constexpr int kMaxRechecks = 25;
 constexpr double kMinWeight = 1e-4;
 
@@ -86,6 +87,12 @@ class DualSimplex {
           if (++rechecks > kMaxRechecks) {
             return numerical(result, "could not reach a basis that is both primal and dual feasible");
           }
+          continue;
+        }
+        // Moving a nonbasic onto a wider temporary bound keeps every reduced
+        // cost, so dual feasibility survives and the dual simplex just resumes.
+        if (opt_.widen_bounds && widen_active_artificial_bounds()) {
+          compute_primal();
           continue;
         }
         return finish(result, basis_out);
@@ -213,7 +220,7 @@ class DualSimplex {
 
     row_scale_.assign(static_cast<std::size_t>(m_), 1.0);
     col_scale_.assign(static_cast<std::size_t>(n_), 1.0);
-    {
+    if (opt_.scaling) {
       std::vector<double> rmax(static_cast<std::size_t>(m_), 0.0), rmin(static_cast<std::size_t>(m_), kInf);
       for (const auto& col : cols) {
         for (const auto& e : col) {
@@ -504,6 +511,31 @@ class DualSimplex {
     return changed;
   }
 
+  // Push every temporary bound that a nonbasic is sitting on 100x further out.
+  // Returns false once nothing is active or the box has grown past the point
+  // where an answer on it would mean the LP is unbounded in practice.
+  bool widen_active_artificial_bounds() {
+    bool widened = false;
+    for (int k = 0; k < n_ + m_; ++k) {
+      const std::size_t kk = static_cast<std::size_t>(k);
+      if (!artificial_[kk]) continue;
+      if (status_[kk] == BasisStatus::AtUpper && upper_[kk] != orig_upper_[kk]) {
+        const double base = std::isfinite(lower_[kk]) && lower_[kk] == orig_lower_[kk] ? lower_[kk] : 0.0;
+        const double width = std::max(upper_[kk] - base, kArtificialBound) * 100.0;
+        if (width > kMaxArtificialBound) return false;
+        upper_[kk] = base + width;
+        widened = true;
+      } else if (status_[kk] == BasisStatus::AtLower && lower_[kk] != orig_lower_[kk]) {
+        const double base = std::isfinite(upper_[kk]) && upper_[kk] == orig_upper_[kk] ? upper_[kk] : 0.0;
+        const double width = std::max(base - lower_[kk], kArtificialBound) * 100.0;
+        if (width > kMaxArtificialBound) return false;
+        lower_[kk] = base - width;
+        widened = true;
+      }
+    }
+    return widened;
+  }
+
   // ---- pricing and ratio test ------------------------------------------
   int choose_leaving_row() const {
     int best = -1;
@@ -569,6 +601,17 @@ class DualSimplex {
     }
     int best = -1;
     double best_step = 0.0;
+    if (!opt_.harris) {
+      double best_ratio = kInf;
+      for (const Cand& c : cands) {
+        const double ratio = std::max(c.slack, 0.0) / c.step;
+        if (ratio < best_ratio) {
+          best_ratio = ratio;
+          best = c.k;
+        }
+      }
+      return best;
+    }
     for (const Cand& c : cands) {
       if (c.slack / c.step <= theta_max && c.step > best_step) {
         best_step = c.step;
@@ -732,6 +775,12 @@ SolverResult solve_lp_dual_simplex(const OptimizationModel& lp, const LpBasis* w
   DualSimplexOptions opt = options;
   if (const char* pricing = std::getenv("SOVEREIGN_DUAL_PRICING")) {
     if (std::strcmp(pricing, "dantzig") == 0) opt.steepest_edge = false;
+  }
+  if (const char* off = std::getenv("SOVEREIGN_DUAL_DISABLE")) {
+    const std::string list = std::string(",") + off + ",";
+    if (list.find(",scaling,") != std::string::npos) opt.scaling = false;
+    if (list.find(",harris,") != std::string::npos) opt.harris = false;
+    if (list.find(",widening,") != std::string::npos) opt.widen_bounds = false;
   }
   return DualSimplex(lp, opt).run(warm, basis_out);
 }

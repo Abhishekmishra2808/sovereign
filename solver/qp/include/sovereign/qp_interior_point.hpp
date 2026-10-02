@@ -10,6 +10,11 @@ struct QpInteriorPointOptions {
   double optimality_tol = 1e-8;
   double fraction_to_boundary = 0.999;
   bool enable_scaling = false;  // keep false: Q scaling is fiddly; small QPs OK
+  // Robustness features, on by default; switchable for the ablation in
+  // benchmarks/reports/ROBUSTNESS.md (SOVEREIGN_QP_DISABLE).
+  bool iterative_refinement = true;  // refine each regularized KKT solve
+  bool common_step = true;           // equal primal/dual step when Q != 0
+  bool retry_mehrotra_start = true;  // second attempt from Mehrotra's start
 };
 
 // Mehrotra predictor-corrector for convex QP:

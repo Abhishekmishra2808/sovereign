@@ -75,3 +75,41 @@ TEST(QpSolveTest, PortfolioStyleTwoAsset) {
   EXPECT_NEAR(r.objective_value, -0.5, 1e-1);
   EXPECT_TRUE(r.message.find("Mehrotra") != std::string::npos);
 }
+
+TEST(QpSolveTest, FreeVariablesInEqualityConstrainedQp) {
+  // min 1/2 (x^2 + y^2) + z  s.t. x + y = -4, z - x = 0, all free
+  // => z = x, so minimize 1/2 x^2 + 1/2 y^2 + x with y = -4 - x:
+  //    x - (-4 - x) + 1 = 0 => x = -2.5, y = -1.5, obj = 3.125 + 1.125 - 2.5 = 1.75
+  OptimizationModel m;
+  m.problem_type = ProblemType::QP;
+  m.sense = Sense::Minimize;
+  for (const char* n : {"x", "y", "z"}) m.variables.push_back(Variable{n, VariableType::Continuous, -1e30, 1e30});
+  m.objective.linear["z"] = 1.0;
+  m.objective.quadratic["x"]["x"] = 1.0;
+  m.objective.quadratic["y"]["y"] = 1.0;
+  m.constraints.push_back(Constraint{"sum", {{"x", 1.0}, {"y", 1.0}}, ConstraintSense::Eq, -4.0});
+  m.constraints.push_back(Constraint{"link", {{"z", 1.0}, {"x", -1.0}}, ConstraintSense::Eq, 0.0});
+
+  SolverResult r = QpInteriorPointSolver().solve(m);
+  EXPECT_EQ(r.status, SolverStatus::Optimal);
+  EXPECT_NEAR(r.primal.at("x"), -2.5, 1e-5);
+  EXPECT_NEAR(r.primal.at("y"), -1.5, 1e-5);
+  EXPECT_NEAR(r.primal.at("z"), -2.5, 1e-5);
+  EXPECT_NEAR(r.objective_value, 1.75, 1e-6);
+  EXPECT_EQ(r.primal.size(), static_cast<std::size_t>(3));
+}
+
+TEST(QpSolveTest, UpperBoundOnlyVariable) {
+  // min 1/2 x^2 - 5x, x <= 2 with no lower bound => x = 2, obj = -8
+  OptimizationModel m;
+  m.problem_type = ProblemType::QP;
+  m.sense = Sense::Minimize;
+  m.variables.push_back(Variable{"x", VariableType::Continuous, -1e30, 2.0});
+  m.objective.linear["x"] = -5.0;
+  m.objective.quadratic["x"]["x"] = 1.0;
+
+  SolverResult r = QpInteriorPointSolver().solve(m);
+  EXPECT_EQ(r.status, SolverStatus::Optimal);
+  EXPECT_NEAR(r.primal.at("x"), 2.0, 1e-5);
+  EXPECT_NEAR(r.objective_value, -8.0, 1e-5);
+}

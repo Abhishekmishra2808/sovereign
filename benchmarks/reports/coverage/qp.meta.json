@@ -1,0 +1,21 @@
+{
+ "suite": "qp",
+ "time_limit": 300.0,
+ "repeats": 3,
+ "repeat_under_s": 20.0,
+ "pin_sovereign": [
+  2,
+  3
+ ],
+ "pin_highs": [
+  4,
+  5
+ ],
+ "started": "2026-10-01T06:27:58",
+ "binary": "C:\\Users\\abhis\\Desktop\\26119\\build64\\solver\\sovereign.exe",
+ "platform": "Windows-10-10.0.26200-SP0",
+ "cpu": "12th Gen Intel(R) Core(TM) i5-12450H",
+ "cpu_counts": "8 cores / 12 threads",
+ "python": "3.11.9",
+ "highs": "1.15.1"
+}

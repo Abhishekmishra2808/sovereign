@@ -57,7 +57,9 @@ std::vector<std::string> fields(const std::string& s, const std::string& section
         if (!field(s,24,12).empty()) f.push_back(field(s,24,12));
         const auto type=upper(f[0]);
         const bool needs=type!="FR" && type!="MI" && type!="PL" && type!="BV";
-        if ((!needs || f.size()==4) && blank(s,36,s.size())) return f;
+        // A free record whose column name happens to start at 24 (control30-5-10-4:
+        // " FR bnd                 x(30,1)") also passes the blank-column test.
+        if (!f[2].empty() && f.size()==(needs ? 4u : 3u) && blank(s,36,s.size())) return f;
         return tokens(s);
       }
       if (section=="COLUMNS" || section=="RHS" || section=="RANGES") {

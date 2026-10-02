@@ -1,0 +1,33 @@
+{"read": "HighsStatus.kOk", "status": "Solve error", "obj": 0.0, "time": 1.4432928999885917, "name": "AUG2DC", "harness": "TIMEOUT", "harness_obj": null, "reference": 1818368.1}
+{"read": "HighsStatus.kOk", "status": "Solve error", "obj": 0.0, "time": 1.9670242998981848, "name": "AUG2D", "harness": "TIMEOUT", "harness_obj": null, "reference": 1687411.8}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": 55293229.605190516, "time": 300.11142530001234, "name": "AUG2DQP", "harness": "TIMEOUT", "harness_obj": 32560047.5785326, "reference": 6237012.1}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": 46193994.71485144, "time": 300.1814913999988, "name": "AUG2DCQP", "harness": "TIMEOUT", "harness_obj": 32707711.77322551, "reference": 6498134.8}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": 24215.83014368819, "time": 393.3432423999766, "name": "BOYD2", "harness": "TIMEOUT", "harness_obj": 24215.83014368819, "reference": 21.256767}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": 0.0, "time": 300.1155016999692, "name": "CONT-200", "harness": "TIMEOUT", "harness_obj": 0.0, "reference": -4.6848759}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": 0.3271809648409192, "time": 305.4692358999746, "name": "CONT-101", "harness": "TIMEOUT", "harness_obj": 0.3271809648596826, "reference": 0.19552733}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": 0.0, "time": 300.0873928000219, "name": "CONT-201", "harness": "TIMEOUT", "harness_obj": 0.0, "reference": 0.19248337}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": 0.0, "time": 300.16804310004227, "name": "CONT-300", "harness": "TIMEOUT", "harness_obj": 0.0, "reference": 0.19151232}
+{"read": "HighsStatus.kOk", "status": "Solve error", "obj": 0.0, "time": 0.260319699998945, "name": "DTOC3", "harness": "TIMEOUT", "harness_obj": 235.82130605717194, "reference": 235.26248}
+{"read": "HighsStatus.kWarning", "status": "Not Set", "obj": 0.0, "time": 0.05864640010986477, "name": "KSIP", "harness": "FAILED", "harness_obj": null, "reference": 0.57579794}
+{"read": "HighsStatus.kOk", "status": "Not Set", "obj": 0.0, "time": 0.03357870003674179, "name": "LASER", "harness": "FAILED", "harness_obj": null, "reference": 2409601.4}
+{"read": "HighsStatus.kOk", "status": "Solve error", "obj": 0.0, "time": 20.35160840000026, "name": "MOSARQP1", "harness": "FAILED", "harness_obj": null, "reference": -952.87544}
+{"read": "HighsStatus.kWarning", "status": "Time limit reached", "obj": 54089420.77484138, "time": 300.1464786999859, "name": "HUES-MOD", "harness": "TIMEOUT", "harness_obj": 50552909.90660318, "reference": 34824690.0}
+{"read": "HighsStatus.kWarning", "status": "Time limit reached", "obj": 622807671313.0593, "time": 300.2811776000308, "name": "HUESTIS", "harness": "TIMEOUT", "harness_obj": 485948951725.864, "reference": 348246900000.0}
+{"read": "HighsStatus.kOk", "status": "Optimal", "obj": 3102.1387967591113, "time": 0.014778300072066486, "name": "QBORE3D", "harness": "WRONG", "harness_obj": 3102.138796759116, "reference": 3100.2008}
+{"read": "HighsStatus.kOk", "status": "Solve error", "obj": 0.0, "time": 0.025689999922178686, "name": "QCAPRI", "harness": "FAILED", "harness_obj": null, "reference": 66793293.0}
+{"read": "HighsStatus.kOk", "status": "Not Set", "obj": 0.0, "time": 0.09314540005289018, "name": "QE226", "harness": "FAILED", "harness_obj": null, "reference": 212.65343}
+{"read": "HighsStatus.kOk", "status": "Solve error", "obj": 0.0, "time": 0.24324600002728403, "name": "QGROW15", "harness": "TIMEOUT", "harness_obj": -60027490.408923924, "reference": -101693640.0}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": -1439.0196115172562, "time": 300.00378530006856, "name": "MOSARQP2", "harness": "TIMEOUT", "harness_obj": -1439.0196115172562, "reference": -1597.4821}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": 825092940755.4501, "time": 367.2027867999859, "name": "BOYD1", "harness": "TIMEOUT", "harness_obj": 753678007.8433545, "reference": -61735220.0}
+{"read": "HighsStatus.kOk", "status": "Not Set", "obj": 0.0, "time": 47.773850800003856, "name": "QPCSTAIR", "harness": "TIMEOUT", "harness_obj": 6206046.960218349, "reference": 6204387.5}
+{"read": "HighsStatus.kOk", "status": "Not Set", "obj": 0.0, "time": 0.3480395000660792, "name": "QPILOTNO", "harness": "FAILED", "harness_obj": null, "reference": 4728586.9}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": 41699767.81718777, "time": 300.00724040006753, "name": "Q25FV47", "harness": "TIMEOUT", "harness_obj": 42682396.317360274, "reference": 13744448.0}
+{"read": "HighsStatus.kOk", "status": "Not Set", "obj": 0.0, "time": 1.007215299992822, "name": "QSCTAP3", "harness": "FAILED", "harness_obj": null, "reference": 1438.7547}
+{"read": "HighsStatus.kOk", "status": "Solve error", "obj": 0.0, "time": 0.02343319996725768, "name": "QSHARE1B", "harness": "WRONG", "harness_obj": 729715.4756055847, "reference": 720078.32}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": -20673517.94807527, "time": 300.117633100017, "name": "QGROW22", "harness": "TIMEOUT", "harness_obj": -25840948.57300182, "reference": -149628950.0}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": -42061497.681737445, "time": 300.0021188000683, "name": "QGROW7", "harness": "TIMEOUT", "harness_obj": -42104183.166309655, "reference": -42798714.0}
+{"read": "HighsStatus.kOk", "status": "Solve error", "obj": 0.0, "time": 0.11705699993763119, "name": "STADAT3", "harness": "TIMEOUT", "harness_obj": 0.0, "reference": -35.779453}
+{"read": "HighsStatus.kOk", "status": "Not Set", "obj": 0.0, "time": 219.06461939995643, "name": "QSCTAP2", "harness": "FAILED", "harness_obj": null, "reference": 1735.0265}
+{"read": "HighsStatus.kOk", "status": "Solve error", "obj": 0.0, "time": 52.2463891999796, "name": "QSIERRA", "harness": "FAILED", "harness_obj": null, "reference": 23750458.0}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": 7985452.754098788, "time": 300.00118849996943, "name": "QSTAIR", "harness": "TIMEOUT", "harness_obj": 7985452.756242714, "reference": 7985452.8}
+{"read": "HighsStatus.kOk", "status": "Time limit reached", "obj": 1032.8985578702059, "time": 300.0872325999662, "name": "UBH1", "harness": "TIMEOUT", "harness_obj": 1039.9199660160912, "reference": 1.1160008}

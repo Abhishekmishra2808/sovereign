@@ -2,9 +2,13 @@
 
 #include "sovereign/convex_qp.hpp"
 #include "sovereign/qp_interior_point.hpp"
+#include "sovereign/verifier.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <sstream>
 #include <string>
 
 namespace sovereign {
@@ -38,7 +42,26 @@ SolverResult QpSolver::solve(const OptimizationModel& model) const {
     return ipm;
   }
   SolverResult fw = ConvexQpSolver().solve(model);
-  if (fw.status == SolverStatus::Optimal || fw.status == SolverStatus::Feasible) {
+  const char* off = std::getenv("SOVEREIGN_QP_DISABLE");
+  const bool guard = !off || (std::string(",") + off + ",").find(",fw_guard,") == std::string::npos;
+  if (guard && (fw.status == SolverStatus::Optimal || fw.status == SolverStatus::Feasible)) {
+    // Frank-Wolfe can stop on a point that violates the rows (PRIMALC2) and
+    // still call it optimal, so its answer is only passed on once verified.
+    const VerificationResult check = SolutionVerifier().verify(model, fw, 1e-6);
+    bool runaway = false;
+    for (const auto& kv : fw.primal) runaway = runaway || !(std::abs(kv.second) < 1e15);
+    if (runaway || check.max_constraint_violation > 1e-6 || check.max_bound_violation > 1e-6) {
+      std::ostringstream oss;
+      oss << "QP unsolved. QP-IPM: " << ipm.message << " | Frank-Wolfe returned ";
+      if (runaway) oss << "a point with values beyond 1e15.";
+      else oss << "a point violating the constraints by "
+               << std::max(check.max_constraint_violation, check.max_bound_violation) << ".";
+      SolverResult failed;
+      failed.status = SolverStatus::NumericalError;
+      failed.iterations = ipm.iterations + fw.iterations;
+      failed.message = oss.str();
+      return failed;
+    }
     fw.warnings.push_back("QP-IPM did not converge; fell back to Frank–Wolfe (" +
                           ipm.message + ")");
   }

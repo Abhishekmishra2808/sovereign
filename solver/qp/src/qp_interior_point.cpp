@@ -28,6 +28,8 @@ struct IpmQp {
   SparseMatrixCSC Q;             // n x n, both triangles stored (slack columns empty)
   std::vector<std::string> names;
   std::vector<double> shift;
+  // Columns with no lower bound: no barrier term, dual slack held at zero.
+  std::vector<char> free;        // n
   int n_structural = 0;
   int m = 0;
   int n = 0;
@@ -95,10 +97,13 @@ SparseMatrixCSC build_hessian(const OptimizationModel& model,
   return Q;
 }
 
-double step_to_bound(const std::vector<double>& x, const std::vector<double>& dx) {
+constexpr double kInfinity = std::numeric_limits<double>::infinity();
+
+double step_to_bound(const std::vector<double>& x, const std::vector<double>& dx,
+                     const std::vector<char>& free) {
   double alpha = 1.0;
   for (std::size_t i = 0; i < x.size(); ++i) {
-    if (dx[i] < 0.0) alpha = std::min(alpha, -x[i] / dx[i]);
+    if (!free[i] && dx[i] < 0.0) alpha = std::min(alpha, -x[i] / dx[i]);
   }
   return alpha;
 }
@@ -116,14 +121,17 @@ IpmQp build_qp_form(const OptimizationModel& model) {
   };
   std::vector<BoundConstraint> ub_cons;
   lp.shift.assign(static_cast<std::size_t>(lp.n_structural), 0.0);
+  std::vector<char> free_structural(static_cast<std::size_t>(lp.n_structural), 0);
   for (int i = 0; i < lp.n_structural; ++i) {
     const Variable& v = model.variables[static_cast<std::size_t>(i)];
-    lp.shift[static_cast<std::size_t>(i)] = v.lower_bound;
+    const bool no_lower = !(v.lower_bound > -1e29);
+    free_structural[static_cast<std::size_t>(i)] = no_lower ? 1 : 0;
+    lp.shift[static_cast<std::size_t>(i)] = no_lower ? 0.0 : v.lower_bound;
     if (std::isfinite(v.upper_bound) && v.upper_bound < 1e29) {
       BoundConstraint bc;
       bc.var = i;
-      bc.ub = v.upper_bound - v.lower_bound;
-      if (bc.ub < -1e-12) {
+      bc.ub = v.upper_bound - lp.shift[static_cast<std::size_t>(i)];
+      if (!no_lower && bc.ub < -1e-12) {
         throw std::runtime_error("Inconsistent bounds for variable " + v.name);
       }
       ub_cons.push_back(bc);
@@ -181,6 +189,8 @@ IpmQp build_qp_form(const OptimizationModel& model) {
   lp.m = m_total;
   lp.A.resize(static_cast<std::size_t>(m_total), static_cast<std::size_t>(n_total));
   lp.b = rhs;
+  lp.free.assign(static_cast<std::size_t>(n_total), 0);
+  std::copy(free_structural.begin(), free_structural.end(), lp.free.begin());
   lp.c.assign(static_cast<std::size_t>(n_total), 0.0);
   lp.names.assign(static_cast<std::size_t>(n_total), std::string());
   lp.Q = build_hessian(model, var_index, lp.n_structural, n_total, sense_sign);
@@ -300,7 +310,9 @@ class QpKkt {
     with_hessian_ = with_hessian;
     h_.assign(n_, 1.0);
     if (with_hessian) {
-      for (std::size_t j = 0; j < n_; ++j) h_[j] = std::max(s[j], 1e-16) / std::max(x[j], 1e-16);
+      for (std::size_t j = 0; j < n_; ++j) {
+        h_[j] = lp_.free[j] ? 0.0 : std::max(s[j], 1e-16) / std::max(x[j], 1e-16);
+      }
     }
     last_sparse_ = false;
     if (use_sparse_) {
@@ -333,7 +345,7 @@ class QpKkt {
     split(z, -1.0, dx, dy);
     std::vector<double> e1, e2;
     double err = residual(r1, r2, dx, dy, e1, e2);
-    for (int step = 0; step < kRefinementSteps && err > 0.0; ++step) {
+    for (int step = 0; step < refinement_steps_ && err > 0.0; ++step) {
       std::copy(e1.begin(), e1.end(), z.begin());
       std::copy(e2.begin(), e2.end(), z.begin() + static_cast<std::ptrdiff_t>(n_));
       if (!ldlt_.solve(z)) break;
@@ -352,6 +364,8 @@ class QpKkt {
     }
     return true;
   }
+
+  void set_refinement(bool on) { refinement_steps_ = on ? kRefinementSteps : 0; }
 
   std::string describe() const {
     std::ostringstream oss;
@@ -485,6 +499,7 @@ class QpKkt {
   bool use_sparse_ = false;
   bool last_sparse_ = false;
   bool with_hessian_ = true;
+  int refinement_steps_ = kRefinementSteps;
   double reg_ = 0.0;
   int sparse_factorizations_ = 0;
   int dense_factorizations_ = 0;
@@ -499,27 +514,29 @@ class QpKkt {
   DenseLU lu_;
 };
 
-bool solve_newton_qp(const QpKkt& kkt, const std::vector<double>& x,
+bool solve_newton_qp(const QpKkt& kkt, const std::vector<char>& free, const std::vector<double>& x,
                      const std::vector<double>& s, const std::vector<double>& rp,
                      const std::vector<double>& rd, const std::vector<double>& rxs,
                      std::vector<double>& dx, std::vector<double>& dy,
                      std::vector<double>& ds) {
   // (Q+X^{-1}S) dx - A^T dy = -rd + X^{-1} rxs,  A dx = rp,
   // with rp = b - Ax (same convention as LP-IPM) and rxs as in LP-IPM
-  // (affine: rxs = -XSe).
+  // (affine: rxs = -XSe). Free columns have no complementarity row: ds = 0.
   const std::size_t n = x.size();
   std::vector<double> r1(n);
-  for (std::size_t j = 0; j < n; ++j) r1[j] = -rd[j] + rxs[j] / std::max(x[j], 1e-16);
+  for (std::size_t j = 0; j < n; ++j) r1[j] = free[j] ? -rd[j] : -rd[j] + rxs[j] / std::max(x[j], 1e-16);
   if (!kkt.solve(r1, rp, dx, dy)) return false;
 
   // S dx + X ds = rxs  =>  ds = (rxs - S dx) / X
   ds.assign(n, 0.0);
-  for (std::size_t j = 0; j < n; ++j) ds[j] = (rxs[j] - s[j] * dx[j]) / std::max(x[j], 1e-16);
+  for (std::size_t j = 0; j < n; ++j) {
+    if (!free[j]) ds[j] = (rxs[j] - s[j] * dx[j]) / std::max(x[j], 1e-16);
+  }
   return true;
 }
 
 SolverResult solve_qp_ipm(const IpmQp& lp, const QpInteriorPointOptions& opt,
-                          const OptimizationModel& original) {
+                          const OptimizationModel& original, bool mehrotra_start) {
   SolverResult result;
   const int m = lp.m;
   const int n = lp.n;
@@ -533,6 +550,7 @@ SolverResult solve_qp_ipm(const IpmQp& lp, const QpInteriorPointOptions& opt,
   std::vector<double> s(static_cast<std::size_t>(n), 1.0);
   std::vector<double> y(static_cast<std::size_t>(m), 0.0);
   QpKkt kkt(lp);
+  kkt.set_refinement(opt.iterative_refinement);
 
   // Mehrotra-like starting point (same spirit as LP-IPM): with H = I the
   // Newton system gives dy = (A A^T)^{-1} (b - A*ones); then push x, s positive.
@@ -544,11 +562,55 @@ SolverResult solve_qp_ipm(const IpmQp& lp, const QpInteriorPointOptions& opt,
       std::vector<double> r2 = lp.b;
       for (int i = 0; i < m; ++i) r2[static_cast<std::size_t>(i)] -= Ax[static_cast<std::size_t>(i)];
       std::vector<double> zero(static_cast<std::size_t>(n), 0.0), unused, dy;
-      if (kkt.solve(zero, r2, unused, dy)) {
+      if (mehrotra_start && kkt.solve(zero, r2, unused, dy)) {
+        // Mehrotra (1992): x~ = projection of 1 onto Ax = b, (y~, s~) the
+        // least-squares dual for c + Q x~, then shift both into the interior
+        // and balance them so x's is spread evenly.
+        std::vector<double> Atdy = matvec_At(lp.A, dy);
+        std::vector<double> xt(static_cast<std::size_t>(n));
+        for (int j = 0; j < n; ++j) xt[static_cast<std::size_t>(j)] = 1.0 + Atdy[static_cast<std::size_t>(j)];
+        std::vector<double> Qx0;
+        lp.Q.multiply(xt, Qx0);
+        std::vector<double> r1(static_cast<std::size_t>(n)), zero_m(static_cast<std::size_t>(m), 0.0), u, yls;
+        for (int j = 0; j < n; ++j) r1[static_cast<std::size_t>(j)] = -(lp.c[static_cast<std::size_t>(j)] + Qx0[static_cast<std::size_t>(j)]);
+        if (kkt.solve(r1, zero_m, u, yls)) {
+          double min_x = kInfinity, min_s = kInfinity;
+          for (int j = 0; j < n; ++j) {
+            if (lp.free[static_cast<std::size_t>(j)]) continue;
+            min_x = std::min(min_x, xt[static_cast<std::size_t>(j)]);
+            min_s = std::min(min_s, -u[static_cast<std::size_t>(j)]);
+          }
+          const double shift_x = std::max(-1.5 * min_x, 0.0), shift_s = std::max(-1.5 * min_s, 0.0);
+          double xs = 0.0, sum_x = 0.0, sum_s = 0.0;
+          for (int j = 0; j < n; ++j) {
+            if (lp.free[static_cast<std::size_t>(j)]) continue;
+            const double xh = xt[static_cast<std::size_t>(j)] + shift_x, sh = -u[static_cast<std::size_t>(j)] + shift_s;
+            xs += xh * sh;
+            sum_x += xh;
+            sum_s += sh;
+          }
+          const double bal_x = sum_s > 0.0 ? 0.5 * xs / sum_s : 1.0;
+          const double bal_s = sum_x > 0.0 ? 0.5 * xs / sum_x : 1.0;
+          for (int j = 0; j < n; ++j) {
+            const std::size_t jj = static_cast<std::size_t>(j);
+            if (lp.free[jj]) {
+              x[jj] = xt[jj];
+              continue;
+            }
+            x[jj] = std::max(1e-8, xt[jj] + shift_x + bal_x);
+            s[jj] = std::max(1e-8, -u[jj] + shift_s + bal_s);
+          }
+          y = yls;
+        }
+      } else if (kkt.solve(zero, r2, unused, dy)) {
         std::vector<double> Atdy = matvec_At(lp.A, dy);
         std::vector<double> Qones;
         lp.Q.multiply(ones, Qones);
         for (int j = 0; j < n; ++j) {
+          if (lp.free[static_cast<std::size_t>(j)]) {
+            x[static_cast<std::size_t>(j)] = 1.0 + Atdy[static_cast<std::size_t>(j)];
+            continue;
+          }
           x[static_cast<std::size_t>(j)] =
               std::max(1.0, std::abs(Atdy[static_cast<std::size_t>(j)]));
           s[static_cast<std::size_t>(j)] = std::max(
@@ -560,10 +622,31 @@ SolverResult solve_qp_ipm(const IpmQp& lp, const QpInteriorPointOptions& opt,
       }
     }
   }
-
+  int n_bounded = 0;
+  for (int j = 0; j < n; ++j) {
+    if (lp.free[static_cast<std::size_t>(j)]) s[static_cast<std::size_t>(j)] = 0.0;
+    else ++n_bounded;
+  }
+  const double complementarity_count = std::max(1, n_bounded);
+  bool has_quadratic = false;
+  for (double v : lp.Q.values) has_quadratic = has_quadratic || std::abs(v) > 1e-12;
   const double bnorm = std::max(1.0, max_abs(lp.b));
   const double cnorm = std::max(1.0, max_abs(lp.c));
   const double tau = opt.fraction_to_boundary;
+
+  // The gap is measured against the model's own objective, constant included:
+  // HS268 has a constant of 1.4e4 and an optimum near 6e-7, so a gap relative
+  // to the shifted objective alone would stop 1e-4 short.
+  double objective_offset = 0.0;
+  {
+    std::vector<double> shift_full(static_cast<std::size_t>(n), 0.0);
+    std::copy(lp.shift.begin(), lp.shift.end(), shift_full.begin());
+    std::vector<double> Qs;
+    lp.Q.multiply(shift_full, Qs);
+    const double sense_sign = lp.original_sense == Sense::Maximize ? -1.0 : 1.0;
+    objective_offset = dot(lp.c, shift_full) - 0.5 * dot(shift_full, Qs) +
+                       sense_sign * original.objective.constant;
+  }
 
   for (int it = 0; it < opt.max_iterations; ++it) {
     std::vector<double> Ax;
@@ -582,11 +665,13 @@ SolverResult solve_qp_ipm(const IpmQp& lp, const QpInteriorPointOptions& opt,
                                         s[static_cast<std::size_t>(j)];
     }
 
-    const double mu = dot(x, s) / static_cast<double>(n);
+    const double mu = dot(x, s) / complementarity_count;
     const double p_res = max_abs(rp) / bnorm;
     const double d_res = max_abs(rd) / std::max(1.0, cnorm + max_abs(Qx));
-    const double gap = mu / (1.0 + std::abs(dot(lp.c, x) + 0.5 * dot(x, Qx)));
-
+    // x's, not its average mu, is the objective error bound; with n in the
+    // thousands (AUG3DQP) an average-based test stops 1e-5 short.
+    const double gap = mu * complementarity_count /
+                       (1.0 + std::abs(dot(lp.c, x) + 0.5 * dot(x, Qx) + objective_offset));
     if (p_res < opt.feasibility_tol && d_res < opt.feasibility_tol &&
         gap < opt.optimality_tol) {
       result.status = SolverStatus::Optimal;
@@ -633,39 +718,48 @@ SolverResult solve_qp_ipm(const IpmQp& lp, const QpInteriorPointOptions& opt,
           -x[static_cast<std::size_t>(j)] * s[static_cast<std::size_t>(j)];
     }
     std::vector<double> dx_aff, dy_aff, ds_aff;
-    if (!solve_newton_qp(kkt, x, s, rp, rd, rxs, dx_aff, dy_aff, ds_aff)) {
+    if (!solve_newton_qp(kkt, lp.free, x, s, rp, rd, rxs, dx_aff, dy_aff, ds_aff)) {
       result.status = SolverStatus::Error;
       result.message = "QP-IPM Newton solve failed (affine).";
       result.iterations = it;
       return result;
     }
-    const double alpha_p_aff = step_to_bound(x, dx_aff);
-    const double alpha_d_aff = step_to_bound(s, ds_aff);
+    const double alpha_p_aff = step_to_bound(x, dx_aff, lp.free);
+    const double alpha_d_aff = step_to_bound(s, ds_aff, lp.free);
     double mu_aff = 0.0;
     for (int j = 0; j < n; ++j) {
+      if (lp.free[static_cast<std::size_t>(j)]) continue;
       mu_aff += (x[static_cast<std::size_t>(j)] + alpha_p_aff * dx_aff[static_cast<std::size_t>(j)]) *
                 (s[static_cast<std::size_t>(j)] + alpha_d_aff * ds_aff[static_cast<std::size_t>(j)]);
     }
-    mu_aff /= static_cast<double>(n);
+    mu_aff /= complementarity_count;
     const double sigma = (mu > 0.0) ? std::min(1.0, std::pow(mu_aff / mu, 3.0)) : 0.0;
 
     for (int j = 0; j < n; ++j) {
-      rxs[static_cast<std::size_t>(j)] =
+      rxs[static_cast<std::size_t>(j)] = lp.free[static_cast<std::size_t>(j)] ? 0.0 :
           -x[static_cast<std::size_t>(j)] * s[static_cast<std::size_t>(j)] -
           dx_aff[static_cast<std::size_t>(j)] * ds_aff[static_cast<std::size_t>(j)] +
           sigma * mu;
     }
     std::vector<double> dx, dy, ds;
-    if (!solve_newton_qp(kkt, x, s, rp, rd, rxs, dx, dy, ds)) {
+    if (!solve_newton_qp(kkt, lp.free, x, s, rp, rd, rxs, dx, dy, ds)) {
       result.status = SolverStatus::Error;
       result.message = "QP-IPM Newton solve failed (corrector).";
       result.iterations = it;
       return result;
     }
 
-    double alpha_p = std::min(1.0, tau * step_to_bound(x, dx));
-    double alpha_d = std::min(1.0, tau * step_to_bound(s, ds));
+    double alpha_p = std::min(1.0, tau * step_to_bound(x, dx, lp.free));
+    double alpha_d = std::min(1.0, tau * step_to_bound(s, ds, lp.free));
+    // The dual residual Qx + c - A'y - s couples x into the dual, so unequal
+    // steps undo the Newton reduction of rd (LISWET1: rd grew while alpha_d
+    // was 1). Separate steps are only valid when Q is zero.
+    if (has_quadratic && opt.common_step) alpha_p = alpha_d = std::min(alpha_p, alpha_d);
     for (int j = 0; j < n; ++j) {
+      if (lp.free[static_cast<std::size_t>(j)]) {
+        x[static_cast<std::size_t>(j)] += alpha_p * dx[static_cast<std::size_t>(j)];
+        continue;
+      }
       x[static_cast<std::size_t>(j)] =
           std::max(1e-14, x[static_cast<std::size_t>(j)] + alpha_p * dx[static_cast<std::size_t>(j)]);
       s[static_cast<std::size_t>(j)] =
@@ -703,8 +797,28 @@ SolverResult QpInteriorPointSolver::solve(const OptimizationModel& model) const 
         return r;
       }
     }
+    QpInteriorPointOptions opt = options_;
+    if (const char* off = std::getenv("SOVEREIGN_QP_DISABLE")) {
+      const std::string list = std::string(",") + off + ",";
+      if (list.find(",refinement,") != std::string::npos) opt.iterative_refinement = false;
+      if (list.find(",common_step,") != std::string::npos) opt.common_step = false;
+      if (list.find(",retry,") != std::string::npos) opt.retry_mehrotra_start = false;
+    }
     IpmQp lp = build_qp_form(model);
-    return solve_qp_ipm(lp, options_, model);
+    SolverResult first = solve_qp_ipm(lp, opt, model, false);
+    if (first.status == SolverStatus::Optimal || !opt.retry_mehrotra_start) return first;
+    // Neither start dominates: the cheap one wins on most of Maros-Meszaros
+    // (QSC205 fails from Mehrotra's), Mehrotra's rescues badly scaled
+    // duals (QPILOTNO), so it is tried second.
+    SolverResult second = solve_qp_ipm(lp, opt, model, true);
+    if (second.status == SolverStatus::Optimal) {
+      second.iterations += first.iterations;
+      second.warnings.push_back("Default starting point failed (" + first.message +
+                                "); solved from Mehrotra's starting point.");
+      return second;
+    }
+    first.message += " | Mehrotra starting point: " + second.message;
+    return first;
   } catch (const std::exception& ex) {
     SolverResult r;
     r.status = SolverStatus::Error;

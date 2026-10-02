@@ -35,13 +35,16 @@ SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& 
 
   // Dual simplex first; it certifies only OPTIMAL and INFEASIBLE, so anything
   // else (an unbounded LP included) goes to the primal revised simplex.
+  auto run_primal = [&]() {
+    RevisedSimplexOptions opt;
+    return RevisedSimplexSolver(opt).solve(model);
+  };
   auto run_simplex = [&]() {
     SolverResult dual = solve_lp_dual_simplex(model, nullptr, nullptr);
     if (dual.status == SolverStatus::Optimal || dual.status == SolverStatus::Infeasible) {
       return dual;
     }
-    RevisedSimplexOptions opt;
-    SolverResult primal = RevisedSimplexSolver(opt).solve(model);
+    SolverResult primal = run_primal();
     primal.warnings.push_back("Dual simplex did not finish (" + describe_handoff(dual) +
                               "); solved with the primal revised simplex.");
     return primal;
@@ -61,11 +64,18 @@ SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& 
     return run_ipm();
   }
 
-  // auto: interior point first (fewer iterations on wide, sparse models),
-  // revised simplex as the fallback. Simplex is the safety net because it
-  // terminates on an exact basis condition, so it keeps working when the
-  // Newton system becomes ill-conditioned or the gap stalls.
+  // auto: dual simplex first. On the Netlib set it roughly halves the shifted
+  // geometric mean against interior point first, and it never pays for a
+  // dense normal-equations factor (fit2p, dfl001). It certifies only OPTIMAL
+  // and INFEASIBLE; anything else goes to interior point, then primal simplex.
+  SolverResult dual = solve_lp_dual_simplex(model, nullptr, nullptr);
+  if (dual.status == SolverStatus::Optimal || dual.status == SolverStatus::Infeasible) {
+    return dual;
+  }
+
   SolverResult ipm = run_ipm();
+  ipm.warnings.push_back("Dual simplex did not finish (" + describe_handoff(dual) +
+                         "); switched to interior point.");
 
   switch (ipm.status) {
     case SolverStatus::Optimal:
@@ -79,7 +89,7 @@ SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& 
       // proven answer, but keep the IPM point as a floor rather than discarding
       // a usable candidate.
       {
-        SolverResult simplex = run_simplex();
+        SolverResult simplex = run_primal();
         if (is_conclusive(simplex.status)) {
           simplex.warnings.push_back("Interior point returned an unproven point (" +
                                      describe_handoff(ipm) +
@@ -105,7 +115,7 @@ SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& 
 
   // IPM did not produce a verdict. Run the simplex, and say exactly why we are
   // running it rather than letting the fallback look like the normal path.
-  SolverResult simplex = run_simplex();
+  SolverResult simplex = run_primal();
   simplex.warnings.push_back("Interior point did not solve the problem (" +
                              describe_handoff(ipm) +
                              "); fell back to revised simplex.");
@@ -118,7 +128,8 @@ SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& 
   // would discard the diagnostic that the IPM got further than the simplex did.
   // Report NumericalError (we do not know the answer) and carry both reasons.
   std::ostringstream oss;
-  oss << "LP unsolved. Interior point: " << describe_handoff(ipm)
+  oss << "LP unsolved. Dual simplex: " << describe_handoff(dual)
+      << " | Interior point: " << describe_handoff(ipm)
       << " | Revised simplex: " << describe_handoff(simplex);
   SolverResult failed = simplex.has_objective_value ? simplex : SolverResult();
   failed.status = (simplex.status == SolverStatus::Infeasible ||

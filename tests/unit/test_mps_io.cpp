@@ -59,6 +59,12 @@ TEST(Mps, BoundsOnlyVariablesAndFirstBoundSet) {
   EXPECT_EQ(m.variables[1].lower_bound,2.0);
 }
 
+TEST(Mps, FreeBoundWithColumnNameInFixedValueField) {
+  auto m=load_model_from_mps_string(prefix+" X OBJ 1 CAP 1\nBOUNDS\n FR bnd                 X           \nENDATA\n").model;
+  EXPECT_EQ(m.variables[0].lower_bound,-1e30);
+  EXPECT_EQ(m.variables[0].upper_bound,1e30);
+}
+
 TEST(Mps, FixedNamesAndBlankColumnContinuation) {
   auto card=[](const std::string& col,const std::string& row,const std::string& value) {
     std::string s(36,' '); s.replace(4,col.size(),col); s.replace(14,row.size(),row); s.replace(24,value.size(),value); return s+"\n";

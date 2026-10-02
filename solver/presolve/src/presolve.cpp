@@ -18,6 +18,27 @@ bool is_fixed(const Variable& v, double tol) {
   return nearly_equal(v.lower_bound, v.upper_bound, tol);
 }
 
+constexpr double kInfBound = 1e29;
+
+// Implied bounds are recomputed pass after pass, so rows with large
+// coefficients or bounds accumulate rounding error far above `tol`.
+// Infeasibility is only claimed once a violation clears this margin.
+double infeasibility_margin(double scale) {
+  return 1e-6 * (1.0 + std::abs(scale));
+}
+
+// Bounds crossing by less than the margin are rounding noise: pin the variable
+// at the midpoint instead of declaring the model infeasible.
+bool bounds_conflict(Variable& v) {
+  if (v.lower_bound <= v.upper_bound) return false;
+  const double scale = std::max(std::abs(v.lower_bound), std::abs(v.upper_bound));
+  if (v.lower_bound - v.upper_bound > infeasibility_margin(scale)) return true;
+  const double mid = 0.5 * (v.lower_bound + v.upper_bound);
+  v.lower_bound = mid;
+  v.upper_bound = mid;
+  return false;
+}
+
 std::unordered_map<std::string, int> variable_index(const OptimizationModel& model) {
   std::unordered_map<std::string, int> index;
   index.reserve(model.variables.size() * 2);
@@ -143,6 +164,7 @@ bool remove_empty_and_redundant(OptimizationModel& model, PresolveResult& out,
   for (auto& c : model.constraints) {
     double min_act = 0.0;
     double max_act = 0.0;
+    double magnitude = std::abs(c.rhs);
     bool has_terms = false;
     for (const auto& kv : c.linear) {
       if (std::abs(kv.second) <= tol) continue;
@@ -158,14 +180,17 @@ bool remove_empty_and_redundant(OptimizationModel& model, PresolveResult& out,
         min_act += a * v.upper_bound;
         max_act += a * v.lower_bound;
       }
+      if (std::abs(v.lower_bound) < kInfBound) magnitude = std::max(magnitude, std::abs(a * v.lower_bound));
+      if (std::abs(v.upper_bound) < kInfBound) magnitude = std::max(magnitude, std::abs(a * v.upper_bound));
     }
+    const double margin = infeasibility_margin(magnitude);
 
     if (!has_terms) {
       // 0 ? rhs
       bool ok = true;
-      if (c.sense == ConstraintSense::Le) ok = (0.0 <= c.rhs + tol);
-      else if (c.sense == ConstraintSense::Ge) ok = (0.0 >= c.rhs - tol);
-      else ok = nearly_equal(0.0, c.rhs, tol);
+      if (c.sense == ConstraintSense::Le) ok = (0.0 <= c.rhs + margin);
+      else if (c.sense == ConstraintSense::Ge) ok = (0.0 >= c.rhs - margin);
+      else ok = nearly_equal(0.0, c.rhs, margin);
       if (!ok) {
         out.infeasible = true;
         out.message = "Presolve detected infeasible empty constraint: " + c.name;
@@ -183,7 +208,7 @@ bool remove_empty_and_redundant(OptimizationModel& model, PresolveResult& out,
 
     // Redundancy / infeasibility vs implied activity range
     if (c.sense == ConstraintSense::Le) {
-      if (min_act > c.rhs + tol) {
+      if (min_act > c.rhs + margin) {
         out.infeasible = true;
         out.message = "Presolve detected infeasible constraint: " + c.name;
         return true;
@@ -199,7 +224,7 @@ bool remove_empty_and_redundant(OptimizationModel& model, PresolveResult& out,
         continue;
       }
     } else if (c.sense == ConstraintSense::Ge) {
-      if (max_act < c.rhs - tol) {
+      if (max_act < c.rhs - margin) {
         out.infeasible = true;
         out.message = "Presolve detected infeasible constraint: " + c.name;
         return true;
@@ -215,7 +240,7 @@ bool remove_empty_and_redundant(OptimizationModel& model, PresolveResult& out,
         continue;
       }
     } else {  // Eq
-      if (min_act > c.rhs + tol || max_act < c.rhs - tol) {
+      if (min_act > c.rhs + margin || max_act < c.rhs - margin) {
         out.infeasible = true;
         out.message = "Presolve detected infeasible equality: " + c.name;
         return true;
@@ -289,9 +314,13 @@ bool fix_fixed_variables(OptimizationModel& model, PresolveResult& out, double t
     if (it->second.empty()) it = model.objective.quadratic.erase(it);
     else ++it;
   }
+  // Self-move-assignment empties a std::string under libstdc++, which erased
+  // the names of every kept variable before the first dropped one.
   std::size_t out_i = 0;
   for (std::size_t i = 0; i < model.variables.size(); ++i) {
-    if (!drop[i]) model.variables[out_i++] = std::move(model.variables[i]);
+    if (drop[i]) continue;
+    if (out_i != i) model.variables[out_i] = std::move(model.variables[i]);
+    ++out_i;
   }
   model.variables.resize(out_i);
   return true;
@@ -329,12 +358,14 @@ bool singleton_rows(OptimizationModel& model, PresolveResult& out, double tol,
 
       if (c.sense == ConstraintSense::Eq) {
         if (std::abs(a) <= tol) continue;
-        const double val = c.rhs / a;
-        if (val < v.lower_bound - tol || val > v.upper_bound + tol) {
+        double val = c.rhs / a;
+        const double margin = infeasibility_margin(val);
+        if (val < v.lower_bound - margin || val > v.upper_bound + margin) {
           out.infeasible = true;
           out.message = "Singleton equality conflicts bounds on " + name;
           return true;
         }
+        val = std::min(std::max(val, v.lower_bound), v.upper_bound);
         v.lower_bound = val;
         v.upper_bound = val;
         // Drop constraint; fixed-var pass will remove variable.
@@ -374,7 +405,7 @@ bool singleton_rows(OptimizationModel& model, PresolveResult& out, double tol,
         }
       }
 
-      if (v.lower_bound > v.upper_bound + tol) {
+      if (bounds_conflict(v)) {
         out.infeasible = true;
         out.message = "Singleton bound tightening proved infeasible on " + name;
         return true;
@@ -434,24 +465,34 @@ bool singleton_rows(OptimizationModel& model, PresolveResult& out, double tol,
         const double coeff = -a_keep / a_elim;
         const double offset = c.rhs / a_elim;
 
-        // Transfer bounds of eliminated variable onto the kept variable.
+        // The equality row is dropped, so elim's bounds survive only as bounds
+        // on keep: lb_e <= coeff*keep + offset <= ub_e. They are intersected
+        // exactly; tighten_bound's refusal to create finite upper bounds would
+        // silently drop them and let the recovered elim leave its range.
         const auto eidx_bounds = index.find(elim);
         const auto kidx_bounds = index.find(keep);
-        if (eidx_bounds != index.end() && kidx_bounds != index.end()) {
+        if (eidx_bounds == index.end() || kidx_bounds == index.end() || std::abs(coeff) <= tol) continue;
+        {
           const Variable& ev = model.variables[static_cast<std::size_t>(eidx_bounds->second)];
           Variable& kv = model.variables[static_cast<std::size_t>(kidx_bounds->second)];
-          // elim = coeff * keep + offset
-          // lb_e <= coeff*keep + offset <= ub_e
-          if (std::abs(coeff) > tol) {
-            double lo1 = (ev.lower_bound - offset) / coeff;
-            double hi1 = (ev.upper_bound - offset) / coeff;
-            if (coeff < 0) std::swap(lo1, hi1);
-            tighten_bound(kv, lo1, hi1, tol, &out.stats.tightened_bounds);
-            if (kv.lower_bound > kv.upper_bound + tol) {
-              out.infeasible = true;
-              out.message = "Substitution bounds infeasible for " + keep;
-              return true;
-            }
+          double lo1 = ev.lower_bound > -kInfBound ? (ev.lower_bound - offset) / coeff : -1e30;
+          double hi1 = ev.upper_bound < kInfBound ? (ev.upper_bound - offset) / coeff : 1e30;
+          if (coeff < 0) {
+            lo1 = ev.upper_bound < kInfBound ? (ev.upper_bound - offset) / coeff : -1e30;
+            hi1 = ev.lower_bound > -kInfBound ? (ev.lower_bound - offset) / coeff : 1e30;
+          }
+          if (lo1 > kv.lower_bound) {
+            kv.lower_bound = lo1;
+            ++out.stats.tightened_bounds;
+          }
+          if (hi1 < kv.upper_bound) {
+            kv.upper_bound = hi1;
+            ++out.stats.tightened_bounds;
+          }
+          if (bounds_conflict(kv)) {
+            out.infeasible = true;
+            out.message = "Substitution bounds infeasible for " + keep;
+            return true;
           }
         }
 
@@ -524,6 +565,8 @@ bool bound_tighten_from_rows(OptimizationModel& model, PresolveResult& out, doub
       terms.push_back({it->second, kv.second});
     }
     if (terms.size() < 2) continue;
+    double max_coef = 0.0;
+    for (const auto& term : terms) max_coef = std::max(max_coef, std::abs(term.second));
 
     // Row activity bounds: the finite part of each sum and how many terms are
     // unbounded. The rest of the row for term t is the total minus t's own
@@ -583,33 +626,32 @@ bool bound_tighten_from_rows(OptimizationModel& model, PresolveResult& out, doub
       const double rest_max = rest.max;
       const bool rest_min_ok = rest.min_inf == 0;
       const bool rest_max_ok = rest.max_inf == 0;
+      // Dividing by a coefficient far smaller than the row's largest one
+      // magnifies the rounding error in rest_min/rest_max into the bound.
+      const bool stable = std::abs(a) >= 1e-3 * max_coef;
+      // Only improvements that clear rounding noise are applied; tiny ones
+      // just feed error into the next pass.
+      auto apply = [&](double lb, double ub, double candidate) {
+        if (std::abs(candidate) > 1e9) return false;
+        return tighten_bound(v, lb, ub, infeasibility_margin(candidate), &out.stats.tightened_bounds);
+      };
 
-      if (c.sense == ConstraintSense::Le || c.sense == ConstraintSense::Eq) {
+      if (stable && (c.sense == ConstraintSense::Le || c.sense == ConstraintSense::Eq)) {
         // a x <= rhs - rest_min  (needs finite rest_min)
         if (rest_min_ok) {
-          if (a > 0) {
-            changed |= tighten_bound(v, v.lower_bound, (c.rhs - rest_min) / a, tol,
-                                     &out.stats.tightened_bounds);
-          } else {
-            changed |= tighten_bound(v, (c.rhs - rest_min) / a, v.upper_bound, tol,
-                                     &out.stats.tightened_bounds);
-          }
+          const double cand = (c.rhs - rest_min) / a;
+          changed |= a > 0 ? apply(v.lower_bound, cand, cand) : apply(cand, v.upper_bound, cand);
         }
       }
-      if (c.sense == ConstraintSense::Ge || c.sense == ConstraintSense::Eq) {
+      if (stable && (c.sense == ConstraintSense::Ge || c.sense == ConstraintSense::Eq)) {
         // a x >= rhs - rest_max  (needs finite rest_max)
         if (rest_max_ok) {
-          if (a > 0) {
-            changed |= tighten_bound(v, (c.rhs - rest_max) / a, v.upper_bound, tol,
-                                     &out.stats.tightened_bounds);
-          } else {
-            changed |= tighten_bound(v, v.lower_bound, (c.rhs - rest_max) / a, tol,
-                                     &out.stats.tightened_bounds);
-          }
+          const double cand = (c.rhs - rest_max) / a;
+          changed |= a > 0 ? apply(cand, v.upper_bound, cand) : apply(v.lower_bound, cand, cand);
         }
       }
 
-      if (v.lower_bound > v.upper_bound + tol) {
+      if (bounds_conflict(v)) {
         out.infeasible = true;
         out.message = "Bound tightening proved infeasible on " + v.name;
         return true;
@@ -720,7 +762,7 @@ PresolveResult Presolver::run(const OptimizationModel& model) const {
     ++out.stats.passes;
 
     for (auto& v : out.reduced.variables) {
-      if (v.lower_bound > v.upper_bound + tol) {
+      if (bounds_conflict(v)) {
         out.infeasible = true;
         out.message = "Inconsistent bounds on " + v.name;
         return out;
