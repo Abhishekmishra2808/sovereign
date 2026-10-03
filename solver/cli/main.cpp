@@ -45,7 +45,7 @@ double peak_memory_mb() {
 
 void print_usage() {
   std::cerr << "Usage:\n"
-            << "  sovereign solve <model.json|model.mps> [--verify] [--out <result.json>]\n"
+            << "  sovereign solve <model.json|model.mps> [--verify] [--summary-only] [--out <result.json>]\n"
             << "  sovereign version\n";
 }
 
@@ -62,12 +62,15 @@ int cmd_solve(int argc, char** argv) {
 
   std::string model_path = argv[2];
   bool do_verify = false;
+  bool summary_only = false;
   std::string out_path;
 
   for (int i = 3; i < argc; ++i) {
     std::string arg = argv[i];
     if (arg == "--verify") {
       do_verify = true;
+    } else if (arg == "--summary-only") {
+      summary_only = true;
     } else if (arg == "--out" && i + 1 < argc) {
       out_path = argv[++i];
     } else {
@@ -95,7 +98,8 @@ int cmd_solve(int argc, char** argv) {
     const char* presolve = std::getenv("SOVEREIGN_PRESOLVE");
     options.presolve = !presolve || std::string(presolve) != "0";
     const auto result = engine.solve(model, options);
-    auto payload = nlohmann::json::parse(sovereign::result_to_json_string(result));
+    auto payload = nlohmann::json::parse(
+        sovereign::result_to_json_string(result, !summary_only));
     payload["requested_device"] = device;
     payload["gpu_operations"] = sovereign::gpu_operations();
     payload["gpu_factorizations"] = sovereign::gpu_factorizations();

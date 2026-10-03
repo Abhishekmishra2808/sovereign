@@ -41,6 +41,10 @@ struct BranchAndBoundOptions {
   // Diving runs at the root, then every `dive_frequency` nodes (5x more often
   // while no incumbent exists). 0 disables tree dives.
   int dive_frequency = 50;
+  // Maximum integer fixings attempted by one diving heuristic. 0 means all
+  // integer variables (legacy behavior); the MILP entry point supplies an
+  // adaptive cap for wide models.
+  int dive_max_depth = 0;
   // After branching, continue with the preferred child before returning to the
   // best-bound queue.
   bool plunging = true;

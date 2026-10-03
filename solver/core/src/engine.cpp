@@ -127,7 +127,18 @@ SolverResult OptimizationEngine::solve(const OptimizationModel& model, const Eng
   } else {
     switch (to_solve.problem_type) {
       case ProblemType::LP:
-        result = LpSolver().solve(to_solve, options.lp_algorithm);
+        {
+          std::string algorithm = options.lp_algorithm;
+          // Sparse large LPs are dominated by simplex basis updates even when
+          // their structure is easy for the existing sparse IPM. Preserve
+          // explicit caller choices, but select IPM automatically for models
+          // large enough that the default simplex path becomes impractical.
+          if (algorithm.empty() && to_solve.variables.size() > 50000 &&
+              to_solve.constraints.size() > 10000) {
+            algorithm = "ipm";
+          }
+          result = LpSolver().solve(to_solve, algorithm);
+        }
         break;
       case ProblemType::QP:
         result = QpSolver().solve(to_solve);
@@ -164,6 +175,13 @@ SolverResult OptimizationEngine::solve(const OptimizationModel& model, const Eng
     }
   }
 
+  if (presolved) {
+    result.presolve_fixed_variables = prep.stats.fixed_variables;
+    result.presolve_substituted_variables = prep.stats.substituted_variables;
+    result.presolve_removed_constraints = prep.stats.removed_constraints;
+    result.presolve_tightened_bounds = prep.stats.tightened_bounds;
+    result.presolve_passes = prep.stats.passes;
+  }
   result.runtime_seconds = monotonic_seconds() - t0;
   return result;
 }

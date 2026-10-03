@@ -41,6 +41,16 @@ SolverResult QpSolver::solve(const OptimizationModel& model) const {
       ipm.status == SolverStatus::Infeasible || ipm.status == SolverStatus::Unbounded) {
     return ipm;
   }
+  const bool has_free_variable = std::any_of(model.variables.begin(), model.variables.end(),
+                                             [](const Variable& v) {
+                                               return v.lower_bound <= -1e29 &&
+                                                      v.upper_bound >= 1e29;
+                                             });
+  if (has_free_variable) {
+    ipm.status = SolverStatus::NumericalError;
+    ipm.message += " Frank-Wolfe fallback disabled because the QP has free variables.";
+    return ipm;
+  }
   SolverResult fw = ConvexQpSolver().solve(model);
   const char* off = std::getenv("SOVEREIGN_QP_DISABLE");
   const bool guard = !off || (std::string(",") + off + ",").find(",fw_guard,") == std::string::npos;

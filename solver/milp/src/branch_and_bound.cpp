@@ -905,7 +905,8 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
           node.depth == 0 ||
           (options_.dive_frequency > 0 && nodes % freq == 0 && within_budget);
       if (!h.found && dive_now) {
-        h = diving_heuristic(node_model, lp.primal, 0, options_.integer_tol, child_basis.get(),
+        h = diving_heuristic(node_model, lp.primal, options_.dive_max_depth,
+                             options_.integer_tol, child_basis.get(),
                              has_incumbent ? &incumbent : nullptr);
         dive_lps += h.lp_solves;
       }

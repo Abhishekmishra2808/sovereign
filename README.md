@@ -58,6 +58,27 @@ ctest --test-dir build --output-on-failure
 python examples\run_industrial_demos.py
 ```
 
+## LISWET1 evidence
+
+The official `LISWET1.SIF` in `benchmarks/data/` has active parameters
+`N=2000`, `K=2`, so the real instance has 2000 constraints and 2002
+variables. Run it with:
+
+```powershell
+python benchmarks/tools/run_liswet1.py `
+  --sif benchmarks/data/LISWET1.SIF `
+  --binary build64/solver/sovereign.exe `
+  --out-dir benchmarks/reports/liswet_real
+python benchmarks/tools/verify_liswet_independent.py `
+  --c-file benchmarks/reports/liswet_real/c.txt `
+  --x-file benchmarks/reports/liswet_real/x.txt
+```
+
+The official run is separate from the `n=10000` and `n=20000`
+**synthetic-scalability** experiments. Those larger runs are not official
+LISWET1 dimensions; their reports live under
+`benchmarks/reports/liswet_synthetic_scalability/` when regenerated.
+
 ## Non-negotiables
 
 1. Solver algorithms are implemented in this repo from mathematical foundations.

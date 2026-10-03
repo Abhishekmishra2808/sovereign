@@ -20,6 +20,29 @@ hashes, dimensions, source/origin and measured HiGHS references). Run
 results. License metadata is explicitly still unrecorded; a measured reference
 status is not a proof of optimum when the reference timed out.
 
+## Reproducible Netlib sweep
+
+The Netlib-specific sweep records every locally available feasible Netlib MPS.
+The existing `benchmarks/datasets/coverage/infeasible/` directory is a MIPLIB
+2017 corpus, not a Netlib infeasible set, so it is not mixed into this output.
+The sweep writes
+`results/netlib.csv`, `results/netlib.md`, and a performance-profile PNG.
+Statuses in the `sovereign_verified_status` column come from the independent
+original-model KKT verifier and fixed objective checks, not from the solver
+status alone.
+
+```powershell
+python benchmarks/tools/fetch_coverage_corpus.py --suite netlib
+python benchmarks/runners/run_netlib_sweep.py `
+  --binary build64/solver/sovereign.exe `
+  --time-limit 300
+```
+
+The runner preserves raw solver JSON and stderr logs under
+`results/netlib-raw/`. Missing local instances are listed in
+`results/netlib.md` with the fetch command; no synthetic replacement is
+created.
+
 ## Suites
 
 | Suite | Contents |

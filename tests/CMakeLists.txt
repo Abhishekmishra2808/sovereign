@@ -54,3 +54,39 @@ target_compile_definitions(sovereign_tests PRIVATE
 set_tests_properties(sovereign_tests PROPERTIES
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
 )
+
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+  add_test(
+    NAME liswet_gi_randomized
+    COMMAND ${Python3_EXECUTABLE}
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_liswet_gi_randomized.py"
+            --binary "$<TARGET_FILE:sovereign>"
+            --count 200
+  )
+  set_tests_properties(liswet_gi_randomized PROPERTIES
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
+    LABELS "randomized;slow"
+  )
+
+  add_test(
+    NAME liswet_gi_synthetic_scalability_n10000
+    COMMAND ${Python3_EXECUTABLE}
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_liswet_gi_large.py"
+            --binary "$<TARGET_FILE:sovereign>"
+  )
+  set_tests_properties(liswet_gi_synthetic_scalability_n10000 PROPERTIES
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
+    LABELS "large;slow;synthetic-scalability"
+  )
+
+  add_test(
+    NAME netlib_sweep_verifier
+    COMMAND ${Python3_EXECUTABLE}
+            "${CMAKE_CURRENT_SOURCE_DIR}/scripts/test_netlib_sweep.py"
+  )
+  set_tests_properties(netlib_sweep_verifier PROPERTIES
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/.."
+    LABELS "benchmark;verifier"
+  )
+endif()
