@@ -848,6 +848,14 @@ SolverResult Presolver::recover(const SolverResult& reduced_result,
     (void)original_sense;
   }
 
+  if (!out.dual.empty()) {
+    out.dual_certificate_space = "reduced_presolve_model";
+    out.warnings.push_back(
+        "Presolve recovery restores primal variables but does not reconstruct "
+        "dual multipliers for eliminated or redundant original rows; use a "
+        "no-presolve solve for an original-model dual certificate.");
+  }
+
   if (!prep.message.empty()) {
     out.warnings.push_back(prep.message);
   }

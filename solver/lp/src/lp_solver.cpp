@@ -21,6 +21,12 @@ std::string describe_handoff(const SolverResult& primary) {
   return oss.str();
 }
 
+void merge_lp_diagnostics(SolverResult& target, const SolverResult& source) {
+  for (const auto& entry : source.lp_diagnostics) {
+    target.lp_diagnostics[entry.first] = entry.second;
+  }
+}
+
 }  // namespace
 
 SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& algorithm) const {
@@ -45,6 +51,7 @@ SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& 
       return dual;
     }
     SolverResult primal = run_primal();
+    merge_lp_diagnostics(primal, dual);
     primal.warnings.push_back("Dual simplex did not finish (" + describe_handoff(dual) +
                               "); solved with the primal revised simplex.");
     return primal;
@@ -74,6 +81,7 @@ SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& 
   }
 
   SolverResult ipm = run_ipm();
+  merge_lp_diagnostics(ipm, dual);
   ipm.warnings.push_back("Dual simplex did not finish (" + describe_handoff(dual) +
                          "); switched to interior point.");
 
@@ -90,6 +98,8 @@ SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& 
       // a usable candidate.
       {
         SolverResult simplex = run_primal();
+        merge_lp_diagnostics(simplex, dual);
+        merge_lp_diagnostics(simplex, ipm);
         if (is_conclusive(simplex.status)) {
           simplex.warnings.push_back("Interior point returned an unproven point (" +
                                      describe_handoff(ipm) +
@@ -101,7 +111,9 @@ SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& 
                                    "); simplex fallback also failed (" +
                                    describe_handoff(simplex) +
                                    "). Reporting the interior point as a candidate only.");
-        return simplex.has_objective_value ? simplex : ipm;
+        if (simplex.has_objective_value) return simplex;
+        merge_lp_diagnostics(ipm, simplex);
+        return ipm;
       }
 
     case SolverStatus::TimeLimit:
@@ -116,6 +128,8 @@ SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& 
   // IPM did not produce a verdict. Run the simplex, and say exactly why we are
   // running it rather than letting the fallback look like the normal path.
   SolverResult simplex = run_primal();
+  merge_lp_diagnostics(simplex, dual);
+  merge_lp_diagnostics(simplex, ipm);
   simplex.warnings.push_back("Interior point did not solve the problem (" +
                              describe_handoff(ipm) +
                              "); fell back to revised simplex.");
@@ -131,7 +145,12 @@ SolverResult LpSolver::solve(const OptimizationModel& model, const std::string& 
   oss << "LP unsolved. Dual simplex: " << describe_handoff(dual)
       << " | Interior point: " << describe_handoff(ipm)
       << " | Revised simplex: " << describe_handoff(simplex);
-  SolverResult failed = simplex.has_objective_value ? simplex : SolverResult();
+  SolverResult failed = simplex.has_objective_value
+                            ? simplex
+                            : (ipm.has_objective_value ? ipm : SolverResult());
+  merge_lp_diagnostics(failed, dual);
+  merge_lp_diagnostics(failed, ipm);
+  merge_lp_diagnostics(failed, simplex);
   failed.status = (simplex.status == SolverStatus::Infeasible ||
                    simplex.status == SolverStatus::Unbounded)
                       ? simplex.status

@@ -26,16 +26,33 @@ struct StandardLp {
   std::vector<int> structural_index; // maps col -> original var index, or -1
   std::vector<double> shift;         // original x = shift + y for structural
   std::vector<double> col_scale;     // x_unscaled = col_scale * x_scaled
+  std::vector<double> row_scale;     // internal row = row_scale * row_sign * original row
+  std::vector<int> row_sign;         // sign applied when normalizing a negative RHS
+  std::vector<int> row_original_index;  // original constraint index, or -1 for a bound row
+  std::vector<int> row_bound_variable;  // variable index for generated upper-bound rows
   std::vector<int> logical_basis;    // size m: preferred initial basis column per row
   int n_structural = 0;
   int m = 0;
   int n = 0;
   Sense original_sense = Sense::Minimize;
   std::vector<std::string> warnings;
+  LpDiagnostics diagnostics;
 };
 
 double clamp_nonnegative(double v, double tol) {
   return (v < 0.0 && v > -tol) ? 0.0 : v;
+}
+
+void coefficient_range(const std::vector<double>& values, double& min_abs, double& max_abs_value) {
+  min_abs = std::numeric_limits<double>::infinity();
+  max_abs_value = 0.0;
+  for (double value : values) {
+    const double magnitude = std::abs(value);
+    if (magnitude == 0.0 || !std::isfinite(magnitude)) continue;
+    min_abs = std::min(min_abs, magnitude);
+    max_abs_value = std::max(max_abs_value, magnitude);
+  }
+  if (!std::isfinite(min_abs)) min_abs = 0.0;
 }
 
 StandardLp build_standard_form(const OptimizationModel& model, bool enable_scaling) {
@@ -68,6 +85,17 @@ StandardLp build_standard_form(const OptimizationModel& model, bool enable_scali
   }
 
   const int m_total = lp.m + static_cast<int>(ub_cons.size());
+  lp.row_scale.assign(static_cast<std::size_t>(m_total), 1.0);
+  lp.row_sign.assign(static_cast<std::size_t>(m_total), 1);
+  lp.row_original_index.assign(static_cast<std::size_t>(m_total), -1);
+  lp.row_bound_variable.assign(static_cast<std::size_t>(m_total), -1);
+  for (int r = 0; r < lp.m; ++r) {
+    lp.row_original_index[static_cast<std::size_t>(r)] = r;
+  }
+  for (std::size_t k = 0; k < ub_cons.size(); ++k) {
+    lp.row_bound_variable[static_cast<std::size_t>(lp.m + static_cast<int>(k))] =
+        ub_cons[k].var;
+  }
   // Count auxiliary columns: slack/surplus per original constraint + slack per ub
   // Equality: surplus=0, need artificial later
   // We'll create: for each <= : slack; for each >= : surplus; for each = : none yet
@@ -130,6 +158,7 @@ StandardLp build_standard_form(const OptimizationModel& model, bool enable_scali
   // If RHS < 0, multiply row by -1 and flip sense.
   for (int r = 0; r < m_total; ++r) {
     if (rhs[static_cast<std::size_t>(r)] < 0.0) {
+      lp.row_sign[static_cast<std::size_t>(r)] = -1;
       rhs[static_cast<std::size_t>(r)] = -rhs[static_cast<std::size_t>(r)];
       for (auto& e : rows[static_cast<std::size_t>(r)]) e.second = -e.second;
       if (kinds[static_cast<std::size_t>(r)] == RowKind::Le)
@@ -233,8 +262,11 @@ StandardLp build_standard_form(const OptimizationModel& model, bool enable_scali
     lp.A.finish_column(static_cast<std::size_t>(j));
   }
 
+  coefficient_range(lp.A.values, lp.diagnostics.coefficient_min_abs_before,
+                    lp.diagnostics.coefficient_max_abs_before);
   // Scaling: geometric row/column equilibration (CSC-friendly, O(nnz) per pass)
   lp.col_scale.assign(static_cast<std::size_t>(n_total), 1.0);
+  lp.diagnostics.scaling_applied = enable_scaling && m_total > 0 && n_total > 0;
   if (enable_scaling && m_total > 0 && n_total > 0) {
     for (int pass = 0; pass < 2; ++pass) {
       std::vector<double> row_max(static_cast<std::size_t>(m_total), 0.0);
@@ -249,6 +281,8 @@ StandardLp build_standard_form(const OptimizationModel& model, bool enable_scali
           row_scale[static_cast<std::size_t>(i)] =
               1.0 / std::sqrt(row_max[static_cast<std::size_t>(i)]);
         }
+        lp.row_scale[static_cast<std::size_t>(i)] *=
+            row_scale[static_cast<std::size_t>(i)];
       }
       for (int i = 0; i < m_total; ++i) {
         lp.b[static_cast<std::size_t>(i)] *= row_scale[static_cast<std::size_t>(i)];
@@ -277,6 +311,8 @@ StandardLp build_standard_form(const OptimizationModel& model, bool enable_scali
     }
     lp.warnings.push_back("Row/column equilibration scaling applied.");
   }
+  coefficient_range(lp.A.values, lp.diagnostics.coefficient_min_abs_after,
+                    lp.diagnostics.coefficient_max_abs_after);
 
   // Stash done via logical_basis
   return lp;
@@ -303,6 +339,7 @@ struct SimplexState {
   std::int64_t iterations = 0;
   int since_refactor = 0;
   int refactor_every = 64;
+  LpDiagnostics* diagnostics = nullptr;
 };
 
 void apply_eta_inv(std::vector<double>& x, int p, const std::vector<double>& alpha) {
@@ -370,6 +407,7 @@ bool refactor_basis(SimplexState& st) {
   if (!st.lu.factorize(static_cast<std::size_t>(st.lp->m), ptr, idx, val)) {
     return false;
   }
+  if (st.diagnostics != nullptr) ++st.diagnostics->refactorizations;
   st.etas.clear();
   st.since_refactor = 0;
   return true;
@@ -609,6 +647,17 @@ PhaseStatus run_phase(SimplexState& st, const std::vector<double>& c,
   recent_pivots.reserve(10);
 
   while (st.iterations < max_iterations) {
+    if (st.diagnostics != nullptr &&
+        (st.iterations < 8 || st.iterations % 10 == 0) &&
+        st.diagnostics->objective_history.size() < 128) {
+      double objective = 0.0;
+      for (int i = 0; i < st.lp->m; ++i) {
+        objective += c[static_cast<std::size_t>(st.basis[static_cast<std::size_t>(i)])] *
+                     st.xB[static_cast<std::size_t>(i)];
+      }
+      st.diagnostics->objective_history_iterations.push_back(st.iterations);
+      st.diagnostics->objective_history.push_back(objective);
+    }
     // Under Bland, drop product-form etas before pricing so duals cannot
     // drift through a long eta chain (the observed 6↔8 exact 2-cycle).
     // This is O(m³) per pivot while Bland is active — acceptable on small
@@ -680,6 +729,7 @@ PhaseStatus run_phase(SimplexState& st, const std::vector<double>& c,
     }
 
     if (ratio <= st.tol.feasibility) {
+      if (st.diagnostics != nullptr) ++st.diagnostics->degenerate_pivots;
       use_bland = true;
       improving_streak = 0;
     } else if (use_bland) {
@@ -716,6 +766,8 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
                             const OptimizationModel& original) {
   SolverResult result;
   result.warnings = lp.warnings;
+  result.lp_diagnostics["revised_simplex"] = lp.diagnostics;
+  result.lp_diagnostics["revised_simplex"].basis_state = "revised_simplex";
 
   if (lp.m == 0) {
     // Unconstrained besides bounds already encoded; minimize c'y with y>=0
@@ -727,6 +779,7 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
     if (unbounded) {
       result.status = SolverStatus::Unbounded;
       result.message = "Problem is unbounded.";
+      result.lp_diagnostics["revised_simplex"].stop_reason = result.message;
       return result;
     }
     result.status = SolverStatus::Optimal;
@@ -740,6 +793,8 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
     }
     result.objective_value = obj;
     result.message = "Optimal (no constraints).";
+    result.dual_certificate_space = "original_model";
+    result.lp_diagnostics["revised_simplex"].stop_reason = result.message;
     return result;
   }
 
@@ -787,6 +842,7 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
 
   SimplexState st;
   st.lp = &work;
+  st.diagnostics = &result.lp_diagnostics["revised_simplex"];
   st.tol.feasibility = opt.feasibility_tol;
   st.tol.optimality = opt.optimality_tol;
   st.tol.pivot = opt.pivot_tol;
@@ -890,6 +946,7 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
   // resume Phase II from the freshly refactored basis on the true RHS.
   constexpr int kMaxPolishRounds = 3;
   std::vector<double> x;
+  std::vector<double> final_y;
   for (int polish = 0;; ++polish) {
     const PhaseStatus ps2 = run_phase(st, c2, opt.max_iterations, false, &detail);
     result.iterations = st.iterations;
@@ -1000,7 +1057,10 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
     const bool dual_ok = -worst_rc <= opt.optimality_tol;
     const bool gap_ok = result.duality_gap <= std::max(opt.optimality_tol, 1e-9);
 
-    if (primal_ok && dual_ok && gap_ok) break;
+    if (primal_ok && dual_ok && gap_ok) {
+      final_y = y;
+      break;
+    }
     if (primal_ok && !dual_ok && polish < kMaxPolishRounds) {
       work.b = lp.b;
       for (double& v : st.xB) {
@@ -1043,6 +1103,20 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
     return result;
   }
 
+    for (int i = 0; i < lp.m; ++i) {
+      const double y_original =
+          final_y[static_cast<std::size_t>(i)] *
+          lp.row_scale[static_cast<std::size_t>(i)] *
+          static_cast<double>(lp.row_sign[static_cast<std::size_t>(i)]);
+      const int original = lp.row_original_index[static_cast<std::size_t>(i)];
+      const int bound_var = lp.row_bound_variable[static_cast<std::size_t>(i)];
+      if (original >= 0) {
+        result.dual["row_" + std::to_string(original)] = y_original;
+      } else if (bound_var >= 0) {
+        result.dual["upper_" + std::to_string(bound_var)] = y_original;
+      }
+    }
+
   double obj = original.objective.constant;
   for (int j = 0; j < lp.n_structural; ++j) {
     const double y_scaled = x[static_cast<std::size_t>(j)];
@@ -1056,7 +1130,12 @@ SolverResult solve_standard(const StandardLp& lp, const RevisedSimplexOptions& o
   result.status = SolverStatus::Optimal;
   result.has_objective_value = true;
   result.objective_value = obj;
+  result.dual_certificate_space = "original_model";
+  result.lp_diagnostics["revised_simplex"].final_primal_residual = result.primal_residual;
+  result.lp_diagnostics["revised_simplex"].final_dual_residual = result.dual_residual;
+  result.lp_diagnostics["revised_simplex"].final_gap = result.duality_gap;
   result.message = "Optimal solution found by revised simplex (product-form basis updates).";
+  result.lp_diagnostics["revised_simplex"].stop_reason = result.message;
   return result;
 }
 

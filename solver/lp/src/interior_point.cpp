@@ -27,16 +27,32 @@ struct IpmLp {
   std::vector<int> structural_index;
   std::vector<double> shift;
   std::vector<double> col_scale;
+  std::vector<double> row_scale;
+  std::vector<int> row_original_index;
+  std::vector<int> row_bound_variable;
   int n_structural = 0;
   int m = 0;
   int n = 0;
   Sense original_sense = Sense::Minimize;
+  LpDiagnostics diagnostics;
 };
 
 double max_abs(const std::vector<double>& v) {
   double m = 0.0;
   for (double x : v) m = std::max(m, std::abs(x));
   return m;
+}
+
+void coefficient_range(const std::vector<double>& values, double& min_abs, double& max_abs_value) {
+  min_abs = std::numeric_limits<double>::infinity();
+  max_abs_value = 0.0;
+  for (double value : values) {
+    const double magnitude = std::abs(value);
+    if (magnitude == 0.0 || !std::isfinite(magnitude)) continue;
+    min_abs = std::min(min_abs, magnitude);
+    max_abs_value = std::max(max_abs_value, magnitude);
+  }
+  if (!std::isfinite(min_abs)) min_abs = 0.0;
 }
 
 double dot(const std::vector<double>& a, const std::vector<double>& b) {
@@ -165,6 +181,8 @@ class NormalEquations {
 
   bool solve(std::vector<double>& rhs) const { return last_sparse_ ? ldlt_.solve(rhs) : lu_.solve(rhs); }
 
+  int factorization_count() const { return sparse_factorizations_ + dense_factorizations_; }
+
   std::string describe() const {
     std::ostringstream oss;
     if (!use_sparse_) {
@@ -233,6 +251,16 @@ IpmLp build_ipm_form(const OptimizationModel& model, bool enable_scaling) {
   std::vector<double> rhs(static_cast<std::size_t>(m_total), 0.0);
   std::vector<std::vector<std::pair<int, double>>> rows(
       static_cast<std::size_t>(m_total));
+  lp.row_scale.assign(static_cast<std::size_t>(m_total), 1.0);
+  lp.row_original_index.assign(static_cast<std::size_t>(m_total), -1);
+  lp.row_bound_variable.assign(static_cast<std::size_t>(m_total), -1);
+  for (int r = 0; r < m0; ++r) {
+    lp.row_original_index[static_cast<std::size_t>(r)] = r;
+  }
+  for (std::size_t k = 0; k < ub_cons.size(); ++k) {
+    lp.row_bound_variable[static_cast<std::size_t>(m0 + static_cast<int>(k))] =
+        ub_cons[k].var;
+  }
 
   auto add_coeff = [&](int row, int col, double val) {
     if (val == 0.0) return;
@@ -335,7 +363,10 @@ IpmLp build_ipm_form(const OptimizationModel& model, bool enable_scaling) {
     lp.A.finish_column(static_cast<std::size_t>(j));
   }
 
+  coefficient_range(lp.A.values, lp.diagnostics.coefficient_min_abs_before,
+                    lp.diagnostics.coefficient_max_abs_before);
   lp.col_scale.assign(static_cast<std::size_t>(n_total), 1.0);
+  lp.diagnostics.scaling_applied = enable_scaling && m_total > 0 && n_total > 0;
   if (enable_scaling && m_total > 0 && n_total > 0) {
     for (int pass = 0; pass < 2; ++pass) {
       std::vector<double> row_max(static_cast<std::size_t>(m_total), 0.0);
@@ -350,6 +381,7 @@ IpmLp build_ipm_form(const OptimizationModel& model, bool enable_scaling) {
           row_scale[static_cast<std::size_t>(i)] =
               1.0 / std::sqrt(row_max[static_cast<std::size_t>(i)]);
         }
+        lp.row_scale[static_cast<std::size_t>(i)] *= row_scale[static_cast<std::size_t>(i)];
         lp.b[static_cast<std::size_t>(i)] *= row_scale[static_cast<std::size_t>(i)];
       }
       for (std::size_t p = 0; p < lp.A.values.size(); ++p) {
@@ -371,6 +403,8 @@ IpmLp build_ipm_form(const OptimizationModel& model, bool enable_scaling) {
       }
     }
   }
+  coefficient_range(lp.A.values, lp.diagnostics.coefficient_min_abs_after,
+                    lp.diagnostics.coefficient_max_abs_after);
   return lp;
 }
 
@@ -447,6 +481,9 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
   std::vector<double> s(static_cast<std::size_t>(n), 1.0);
   std::vector<double> y(static_cast<std::size_t>(m), 0.0);
   NormalEquations normal(lp.A, opt.use_sparse_normal_equations);
+  result.lp_diagnostics["ipm"] = lp.diagnostics;
+  LpDiagnostics& diagnostics = result.lp_diagnostics["ipm"];
+  diagnostics.basis_state = "interior_point";
 
   // Mehrotra-like starting point from least-squares residual push
   {
@@ -471,6 +508,65 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
   const double bnorm = std::max(1.0, max_abs(lp.b));
   const double cnorm = std::max(1.0, max_abs(lp.c));
   const double tau = opt.fraction_to_boundary;
+  std::vector<double> best_x = x;
+  std::vector<double> best_y = y;
+  std::vector<double> best_s = s;
+  double best_metric = std::numeric_limits<double>::infinity();
+  double best_gap = std::numeric_limits<double>::infinity();
+  double best_primal_residual = std::numeric_limits<double>::infinity();
+  double best_dual_residual = std::numeric_limits<double>::infinity();
+  int best_iteration = 0;
+  int stale_iterations = 0;
+
+  auto publish_iterate = [&](const std::vector<double>& iterate_x,
+                             const std::vector<double>& iterate_y,
+                             const std::vector<double>& iterate_s,
+                             SolverStatus status,
+                             int iteration,
+                             double gap,
+                             double primal_residual,
+                             double dual_residual,
+                             const std::string& message) {
+    result.status = status;
+    result.iterations = iteration;
+    result.duality_gap = gap;
+    result.primal_residual = primal_residual;
+    result.dual_residual = dual_residual;
+    result.has_objective_value = true;
+    result.primal.clear();
+    result.dual.clear();
+    result.slacks.clear();
+    result.dual_certificate_space = "original_model";
+
+    double objective = original.objective.constant;
+    for (int j = 0; j < lp.n_structural; ++j) {
+      const double unscaled = lp.col_scale[static_cast<std::size_t>(j)] *
+                              iterate_x[static_cast<std::size_t>(j)];
+      const double value = lp.shift[static_cast<std::size_t>(j)] + unscaled;
+      const std::string& name = lp.names[static_cast<std::size_t>(j)];
+      result.primal[name] = value;
+      result.dual[name] = iterate_s[static_cast<std::size_t>(j)] /
+                          lp.col_scale[static_cast<std::size_t>(j)];
+      auto objective_it = original.objective.linear.find(name);
+      if (objective_it != original.objective.linear.end()) {
+        objective += objective_it->second * value;
+      }
+    }
+    for (int i = 0; i < lp.m; ++i) {
+      const double dual = lp.row_scale[static_cast<std::size_t>(i)] *
+                          iterate_y[static_cast<std::size_t>(i)];
+      const int original_row = lp.row_original_index[static_cast<std::size_t>(i)];
+      if (original_row >= 0) {
+        result.dual["row_" + std::to_string(original_row)] = dual;
+      }
+    }
+    result.objective_value = objective;
+    result.message = message;
+    diagnostics.final_primal_residual = primal_residual;
+    diagnostics.final_dual_residual = dual_residual;
+    diagnostics.final_gap = gap;
+    diagnostics.stop_reason = message;
+  };
 
   for (int it = 0; it < opt.max_iterations; ++it) {
     std::vector<double> Ax;
@@ -503,29 +599,44 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
     // (1009.0399 vs 1009.0000).
     const double complementarity = dot(x, s);
     const double gap = std::abs(complementarity) / (1.0 + std::abs(dot(lp.c, x)));
+    const double metric = std::max({p_res, d_res, gap});
+    if (metric < best_metric) {
+      best_metric = metric;
+      best_x = x;
+      best_y = y;
+      best_s = s;
+      best_gap = gap;
+      best_primal_residual = p_res;
+      best_dual_residual = d_res;
+      best_iteration = it + 1;
+      stale_iterations = 0;
+    } else {
+      ++stale_iterations;
+    }
+    const bool sample = it < 8 || it % 10 == 0 || it + 1 == opt.max_iterations;
+    if (sample && diagnostics.objective_history.size() < 128) {
+      diagnostics.objective_history_iterations.push_back(it + 1);
+      diagnostics.objective_history.push_back(dot(lp.c, x));
+      diagnostics.gap_history_iterations.push_back(it + 1);
+      diagnostics.gap_history.push_back(gap);
+      diagnostics.mu_history.push_back(mu);
+    }
+    if (gap < best_gap) {
+      best_gap = gap;
+      stale_iterations = 0;
+    } else if (stale_iterations >= 8 && diagnostics.stall_iteration < 0) {
+      diagnostics.stall_iteration = it + 1;
+      diagnostics.stall_gap = gap;
+      diagnostics.stall_mu = mu;
+    }
 
     if (p_res < opt.feasibility_tol && d_res < opt.feasibility_tol &&
         gap < opt.optimality_tol) {
-      result.status = SolverStatus::Optimal;
-      result.iterations = it + 1;
-      result.has_objective_value = true;
-      result.duality_gap = gap;
-      result.primal_residual = p_res;
-      result.dual_residual = d_res;
-      result.message = "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: " +
-                       normal.describe() + ".";
-
-      // Map structural solution back
-      double obj = original.objective.constant;
-      for (int j = 0; j < lp.n_structural; ++j) {
-        const double yj =
-            lp.col_scale[static_cast<std::size_t>(j)] * x[static_cast<std::size_t>(j)];
-        const double xv = lp.shift[static_cast<std::size_t>(j)] + yj;
-        result.primal[lp.names[static_cast<std::size_t>(j)]] = xv;
-        auto itc = original.objective.linear.find(lp.names[static_cast<std::size_t>(j)]);
-        if (itc != original.objective.linear.end()) obj += itc->second * xv;
-      }
-      result.objective_value = obj;
+      publish_iterate(
+          x, y, s, SolverStatus::Optimal, it + 1, gap, p_res, d_res,
+          "Optimal solution found by primal-dual interior-point (Mehrotra). Normal equations: " +
+              normal.describe() + ".");
+      diagnostics.refactorizations = normal.factorization_count();
       return result;
     }
 
@@ -538,12 +649,15 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
     const std::vector<double> d = scaling_diagonal(x, s);
     std::vector<double> dx_aff, dy_aff, ds_aff;
     if (!normal.factor(d) || !solve_newton(lp, normal, d, s, rp, rd, rxs, dx_aff, dy_aff, ds_aff)) {
-      result.status = SolverStatus::NumericalError;
-      result.message =
-          "IPM Newton normal-equations factorization is singular on the affine predictor "
-          "(the basis is numerically dependent). The iterate is not trustworthy, so falling "
-          "back to the simplex path is the correct response.";
-      result.iterations = it;
+      diagnostics.refactorizations = normal.factorization_count();
+      const SolverStatus candidate_status =
+          best_primal_residual <= opt.feasibility_tol ? SolverStatus::Feasible
+                                                      : SolverStatus::NumericalError;
+      publish_iterate(
+          best_x, best_y, best_s, candidate_status, best_iteration, best_gap,
+          best_primal_residual, best_dual_residual,
+          "IPM stopped because the affine predictor factorization failed; the best "
+          "iterate is returned with optimality unproven.");
       return result;
     }
 
@@ -567,12 +681,15 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
     }
     std::vector<double> dx, dy, ds;
     if (!solve_newton(lp, normal, d, s, rp, rd, rxs, dx, dy, ds)) {
-      result.status = SolverStatus::NumericalError;
-      result.message =
-          "IPM Newton normal-equations factorization is singular on the corrector "
-          "(the basis is numerically dependent). The iterate is not trustworthy, so "
-          "falling back to the simplex path is the correct response.";
-      result.iterations = it;
+      diagnostics.refactorizations = normal.factorization_count();
+      const SolverStatus candidate_status =
+          best_primal_residual <= opt.feasibility_tol ? SolverStatus::Feasible
+                                                      : SolverStatus::NumericalError;
+      publish_iterate(
+          best_x, best_y, best_s, candidate_status, best_iteration, best_gap,
+          best_primal_residual, best_dual_residual,
+          "IPM stopped because the corrector solve failed; the best iterate is "
+          "returned with optimality unproven.");
       return result;
     }
 
@@ -580,6 +697,14 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
     double alpha_d = tau * step_to_bound(s, ds);
     alpha_p = std::min(1.0, alpha_p);
     alpha_d = std::min(1.0, alpha_d);
+    if (sample && diagnostics.primal_step_history.size() < 128) {
+      diagnostics.primal_step_history.push_back(alpha_p);
+      diagnostics.dual_step_history.push_back(alpha_d);
+    }
+    if (diagnostics.stall_iteration == it + 1) {
+      diagnostics.stall_primal_step = alpha_p;
+      diagnostics.stall_dual_step = alpha_d;
+    }
 
     for (int j = 0; j < n; ++j) {
       x[static_cast<std::size_t>(j)] += alpha_p * dx[static_cast<std::size_t>(j)];
@@ -594,37 +719,23 @@ SolverResult solve_ipm(const IpmLp& lp, const InteriorPointOptions& opt,
     result.iterations = it + 1;
   }
 
-  // Iteration budget exhausted. Report the actual residuals so the caller can
-  // see *why* it stopped, and deliberately do NOT attach the last iterate: it
-  // is an interior point that has not met the gap test, so its objective is not
-  // a valid answer. Returning it with has_objective_value=true is how a
-  // suboptimal number escapes as if it were proven.
-  {
-    std::vector<double> Ax;
-    lp.A.multiply(x, Ax);
-    std::vector<double> rp = lp.b;
-    for (int i = 0; i < m; ++i) rp[static_cast<std::size_t>(i)] -= Ax[static_cast<std::size_t>(i)];
-    std::vector<double> Aty = matvec_At(lp.A, y);
-    std::vector<double> rd = lp.c;
-    for (int j = 0; j < n; ++j) {
-      rd[static_cast<std::size_t>(j)] -=
-          Aty[static_cast<std::size_t>(j)] + s[static_cast<std::size_t>(j)];
-    }
-    const double complementarity = dot(x, s);
-    const double gap = std::abs(complementarity) / (1.0 + std::abs(dot(lp.c, x)));
-
-    result.status = SolverStatus::IterationLimit;
-    result.duality_gap = gap;
-    result.primal_residual = max_abs(rp) / bnorm;
-    result.dual_residual = max_abs(rd) / cnorm;
-    std::ostringstream oss;
-    oss << "IPM did not converge in " << opt.max_iterations
-        << " iterations. Relative duality gap = " << gap
-        << " (tolerance " << opt.optimality_tol << "), primal residual = "
-        << result.primal_residual << ", dual residual = " << result.dual_residual
-        << ". No solution returned; the caller should fall back to the simplex path.";
-    result.message = oss.str();
-  }
+  // Iteration budget exhausted. Return the best observed iterate as an
+  // explicitly lower-accuracy candidate. Its residuals and dual certificate
+  // are diagnostics; the independent verifier decides whether it is usable.
+  diagnostics.refactorizations = normal.factorization_count();
+  const SolverStatus candidate_status =
+      best_primal_residual <= opt.feasibility_tol ? SolverStatus::Feasible
+                                                  : SolverStatus::NumericalError;
+  std::ostringstream oss;
+  oss << "IPM stopped after " << opt.max_iterations
+      << " iterations without meeting tolerance; returning best iterate from "
+      << best_iteration << " as a lower-accuracy candidate. Relative duality gap = "
+      << best_gap << " (tolerance " << opt.optimality_tol
+      << "), primal residual = " << best_primal_residual
+      << ", dual residual = " << best_dual_residual
+      << ". Optimality is not proven.";
+  publish_iterate(best_x, best_y, best_s, candidate_status, best_iteration, best_gap,
+                  best_primal_residual, best_dual_residual, oss.str());
   return result;
 }
 

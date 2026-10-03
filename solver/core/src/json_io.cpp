@@ -137,7 +137,36 @@ std::string model_to_json_string(const OptimizationModel& model) {
   return model_to_json(model).dump(2);
 }
 
-std::string result_to_json_string(const SolverResult& result) {
+json lp_diagnostics_to_json(const LpDiagnostics& d) {
+  return json{
+      {"scaling_applied", d.scaling_applied},
+      {"coefficient_min_abs_before", d.coefficient_min_abs_before},
+      {"coefficient_max_abs_before", d.coefficient_max_abs_before},
+      {"coefficient_min_abs_after", d.coefficient_min_abs_after},
+      {"coefficient_max_abs_after", d.coefficient_max_abs_after},
+      {"degenerate_pivots", d.degenerate_pivots},
+      {"refactorizations", d.refactorizations},
+      {"objective_history_iterations", d.objective_history_iterations},
+      {"objective_history", d.objective_history},
+      {"gap_history_iterations", d.gap_history_iterations},
+      {"gap_history", d.gap_history},
+      {"mu_history", d.mu_history},
+      {"primal_step_history", d.primal_step_history},
+      {"dual_step_history", d.dual_step_history},
+      {"stall_iteration", d.stall_iteration},
+      {"stall_gap", d.stall_gap},
+      {"stall_mu", d.stall_mu},
+      {"stall_primal_step", d.stall_primal_step},
+      {"stall_dual_step", d.stall_dual_step},
+      {"final_primal_residual", d.final_primal_residual},
+      {"final_dual_residual", d.final_dual_residual},
+      {"final_gap", d.final_gap},
+      {"basis_state", d.basis_state},
+      {"stop_reason", d.stop_reason},
+  };
+}
+
+std::string result_to_json_string(const SolverResult& result, bool include_primal) {
   json j;
   j["status"] = to_string(result.status);
   if (result.has_objective_value) {
@@ -145,13 +174,34 @@ std::string result_to_json_string(const SolverResult& result) {
   } else {
     j["objective_value"] = nullptr;
   }
-  j["primal"] = result.primal;
+  if (include_primal) {
+    j["primal"] = result.primal;
+  } else {
+    j["primal"] = nullptr;
+    j["primal_variables"] = result.primal.size();
+  }
+  j["dual"] = result.dual;
+  j["slacks"] = result.slacks;
+  j["dual_certificate_space"] = result.dual_certificate_space.empty()
+                                    ? nullptr
+                                    : json(result.dual_certificate_space);
+  j["lp_diagnostics"] = json::object();
+  for (const auto& entry : result.lp_diagnostics) {
+    j["lp_diagnostics"][entry.first] = lp_diagnostics_to_json(entry.second);
+  }
   j["optimality_gap"] = result.optimality_gap;
   // Certificates. A reader (or the dashboard) can now check the claim instead of
   // having to take the status string on faith.
   j["duality_gap"] = result.duality_gap;
   j["primal_residual"] = result.primal_residual;
   j["dual_residual"] = result.dual_residual;
+  j["presolve"] = {
+      {"fixed_variables", result.presolve_fixed_variables},
+      {"substituted_variables", result.presolve_substituted_variables},
+      {"removed_constraints", result.presolve_removed_constraints},
+      {"tightened_bounds", result.presolve_tightened_bounds},
+      {"passes", result.presolve_passes},
+  };
   j["optimality_proven"] = is_conclusive(result.status);
   j["iterations"] = result.iterations;
   j["nodes"] = result.nodes;

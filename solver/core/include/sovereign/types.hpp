@@ -58,11 +58,45 @@ struct OptimizationModel {
   std::vector<Constraint> constraints;
 };
 
+// Solver-side LP diagnostics are observational. They are serialized so a
+// benchmark can explain a stall or numerical failure without changing pivot
+// selection, tolerances, or termination decisions.
+struct LpDiagnostics {
+  bool scaling_applied = false;
+  double coefficient_min_abs_before = 0.0;
+  double coefficient_max_abs_before = 0.0;
+  double coefficient_min_abs_after = 0.0;
+  double coefficient_max_abs_after = 0.0;
+  std::int64_t degenerate_pivots = 0;
+  std::int64_t refactorizations = 0;
+  std::vector<std::int64_t> objective_history_iterations;
+  std::vector<double> objective_history;
+  std::vector<std::int64_t> gap_history_iterations;
+  std::vector<double> gap_history;
+  std::vector<double> mu_history;
+  std::vector<double> primal_step_history;
+  std::vector<double> dual_step_history;
+  std::int64_t stall_iteration = -1;
+  double stall_gap = 0.0;
+  double stall_mu = 0.0;
+  double stall_primal_step = 0.0;
+  double stall_dual_step = 0.0;
+  double final_primal_residual = 0.0;
+  double final_dual_residual = 0.0;
+  double final_gap = 0.0;
+  std::string basis_state;
+  std::string stop_reason;
+};
+
 struct SolverResult {
   SolverStatus status = SolverStatus::NotImplemented;
   bool has_objective_value = false;
   double objective_value = 0.0;
   std::unordered_map<std::string, double> primal;
+  // Optional solver-side dual/slack diagnostics. Keys are model variable names
+  // for dual slacks and implementation-defined row names for row multipliers.
+  std::unordered_map<std::string, double> dual;
+  std::unordered_map<std::string, double> slacks;
   double optimality_gap = 0.0;
 
   // Certificates / diagnostics. `duality_gap` is the relative duality gap
@@ -72,6 +106,19 @@ struct SolverResult {
   double duality_gap = 0.0;
   double primal_residual = 0.0;
   double dual_residual = 0.0;
+  // "original_model" means row_<i> keys match the model passed to the LP
+  // solver. Presolve recovery cannot currently reconstruct multipliers for
+  // eliminated rows, so it marks the result as "reduced_presolve_model".
+  std::string dual_certificate_space;
+  std::unordered_map<std::string, LpDiagnostics> lp_diagnostics;
+
+  // Presolve bookkeeping is diagnostic metadata only. The solver algorithms
+  // and their tolerances do not depend on these counters.
+  int presolve_fixed_variables = 0;
+  int presolve_substituted_variables = 0;
+  int presolve_removed_constraints = 0;
+  int presolve_tightened_bounds = 0;
+  int presolve_passes = 0;
 
   std::int64_t iterations = 0;
   std::int64_t nodes = 0;

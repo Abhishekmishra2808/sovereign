@@ -39,6 +39,18 @@ double pow2(double s) {
   return std::ldexp(1.0, e - 1);
 }
 
+void coefficient_range(const std::vector<double>& values, double& min_abs, double& max_abs_value) {
+  min_abs = kInf;
+  max_abs_value = 0.0;
+  for (double value : values) {
+    const double magnitude = std::abs(value);
+    if (magnitude == 0.0 || !std::isfinite(magnitude)) continue;
+    min_abs = std::min(min_abs, magnitude);
+    max_abs_value = std::max(max_abs_value, magnitude);
+  }
+  if (!std::isfinite(min_abs)) min_abs = 0.0;
+}
+
 // Product-form update E^{-1}: column `pivot` of E is the entering column in
 // the old basis; only its off-pivot nonzeros are stored.
 struct Eta {
@@ -55,10 +67,16 @@ class DualSimplex {
 
   SolverResult run(const LpBasis* warm, LpBasis* basis_out) {
     SolverResult result;
-    if (!build(result)) return result;
+    diagnostics_ = &result.lp_diagnostics["dual_simplex"];
+    diagnostics_->basis_state = "dual_simplex";
+    if (!build(result)) {
+      diagnostics_->stop_reason = result.message;
+      return result;
+    }
     if (!initial_basis(warm)) {
       result.status = SolverStatus::NumericalError;
       result.message = "Dual simplex: initial basis is singular.";
+      diagnostics_->stop_reason = result.message;
       return result;
     }
     const int max_iter = opt_.max_iterations > 0 ? opt_.max_iterations
@@ -70,10 +88,22 @@ class DualSimplex {
     std::vector<double> alpha_col(static_cast<std::size_t>(m_));
 
     while (true) {
+      if (diagnostics_ != nullptr &&
+          (iterations_ < 8 || iterations_ % 10 == 0) &&
+          diagnostics_->objective_history.size() < 128) {
+        double objective = 0.0;
+        for (int k = 0; k < n_ + m_; ++k) {
+          objective += cost_[static_cast<std::size_t>(k)] *
+                       x_[static_cast<std::size_t>(k)];
+        }
+        diagnostics_->objective_history_iterations.push_back(iterations_);
+        diagnostics_->objective_history.push_back(objective);
+      }
       if (iterations_ >= max_iter) {
         result.status = SolverStatus::IterationLimit;
         result.message = "Dual simplex hit its iteration limit.";
         result.iterations = iterations_;
+        diagnostics_->stop_reason = result.message;
         return result;
       }
 
@@ -115,6 +145,7 @@ class DualSimplex {
           result.status = SolverStatus::Infeasible;
           result.iterations = iterations_;
           result.message = "LP infeasible (dual simplex: certified by an implied row with no feasible activity).";
+          diagnostics_->stop_reason = result.message;
           return result;
         }
         if (++infeasible_retries > 2 || !refresh()) {
@@ -162,6 +193,9 @@ class DualSimplex {
       d_[static_cast<std::size_t>(p)] = -theta_d;
 
       const double theta_p = delta / pivot;
+      if (std::abs(theta_p) <= opt_.primal_tol && diagnostics_ != nullptr) {
+        ++diagnostics_->degenerate_pivots;
+      }
       for (int i = 0; i < m_; ++i) {
         x_[static_cast<std::size_t>(head_[static_cast<std::size_t>(i)])] -=
             theta_p * alpha_col[static_cast<std::size_t>(i)];
@@ -218,6 +252,15 @@ class DualSimplex {
       }
     }
 
+    if (diagnostics_ != nullptr) {
+      std::vector<double> raw_values;
+      for (const auto& col : cols) {
+        for (const auto& entry : col) raw_values.push_back(entry.second);
+      }
+      coefficient_range(raw_values, diagnostics_->coefficient_min_abs_before,
+                        diagnostics_->coefficient_max_abs_before);
+      diagnostics_->scaling_applied = opt_.scaling;
+    }
     row_scale_.assign(static_cast<std::size_t>(m_), 1.0);
     col_scale_.assign(static_cast<std::size_t>(n_), 1.0);
     if (opt_.scaling) {
@@ -258,6 +301,10 @@ class DualSimplex {
       col_ptr_[static_cast<std::size_t>(j) + 1] = static_cast<int>(row_idx_.size());
     }
 
+    if (diagnostics_ != nullptr) {
+      coefficient_range(val_, diagnostics_->coefficient_min_abs_after,
+                        diagnostics_->coefficient_max_abs_after);
+    }
     const int total = n_ + m_;
     lower_.assign(static_cast<std::size_t>(total), 0.0);
     upper_.assign(static_cast<std::size_t>(total), 0.0);
@@ -325,7 +372,10 @@ class DualSimplex {
     }
     etas_.clear();
     since_refactor_ = 0;
-    return lu_.factorize(static_cast<std::size_t>(m_), basis_ptr_, basis_idx_, basis_val_);
+    const bool ok =
+        lu_.factorize(static_cast<std::size_t>(m_), basis_ptr_, basis_idx_, basis_val_);
+    if (ok && diagnostics_ != nullptr) ++diagnostics_->refactorizations;
+    return ok;
   }
 
   bool ftran(std::vector<double>& v) const {
@@ -443,6 +493,7 @@ class DualSimplex {
       y[static_cast<std::size_t>(i)] = cost_[static_cast<std::size_t>(head_[static_cast<std::size_t>(i)])];
     }
     btran(y);
+    row_dual_scaled_ = y;
     for (int k = 0; k < n_ + m_; ++k) {
       if (status_[static_cast<std::size_t>(k)] == BasisStatus::Basic) {
         d_[static_cast<std::size_t>(k)] = 0.0;
@@ -659,11 +710,64 @@ class DualSimplex {
     return (lo_finite && lo > margin) || (hi_finite && hi < -margin);
   }
 
+  double condition_estimate() const {
+    if (m_ <= 0) return 1.0;
+    double basis_norm = 0.0;
+    for (int j = 0; j < m_; ++j) {
+      double column_sum = 0.0;
+      for (int p = basis_ptr_[static_cast<std::size_t>(j)];
+           p < basis_ptr_[static_cast<std::size_t>(j) + 1]; ++p) {
+        column_sum += std::abs(basis_val_[static_cast<std::size_t>(p)]);
+      }
+      basis_norm = std::max(basis_norm, column_sum);
+    }
+    double inverse_norm = 0.0;
+    for (int j = 0; j < m_; ++j) {
+      std::vector<double> unit(static_cast<std::size_t>(m_), 0.0);
+      unit[static_cast<std::size_t>(j)] = 1.0;
+      if (!ftran(unit)) return kInf;
+      double column_sum = 0.0;
+      for (double value : unit) column_sum += std::abs(value);
+      inverse_norm = std::max(inverse_norm, column_sum);
+    }
+    return basis_norm * inverse_norm;
+  }
+
+  std::string basis_status(int k) const {
+    const BasisStatus state = status_[static_cast<std::size_t>(k)];
+    const char* label = state == BasisStatus::Basic
+                            ? "basic"
+                            : state == BasisStatus::AtLower
+                                  ? "at_lower"
+                                  : state == BasisStatus::AtUpper ? "at_upper" : "free";
+    std::ostringstream oss;
+    oss << (k < n_ ? model_.variables[static_cast<std::size_t>(k)].name
+                   : "row_" + std::to_string(k - n_))
+        << ":" << label << ", x=" << x_[static_cast<std::size_t>(k)]
+        << ", lower=" << lower_[static_cast<std::size_t>(k)]
+        << ", upper=" << upper_[static_cast<std::size_t>(k)]
+        << ", artificial=" << static_cast<int>(artificial_[static_cast<std::size_t>(k)]);
+    return oss.str();
+  }
+
+  std::string temporary_bound_diagnostic(int k) const {
+    std::ostringstream oss;
+    oss << "a temporary bound is active, so the LP may be unbounded"
+        << "; iteration=" << iterations_
+        << "; condition_estimate_1norm=" << condition_estimate()
+        << "; basis_state={" << basis_status(k) << "}";
+    return oss.str();
+  }
+
   // ---- results ----------------------------------------------------------
   SolverResult& numerical(SolverResult& result, const std::string& why) {
     result.status = SolverStatus::NumericalError;
     result.iterations = iterations_;
     result.message = "Dual simplex could not certify a result: " + why + ".";
+    if (diagnostics_ != nullptr) {
+      diagnostics_->stop_reason = result.message;
+      diagnostics_->basis_state = "iteration=" + std::to_string(iterations_);
+    }
     return result;
   }
 
@@ -673,7 +777,7 @@ class DualSimplex {
       const BasisStatus s = status_[static_cast<std::size_t>(k)];
       if ((s == BasisStatus::AtLower && lower_[static_cast<std::size_t>(k)] != orig_lower_[static_cast<std::size_t>(k)]) ||
           (s == BasisStatus::AtUpper && upper_[static_cast<std::size_t>(k)] != orig_upper_[static_cast<std::size_t>(k)])) {
-        return numerical(result, "a temporary bound is active, so the LP may be unbounded");
+        return numerical(result, temporary_bound_diagnostic(k));
       }
     }
 
@@ -728,7 +832,20 @@ class DualSimplex {
     result.iterations = iterations_;
     result.primal_residual = primal_violation;
     result.dual_residual = max_dual_infeasibility();
+    for (int i = 0; i < m_; ++i) {
+      // The internal dual is scaled by the row equilibration factor. Export
+      // original-row coordinates for benchmark-side KKT verification.
+      result.dual["row_" + std::to_string(i)] =
+          row_dual_scaled_[static_cast<std::size_t>(i)] *
+          row_scale_[static_cast<std::size_t>(i)];
+    }
     result.message = "Optimal solution found by bounded dual simplex.";
+    result.dual_certificate_space = "original_model";
+    if (diagnostics_ != nullptr) {
+      diagnostics_->final_primal_residual = result.primal_residual;
+      diagnostics_->final_dual_residual = result.dual_residual;
+      diagnostics_->stop_reason = result.message;
+    }
 
     if (basis_out != nullptr) {
       basis_out->cols.assign(status_.begin(), status_.begin() + n_);
@@ -752,6 +869,7 @@ class DualSimplex {
   std::vector<BasisStatus> status_;
   std::vector<int> head_;
   std::vector<double> x_, d_;
+  std::vector<double> row_dual_scaled_;
   std::vector<double> weight_;  // dual steepest-edge weights, per basis row
   std::vector<double> tau_;
   SparseLU lu_;
@@ -760,6 +878,7 @@ class DualSimplex {
   std::vector<Eta> etas_;
   int since_refactor_ = 0;
   int iterations_ = 0;
+  LpDiagnostics* diagnostics_ = nullptr;
 };
 
 }  // namespace

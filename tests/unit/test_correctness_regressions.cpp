@@ -342,9 +342,10 @@ TEST(IpmAccuracy, OptimalClaimIsBackedByResiduals) {
   }
 }
 
-TEST(IpmAccuracy, NonConvergenceReturnsNoObjective) {
-  // Starve the iteration budget. The solver must NOT hand back its last
-  // interior iterate as if it were an answer.
+TEST(IpmAccuracy, NonConvergenceReturnsBestCandidate) {
+  // Starve the iteration budget. The solver returns its best iterate as an
+  // explicitly lower-accuracy candidate; the status and residuals prevent it
+  // from being mistaken for a proven optimum.
   OptimizationModel model = build_transport(30);
   InteriorPointOptions iopt;
   iopt.max_iterations = 1;
@@ -352,10 +353,13 @@ TEST(IpmAccuracy, NonConvergenceReturnsNoObjective) {
   const SolverResult r = InteriorPointSolver(iopt).solve(model);
 
   if (r.status != SolverStatus::Optimal) {
-    EXPECT_FALSE(r.has_objective_value);
-    EXPECT_TRUE(r.primal.empty());
-    // The reason must be specific, not a generic ERROR.
-    EXPECT_NE(r.status, SolverStatus::Error);
+    EXPECT_TRUE(r.has_objective_value);
+    EXPECT_FALSE(r.primal.empty());
+    EXPECT_TRUE(r.status == SolverStatus::Feasible ||
+                r.status == SolverStatus::NumericalError);
+    EXPECT_TRUE(std::isfinite(r.primal_residual));
+    EXPECT_TRUE(std::isfinite(r.dual_residual));
+    EXPECT_TRUE(std::isfinite(r.duality_gap));
     EXPECT_FALSE(r.message.empty());
   }
 }
