@@ -15,6 +15,7 @@
 #include "sovereign/cuts.hpp"
 #include "sovereign/branch_and_bound.hpp"
 #include "sovereign/convex_qp.hpp"
+#include "sovereign/dual_simplex.hpp"
 #include "sovereign/interior_point.hpp"
 #include "sovereign/qp_interior_point.hpp"
 #include "sovereign/json_io.hpp"
@@ -657,4 +658,25 @@ TEST(MiplibIncumbent, FlugplStrongBranchingIncumbentPassesVerification) {
   const VerificationResult v = SolutionVerifier().verify(model, r, 1e-6);
   EXPECT_TRUE(v.is_valid);
   EXPECT_TRUE(v.max_constraint_violation <= 1e-6);
+}
+
+TEST(NetlibRegression, FinnisTemporaryBoundFallsBackAndVerifies) {
+  const std::string path =
+      std::string(SOVEREIGN_TEST_DATA_DIR) + "/../../benchmarks/datasets/netlib/finnis.mps";
+  const OptimizationModel model = load_model_from_file(path);
+
+  const SolverResult dual = solve_lp_dual_simplex(model, nullptr, nullptr);
+  EXPECT_EQ(dual.status, SolverStatus::NumericalError);
+  EXPECT_TRUE(dual.message.find("temporary bound") != std::string::npos);
+  EXPECT_TRUE(dual.status != SolverStatus::Optimal);
+  EXPECT_TRUE(dual.status != SolverStatus::Unbounded);
+
+  const SolverResult recovered = LpSolver().solve(model);
+  EXPECT_EQ(recovered.status, SolverStatus::Optimal);
+  EXPECT_TRUE(recovered.has_objective_value);
+  EXPECT_NEAR(recovered.objective_value, 172791.06621255, 1e-6 * 172791.06621255);
+  const VerificationResult verification = SolutionVerifier().verify(model, recovered, 1e-6);
+  EXPECT_TRUE(verification.is_valid);
+  EXPECT_TRUE(verification.max_constraint_violation <= 1e-6);
+  EXPECT_TRUE(verification.max_bound_violation <= 1e-6);
 }

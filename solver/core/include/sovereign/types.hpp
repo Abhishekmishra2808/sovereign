@@ -88,6 +88,27 @@ struct LpDiagnostics {
   std::string stop_reason;
 };
 
+// MILP search diagnostics are observational. They describe the proof state and
+// work performed by branch-and-bound without affecting branching, pruning, or
+// termination decisions.
+struct MipDiagnostics {
+  bool has_best_bound = false;
+  double best_bound = 0.0;
+  double time_to_first_incumbent = -1.0;
+  std::unordered_map<std::string, std::int64_t> cuts_by_family;
+  std::int64_t presolve_fixed_variables = 0;
+  std::int64_t presolve_substituted_variables = 0;
+  std::int64_t presolve_removed_constraints = 0;
+  std::int64_t presolve_tightened_bounds = 0;
+  std::int64_t presolve_passes = 0;
+  std::int64_t node_lp_failures = 0;
+  std::int64_t dropped_subtrees = 0;
+  std::int64_t numerical_error_nodes = 0;
+  std::int64_t iteration_limit_nodes = 0;
+  std::int64_t unbounded_nodes = 0;
+  std::int64_t cut_validity_rejections = 0;
+};
+
 struct SolverResult {
   SolverStatus status = SolverStatus::NotImplemented;
   bool has_objective_value = false;
@@ -111,6 +132,7 @@ struct SolverResult {
   // eliminated rows, so it marks the result as "reduced_presolve_model".
   std::string dual_certificate_space;
   std::unordered_map<std::string, LpDiagnostics> lp_diagnostics;
+  MipDiagnostics mip_diagnostics;
 
   // Presolve bookkeeping is diagnostic metadata only. The solver algorithms
   // and their tolerances do not depend on these counters.

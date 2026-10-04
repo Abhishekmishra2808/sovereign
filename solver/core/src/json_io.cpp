@@ -166,6 +166,28 @@ json lp_diagnostics_to_json(const LpDiagnostics& d) {
   };
 }
 
+json mip_diagnostics_to_json(const MipDiagnostics& d) {
+  return json{
+      {"has_best_bound", d.has_best_bound},
+      {"best_bound", d.has_best_bound ? json(d.best_bound) : json(nullptr)},
+      {"time_to_first_incumbent", d.time_to_first_incumbent >= 0.0
+                                      ? json(d.time_to_first_incumbent)
+                                      : json(nullptr)},
+      {"cuts_by_family", d.cuts_by_family},
+      {"presolve_fixed_variables", d.presolve_fixed_variables},
+      {"presolve_substituted_variables", d.presolve_substituted_variables},
+      {"presolve_removed_constraints", d.presolve_removed_constraints},
+      {"presolve_tightened_bounds", d.presolve_tightened_bounds},
+      {"presolve_passes", d.presolve_passes},
+      {"node_lp_failures", d.node_lp_failures},
+      {"dropped_subtrees", d.dropped_subtrees},
+      {"numerical_error_nodes", d.numerical_error_nodes},
+      {"iteration_limit_nodes", d.iteration_limit_nodes},
+      {"unbounded_nodes", d.unbounded_nodes},
+      {"cut_validity_rejections", d.cut_validity_rejections},
+  };
+}
+
 std::string result_to_json_string(const SolverResult& result, bool include_primal) {
   json j;
   j["status"] = to_string(result.status);
@@ -189,6 +211,7 @@ std::string result_to_json_string(const SolverResult& result, bool include_prima
   for (const auto& entry : result.lp_diagnostics) {
     j["lp_diagnostics"][entry.first] = lp_diagnostics_to_json(entry.second);
   }
+  j["mip_diagnostics"] = mip_diagnostics_to_json(result.mip_diagnostics);
   j["optimality_gap"] = result.optimality_gap;
   // Certificates. A reader (or the dashboard) can now check the claim instead of
   // having to take the status string on faith.

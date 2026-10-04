@@ -1,0 +1,34 @@
+{
+  "commit": "420744cc57b5b4c8246340d70413bf25b96074ff",
+  "binary": "C:\\Users\\abhis\\Desktop\\26119\\build-agent\\solver\\sovereign.exe",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "processor": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+  "python": "3.11.9",
+  "highs_version": "1.15.1",
+  "time_limit_seconds": 600.0,
+  "threads_sovereign": 1,
+  "threads_highs": 1,
+  "pin_sovereign": [
+    2,
+    3
+  ],
+  "pin_highs": [
+    4,
+    5
+  ],
+  "flags": {
+    "SOVEREIGN_TIME_LIMIT": "600.0",
+    "SOVEREIGN_PARALLEL_WORKERS": "1",
+    "SOVEREIGN_MAX_NODES": "2147483647",
+    "SOVEREIGN_BB_LOG": "1",
+    "SOVEREIGN_DISABLE_CUDA": "1",
+    "HiGHS_threads": 1,
+    "HiGHS_mip_rel_gap": 1e-06
+  },
+  "started": "2026-10-03T18:49:21.295812+00:00",
+  "manifest": "benchmarks/manifests/miplib_stage2.json",
+  "missing": [],
+  "working_tree_dirty": true,
+  "binary_bytes": 3629576,
+  "binary_sha256": "35b7a1fc0d64f7db6788792e90da407ff4fea964b1f8baf858a5a22d88c54836"
+}

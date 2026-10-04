@@ -1,0 +1,549 @@
+{
+  "manifest": "benchmarks/manifests/miplib_stage2.json",
+  "selection_rule": "Historical HiGHS outcome SOLVED within 300 seconds and max(rows, columns) <= 3000.",
+  "solution_file": "benchmarks/reports/miplib_stage2/miplib2017-v37.solu",
+  "solution_sha256": "04250ce7597bdc14f6341b323c8b4be42416102e370f93102fab1ff1f85aa977",
+  "instances": [
+    {
+      "name": "10teams",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/10teams.mps",
+      "source": "https://miplib.zib.de/WebData/instances/10teams.mps.gz",
+      "bytes": 536783,
+      "sha256": "cc5d351ee5e56c64b2931d2205afcd4463e93d587abe546856cf601894b6ec43",
+      "cols": 2025,
+      "rows": 230,
+      "nnz": 12150,
+      "integers": 1800,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 923.9999999999997
+      }
+    },
+    {
+      "name": "b-ball",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/b-ball.mps",
+      "source": "https://miplib.zib.de/WebData/instances/b-ball.mps.gz",
+      "bytes": 15239,
+      "sha256": "b0d21fd470e519128ac6003ea3f3a46625d7b987494532c5bfcc10dacd04d0a6",
+      "cols": 100,
+      "rows": 30,
+      "nnz": 209,
+      "integers": 88,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": -1.50000000000001
+      }
+    },
+    {
+      "name": "beasleyC3",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/beasleyC3.mps",
+      "source": "https://miplib.zib.de/WebData/instances/beasleyC3.mps.gz",
+      "bytes": 262195,
+      "sha256": "728c9616ca793393f90d6bf7780b4871e71f33add9f81eacfc12bf05976130c8",
+      "cols": 2500,
+      "rows": 1750,
+      "nnz": 5000,
+      "integers": 1250,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 753.9999999999128
+      }
+    },
+    {
+      "name": "blend2",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/blend2.mps",
+      "source": "https://miplib.zib.de/WebData/instances/blend2.mps.gz",
+      "bytes": 63421,
+      "sha256": "48c009606d5e949baa8e5e060c8b0cafd3eb96f9d615d98fff0d626d5b6e503f",
+      "cols": 353,
+      "rows": 274,
+      "nnz": 1409,
+      "integers": 264,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 7.598985
+      }
+    },
+    {
+      "name": "dcmulti",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/dcmulti.mps",
+      "source": "https://miplib.zib.de/WebData/instances/dcmulti.mps.gz",
+      "bytes": 76205,
+      "sha256": "a5f5147f5450d1b954e2299569f340191529bd07bdb349996dbe21576f1e7665",
+      "cols": 548,
+      "rows": 290,
+      "nnz": 1315,
+      "integers": 75,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 188182.0
+      }
+    },
+    {
+      "name": "enlight_hard",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/enlight_hard.mps",
+      "source": "https://miplib.zib.de/WebData/instances/enlight_hard.mps.gz",
+      "bytes": 56971,
+      "sha256": "572ca23c17d0ad734895e8338af458525a753ee76bdb117d2917e4069c6b65b0",
+      "cols": 200,
+      "rows": 100,
+      "nnz": 560,
+      "integers": 200,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 37.0
+      }
+    },
+    {
+      "name": "exp-1-500-5-5",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/exp-1-500-5-5.mps",
+      "source": "https://miplib.zib.de/WebData/instances/exp-1-500-5-5.mps.gz",
+      "bytes": 209869,
+      "sha256": "32bcb5e23d511b3ee530e7016765cc724e06bc77225648669c443aa7be0a68f2",
+      "cols": 990,
+      "rows": 550,
+      "nnz": 1980,
+      "integers": 250,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 65887.0
+      }
+    },
+    {
+      "name": "fiber",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/fiber.mps",
+      "source": "https://miplib.zib.de/WebData/instances/fiber.mps.gz",
+      "bytes": 183540,
+      "sha256": "75d2d56cb3559940b554c4ceda3225513d4f8648a6629996de2b0db6422181bd",
+      "cols": 1298,
+      "rows": 363,
+      "nnz": 2944,
+      "integers": 1254,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 405935.18
+      }
+    },
+    {
+      "name": "flugpl",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/flugpl.mps",
+      "source": "https://miplib.zib.de/WebData/instances/flugpl.mps.gz",
+      "bytes": 4161,
+      "sha256": "a1f0cb79a95639450dd984473a00efca24365457153d7fcb859c6581ddab4c2c",
+      "cols": 18,
+      "rows": 18,
+      "nnz": 46,
+      "integers": 11,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 1201500.0
+      }
+    },
+    {
+      "name": "gt2",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/gt2.mps",
+      "source": "https://miplib.zib.de/WebData/instances/gt2.mps.gz",
+      "bytes": 23771,
+      "sha256": "3ddd85dc12f8460a92b36b1424a00b563170d56ee615340dec037d7a875e9050",
+      "cols": 188,
+      "rows": 29,
+      "nnz": 376,
+      "integers": 188,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 21165.99999999978
+      }
+    },
+    {
+      "name": "khb05250",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/khb05250.mps",
+      "source": "https://miplib.zib.de/WebData/instances/khb05250.mps.gz",
+      "bytes": 135500,
+      "sha256": "261c4498faab02e5de68aca63b08a17b7243985e2a979c9d505dba4fa0c86555",
+      "cols": 1350,
+      "rows": 101,
+      "nnz": 2700,
+      "integers": 24,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 106940225.9999999
+      }
+    },
+    {
+      "name": "markshare_4_0",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/markshare_4_0.mps",
+      "source": "https://miplib.zib.de/WebData/instances/markshare_4_0.mps.gz",
+      "bytes": 5377,
+      "sha256": "a05d1c8c1a1e0646ea31965fd5e05af7a41801db3cb1820b2ab4cd95c7bc32db",
+      "cols": 34,
+      "rows": 4,
+      "nnz": 123,
+      "integers": 30,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 1.0
+      }
+    },
+    {
+      "name": "mas76",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/mas76.mps",
+      "source": "https://miplib.zib.de/WebData/instances/mas76.mps.gz",
+      "bytes": 62523,
+      "sha256": "114b73dbe17c1d1b4d37a09311424571781225e01edfbec1c6acb320214593f6",
+      "cols": 151,
+      "rows": 12,
+      "nnz": 1640,
+      "integers": 150,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 40005.05398999999
+      }
+    },
+    {
+      "name": "mik-250-20-75-4",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/mik-250-20-75-4.mps",
+      "source": "https://miplib.zib.de/WebData/instances/mik-250-20-75-4.mps.gz",
+      "bytes": 283262,
+      "sha256": "b29fe88b56bf3c924894f473cee77e25efb4dbaccb322e95c98b9210fb875e6d",
+      "cols": 270,
+      "rows": 195,
+      "nnz": 9270,
+      "integers": 250,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": -52301.0
+      }
+    },
+    {
+      "name": "misc07",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/misc07.mps",
+      "source": "https://miplib.zib.de/WebData/instances/misc07.mps.gz",
+      "bytes": 286262,
+      "sha256": "20cb89af2d0ca7ded2dad43817e620893c6b189bd66018d2be3317ba596aa615",
+      "cols": 260,
+      "rows": 212,
+      "nnz": 8619,
+      "integers": 259,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 2810.0
+      }
+    },
+    {
+      "name": "mod010",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/mod010.mps",
+      "source": "https://miplib.zib.de/WebData/instances/mod010.mps.gz",
+      "bytes": 544964,
+      "sha256": "0a2a0888816fd25e31ff4512ca8974272dacf387854cd450e94946332d89325d",
+      "cols": 2655,
+      "rows": 146,
+      "nnz": 11203,
+      "integers": 2655,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 6548.0
+      }
+    },
+    {
+      "name": "neos-911970",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/neos-911970.mps",
+      "source": "https://miplib.zib.de/WebData/instances/neos-911970.mps.gz",
+      "bytes": 118807,
+      "sha256": "31e8f835a9499de4897eb23838453cb83bee093abb8fab881b44f9937236eaa6",
+      "cols": 888,
+      "rows": 107,
+      "nnz": 3408,
+      "integers": 840,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 54.76
+      }
+    },
+    {
+      "name": "neos17",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/neos17.mps",
+      "source": "https://miplib.zib.de/WebData/instances/neos17.mps.gz",
+      "bytes": 977794,
+      "sha256": "4ea347bc9061a49b4737f2e77b3c15541c031eb8df14881cc9a4bd96a2d65c00",
+      "cols": 535,
+      "rows": 486,
+      "nnz": 4931,
+      "integers": 300,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 0.1500025774
+      }
+    },
+    {
+      "name": "neos5",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/neos5.mps",
+      "source": "https://miplib.zib.de/WebData/instances/neos5.mps.gz",
+      "bytes": 69767,
+      "sha256": "6004edda3e48c0d2e6b109e88c059bd874875535fa420cd486461e68a7375870",
+      "cols": 63,
+      "rows": 63,
+      "nnz": 2016,
+      "integers": 53,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 15.0
+      }
+    },
+    {
+      "name": "noswot",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/noswot.mps",
+      "source": "https://miplib.zib.de/WebData/instances/noswot.mps.gz",
+      "bytes": 31909,
+      "sha256": "1f26832d33f0cb9eea1b5eb512c0db766fac1ba0802eb2d214c8d3358e77949a",
+      "cols": 128,
+      "rows": 182,
+      "nnz": 735,
+      "integers": 100,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": -41.00000885
+      }
+    },
+    {
+      "name": "p0201",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/p0201.mps",
+      "source": "https://miplib.zib.de/WebData/instances/p0201.mps.gz",
+      "bytes": 78610,
+      "sha256": "f9bd3802c05f506cdba111051baaff6a62288c00f4292b02722303663e8e2392",
+      "cols": 201,
+      "rows": 133,
+      "nnz": 1923,
+      "integers": 201,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 7614.999999999997
+      }
+    },
+    {
+      "name": "p200x1188c",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/p200x1188c.mps",
+      "source": "https://miplib.zib.de/WebData/instances/p200x1188c.mps.gz",
+      "bytes": 288222,
+      "sha256": "52e616e7a1e0dc95b14a8e381bda45bd1618cadcf5f8393609b1b7fe81a5459e",
+      "cols": 2376,
+      "rows": 1388,
+      "nnz": 4752,
+      "integers": 1188,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 15078.0
+      }
+    },
+    {
+      "name": "pg",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/pg.mps",
+      "source": "https://miplib.zib.de/WebData/instances/pg.mps.gz",
+      "bytes": 362964,
+      "sha256": "765a365c6d851573ef12a4c6c08b5fec0c3514e195986618c9d37075e84a3a0c",
+      "cols": 2700,
+      "rows": 125,
+      "nnz": 5200,
+      "integers": 100,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": -8674.34260712
+      }
+    },
+    {
+      "name": "qiu",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/qiu.mps",
+      "source": "https://miplib.zib.de/WebData/instances/qiu.mps.gz",
+      "bytes": 137711,
+      "sha256": "86990b99a5c702a14b2ac2ea4f46eaa88027f150d6d3e6ec8c8edc3b8c88d58a",
+      "cols": 840,
+      "rows": 1192,
+      "nnz": 3432,
+      "integers": 48,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": -132.87313695
+      }
+    },
+    {
+      "name": "qnet1",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/qnet1.mps",
+      "source": "https://miplib.zib.de/WebData/instances/qnet1.mps.gz",
+      "bytes": 198064,
+      "sha256": "eaa0737929f199b168bd30510dd7ab59ed2ef6fb04d5ac05ea105ceacc5dfc73",
+      "cols": 1541,
+      "rows": 503,
+      "nnz": 4622,
+      "integers": 1417,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 16029.69268099998
+      }
+    },
+    {
+      "name": "qnet1_o",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/qnet1_o.mps",
+      "source": "https://miplib.zib.de/WebData/instances/qnet1_o.mps.gz",
+      "bytes": 184240,
+      "sha256": "abf1a3597aad6a3ab7d1d0b3343a606490cf49d4a2efa553a2ce795c4898f8c0",
+      "cols": 1541,
+      "rows": 456,
+      "nnz": 4214,
+      "integers": 1417,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 16029.692681
+      }
+    },
+    {
+      "name": "r50x360",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/r50x360.mps",
+      "source": "https://miplib.zib.de/WebData/instances/r50x360.mps.gz",
+      "bytes": 97596,
+      "sha256": "37c38463d072888d4865b63d434b4355812002fae123247d92a470c762e23563",
+      "cols": 720,
+      "rows": 410,
+      "nnz": 1440,
+      "integers": 360,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 1653.0
+      }
+    },
+    {
+      "name": "roll3000",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/roll3000.mps",
+      "source": "https://miplib.zib.de/WebData/instances/roll3000.mps.gz",
+      "bytes": 1035164,
+      "sha256": "b28b51a69945d6a4c16366582bab87638b6c66f81eb4efef817aba76f6425117",
+      "cols": 1166,
+      "rows": 2295,
+      "nnz": 29386,
+      "integers": 738,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 12889.999992
+      }
+    },
+    {
+      "name": "rout",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/rout.mps",
+      "source": "https://miplib.zib.de/WebData/instances/rout.mps.gz",
+      "bytes": 94010,
+      "sha256": "ed73ef89a0faffea96a1ef085eb1f64c1116517abd6daaa1b99d3f4cd91eee95",
+      "cols": 556,
+      "rows": 291,
+      "nnz": 2431,
+      "integers": 315,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 1077.559999999999
+      }
+    },
+    {
+      "name": "sp150x300d",
+      "suite": "miplib2017-stage2",
+      "synthetic": false,
+      "file": "benchmarks/datasets/coverage/miplib_stage2/sp150x300d.mps",
+      "source": "https://miplib.zib.de/WebData/instances/sp150x300d.mps.gz",
+      "bytes": 75788,
+      "sha256": "339aa4411ef126df72dc66718090fc6915debdc44d732a0f0be903310e52cf4a",
+      "cols": 600,
+      "rows": 450,
+      "nnz": 1200,
+      "integers": 300,
+      "q_nnz": 0,
+      "reference": {
+        "kind": "opt",
+        "value": 69.0
+      }
+    }
+  ],
+  "missing": []
+}
