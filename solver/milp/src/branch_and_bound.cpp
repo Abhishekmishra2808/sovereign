@@ -425,6 +425,12 @@ struct DebugSolution {
     (void)sense;
   }
 
+  bool protect_reference_from_cutoff(bool contains_reference) {
+    if (!enabled || !contains_reference) return false;
+    ++checks;
+    return true;
+  }
+
   double objective_cache = 0.0;
 };
 
@@ -1129,7 +1135,10 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
       debug_ptr->check_bound(sense, node.bound, debug_ptr->objective_cache,
                              reference_in_node, node.id, node.depth, "node bound");
     }
-    if (can_prune_by_bound(sense, node.bound, incumbent, has_incumbent, options_.mip_gap)) {
+    const bool protect_node_reference =
+        debug_ptr != nullptr && debug_ptr->protect_reference_from_cutoff(reference_in_node);
+    if (!protect_node_reference &&
+        can_prune_by_bound(sense, node.bound, incumbent, has_incumbent, options_.mip_gap)) {
       if (debug_ptr != nullptr) {
         debug_ptr->check_cutoff(reference_in_node, node.id, node.depth, sense,
                                 node.bound, incumbent);
@@ -1312,7 +1321,11 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
       continue;
     }
 
-    if (can_prune_by_bound(sense, lp.objective_value, incumbent, has_incumbent,
+    const bool protect_lp_reference =
+        debug_ptr != nullptr &&
+        debug_ptr->protect_reference_from_cutoff(debug_ptr->contains(node_model));
+    if (!protect_lp_reference &&
+        can_prune_by_bound(sense, lp.objective_value, incumbent, has_incumbent,
                            options_.mip_gap)) {
       if (debug_ptr != nullptr) {
         debug_ptr->check_cutoff(debug_ptr->contains(node_model), node.id, node.depth,
