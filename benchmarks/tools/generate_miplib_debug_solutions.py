@@ -8,6 +8,7 @@ must never be shipped with the solver or npm package.
 from __future__ import annotations
 
 import argparse
+import concurrent.futures as cf
 import datetime as dt
 import hashlib
 import json
@@ -44,11 +45,82 @@ def commit() -> str:
         return "unavailable"
 
 
+def run_entry(entry: dict, out_dir: Path, time_limit: float) -> dict:
+    name = entry["name"]
+    path = ROOT / entry["file"]
+    if not path.exists():
+        return {
+            "name": name,
+            "file": entry["file"],
+            "source": entry.get("source"),
+            "missing": True,
+            "reason": "missing input; run run_miplib_stage2.py --fetch",
+        }
+
+    highs = highspy.Highs()
+    highs.setOptionValue("output_flag", False)
+    highs.setOptionValue("threads", 1)
+    highs.setOptionValue("time_limit", float(time_limit))
+    highs.setOptionValue("large_matrix_value", 1e30)
+    read_status = highs.readModel(str(path))
+    run_status = None
+    status = "ERROR"
+    error = None
+    if read_status in (highspy.HighsStatus.kOk, highspy.HighsStatus.kWarning):
+        try:
+            highs.run()
+            run_status = highs.modelStatusToString(highs.getModelStatus()).upper()
+            status = run_status.replace(" ", "_")
+        except Exception as exc:  # preserve every reference failure
+            error = str(exc)
+    else:
+        error = f"HiGHS readModel returned {read_status}"
+
+    solution = highs.getSolution()
+    valid = bool(solution.value_valid)
+    lp = highs.getLp()
+    row = {
+        "name": name,
+        "source": entry.get("source"),
+        "file": entry["file"],
+        "sha256": sha256(path),
+        "status": status,
+        "read_status": str(read_status),
+        "run_status": run_status,
+        "value_valid": valid,
+        "objective": None,
+        "output": None,
+        "error": error,
+    }
+    if status == "OPTIMAL" and valid:
+        info = highs.getInfo()
+        values = {
+            str(lp.col_names_[i]): float(solution.col_value[i])
+            for i in range(lp.num_col_)
+        }
+        witness = {
+            "source": "HiGHS benchmark reference witness; not production data",
+            "source_instance": entry["file"],
+            "source_sha256": row["sha256"],
+            "reference_solver": highs.version(),
+            "objective": float(info.objective_function_value),
+            "primal": values,
+        }
+        output = out_dir / f"{name}.json"
+        output.write_text(json.dumps(witness, indent=2) + "\n", encoding="utf-8")
+        row["objective"] = witness["objective"]
+        row["output"] = output.relative_to(ROOT).as_posix()
+    else:
+        row["error"] = row["error"] or "no optimal, value-valid HiGHS witness"
+    return row
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--time-limit", type=float, default=600.0)
     parser.add_argument("--only", nargs="*")
+    parser.add_argument("--workers", type=int, default=4)
     args = parser.parse_args()
 
     if CORPUS.exists():
@@ -69,79 +141,15 @@ def main() -> int:
     missing = []
     started = dt.datetime.now(dt.timezone.utc).isoformat()
 
-    for entry in entries:
-        name = entry["name"]
-        if name not in selected:
-            continue
-        path = ROOT / entry["file"]
-        if not path.exists():
-            missing.append(
-                {
-                    "name": name,
-                    "file": entry["file"],
-                    "source": entry.get("source"),
-                    "reason": "missing input; run run_miplib_stage2.py --fetch",
-                }
-            )
-            continue
-
-        highs = highspy.Highs()
-        highs.setOptionValue("output_flag", False)
-        highs.setOptionValue("threads", 1)
-        highs.setOptionValue("time_limit", float(args.time_limit))
-        highs.setOptionValue("large_matrix_value", 1e30)
-        read_status = highs.readModel(str(path))
-        run_status = None
-        status = "ERROR"
-        error = None
-        if read_status in (highspy.HighsStatus.kOk, highspy.HighsStatus.kWarning):
-            try:
-                highs.run()
-                run_status = highs.modelStatusToString(highs.getModelStatus()).upper()
-                status = run_status.replace(" ", "_")
-            except Exception as exc:  # preserve every reference failure
-                error = str(exc)
-        else:
-            error = f"HiGHS readModel returned {read_status}"
-
-        solution = highs.getSolution()
-        valid = bool(solution.value_valid)
-        lp = highs.getLp()
-        row = {
-            "name": name,
-            "source": entry.get("source"),
-            "file": entry["file"],
-            "sha256": sha256(path),
-            "status": status,
-            "read_status": str(read_status),
-            "run_status": run_status,
-            "value_valid": valid,
-            "objective": None,
-            "output": None,
-            "error": error,
-        }
-        if status == "OPTIMAL" and valid:
-            info = highs.getInfo()
-            values = {
-                str(lp.col_names_[i]): float(solution.col_value[i])
-                for i in range(lp.num_col_)
-            }
-            witness = {
-                "source": "HiGHS benchmark reference witness; not production data",
-                "source_instance": entry["file"],
-                "source_sha256": row["sha256"],
-                "reference_solver": highs.version(),
-                "objective": float(info.objective_function_value),
-                "primal": values,
-            }
-            output = args.out_dir / f"{name}.json"
-            output.write_text(json.dumps(witness, indent=2) + "\n", encoding="utf-8")
-            row["objective"] = witness["objective"]
-            row["output"] = output.relative_to(ROOT).as_posix()
-        else:
-            row["error"] = row["error"] or "no optimal, value-valid HiGHS witness"
-        rows.append(row)
-        print(json.dumps(row), flush=True)
+    todo = [entry for entry in entries if entry["name"] in selected]
+    workers = max(1, min(args.workers, len(todo) or 1))
+    with cf.ThreadPoolExecutor(max_workers=workers) as pool:
+        for row in pool.map(lambda item: run_entry(item, args.out_dir, args.time_limit), todo):
+            if row.get("missing"):
+                missing.append(row)
+            else:
+                rows.append(row)
+            print(json.dumps(row), flush=True)
 
     metadata = {
         "suite": "miplib2017-stage2",
@@ -153,6 +161,7 @@ def main() -> int:
         "python": platform.python_version(),
         "highs": highspy.Highs().version(),
         "threads": 1,
+        "reference_workers": workers,
         "time_limit_seconds": args.time_limit,
         "started": started,
         "instances": rows,
