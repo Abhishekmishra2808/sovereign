@@ -17,7 +17,7 @@ No solver algorithm, pricing rule, crossover, perturbation, or tolerance was cha
 
 ## Reproducibility
 
-- commit: `25306ebf0304f7b28a38e1e485f62cbe69e92c9b`
+- commit: `683c6438d0f0a393591a1f1e4373e171a893681b`
 - working_tree: `dirty`
 - platform: `Windows-10-10.0.26200-SP0`
 - machine: `AMD64`

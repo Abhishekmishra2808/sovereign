@@ -1,0 +1,27 @@
+{
+  "source": "HiGHS benchmark reference witness; not production data",
+  "source_instance": "benchmarks/datasets/coverage/miplib_stage2/flugpl.mps",
+  "source_sha256": "a1f0cb79a95639450dd984473a00efca24365457153d7fcb859c6581ddab4c2c",
+  "reference_solver": "1.15.1",
+  "objective": 1201500.0,
+  "primal": {
+    "STM1": 60.0,
+    "ANM1": 6.0,
+    "UE1": 0.0,
+    "STM2": 60.0,
+    "ANM2": 6.0,
+    "UE2": 600.0,
+    "STM3": 60.0,
+    "ANM3": 16.000000000000004,
+    "UE3": 600.0000000000005,
+    "STM4": 70.0,
+    "ANM4": 6.999999999999998,
+    "UE4": 200.0,
+    "STM5": 70.0,
+    "ANM5": 12.0,
+    "UE5": 0.0,
+    "STM6": 75.0,
+    "ANM6": 0.0,
+    "UE6": 750.0
+  }
+}
