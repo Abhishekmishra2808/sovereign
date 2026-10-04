@@ -70,7 +70,7 @@ Tools under `benchmarks/tools/`:
   ill-conditioning, and weak-relaxation fixtures.
 - `benchmarks/datasets/scale/` — synthetic transportation fixtures.
 - `benchmarks/datasets/sparse/` and `benchmarks/datasets/gpu/` — synthetic
-  sparse/GP​​U/QP fixtures.
+  sparse/GPU/QP fixtures.
 - `benchmarks/datasets/coverage/` — fetched coverage corpus location,
   currently ignored by Git; missing files must be fetched from the public URLs
   recorded by the harness rather than replaced.
@@ -128,9 +128,10 @@ evidence.
 
 ### Commit and next step
 
-- Phase 0 preservation commit: recorded after this ledger was added.
-- Phase 0 progress-record commit: recorded after the preservation commit.
-- Tag: `phase0-baseline`.
+- Phase 0 preservation commit: `5173de9fb604eb5c6159c174c7c75e4b4a2e8e2e`.
+- Phase 0 progress-record commit: this update commit (hash recorded by the
+  phase tag after it is created).
+- Tag: `phase0-baseline` will point at the progress-record commit.
 - Next step: Phase 1 soundness audit and fixes. The Phase 1 gate is zero
   debug-solution violations and zero invalid bounds across the requested
   30-instance reference-solution MIPLIB run.
