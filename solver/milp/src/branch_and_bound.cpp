@@ -1407,7 +1407,18 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
   result.nodes = nodes;
   result.iterations = lp_iterations;
   result.warnings = warnings;
-  const double final_bound = global_bound();
+  // Once the tree is exhausted, all remaining nodes may have been closed by
+  // an incumbent cutoff. Their LP bounds can be strictly weaker in the
+  // opposite direction than the incumbent (for example, all remaining
+  // minimization-node bounds can be above the incumbent). The incumbent is a
+  // valid attained objective and must therefore be included in the reported
+  // dual bound; otherwise an optimal solve can publish a bound outside the
+  // original model's feasible optimum.
+  const double raw_global_bound = global_bound();
+  const double final_bound =
+      has_incumbent && std::isfinite(raw_global_bound)
+          ? weaker(raw_global_bound, incumbent)
+          : raw_global_bound;
   if (debug_ptr != nullptr) {
     debug_ptr->check_bound(sense, final_bound, debug_ptr->objective_cache, true, -1, -1,
                            "final best bound");

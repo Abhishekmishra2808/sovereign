@@ -708,3 +708,30 @@ TEST(MiplibRegression, Qnet1OBestBoundDoesNotExceedKnownOptimum) {
                 known_optimum + 1e-6 * std::max(1.0, std::abs(known_optimum)));
   }
 }
+
+TEST(MiplibRegression, Khb05250BestBoundIncludesOptimalIncumbent) {
+  const std::string path =
+      std::string(SOVEREIGN_TEST_DATA_DIR) +
+      "/../../benchmarks/datasets/coverage/miplib_stage2/khb05250.mps";
+  std::ifstream input(path);
+  if (!input) {
+    std::cout << "[  SKIPPED ] official khb05250 input is not present: " << path << "\n";
+    return;
+  }
+
+  const OptimizationModel model = load_model_from_file(path);
+  BranchAndBoundOptions opt;
+  opt.time_limit_seconds = 30.0;
+  opt.parallel_workers = 1;
+  const SolverResult result = BranchAndBoundSolver(opt).solve(model);
+  EXPECT_EQ(result.status, SolverStatus::Optimal);
+  if (result.status != SolverStatus::Optimal) return;
+  EXPECT_TRUE(result.has_objective_value);
+  if (!result.has_objective_value) return;
+  EXPECT_NEAR(result.objective_value, 106940226.0, 1e-6 * 106940226.0);
+  EXPECT_TRUE(result.mip_diagnostics.has_best_bound);
+  if (!result.mip_diagnostics.has_best_bound) return;
+  EXPECT_TRUE(
+      result.mip_diagnostics.best_bound <=
+      result.objective_value + 1e-6 * std::max(1.0, std::abs(result.objective_value)));
+}
