@@ -22,7 +22,9 @@ ROOT = Path(__file__).resolve().parents[2]
 CORPUS = ROOT / "benchmarks" / "reports" / "miplib_stage2" / "corpus.json"
 DEFAULT_OUT = ROOT / "benchmarks" / "reports" / "miplib_stage2" / "debug_sweep"
 DEFAULT_BINARY = ROOT / "build-agent" / "solver" / "sovereign.exe"
-REFERENCE_TOLERANCE = 1e-4
+# Match the solver's debug-solution bound check; this is not a benchmark
+# acceptance relaxation.
+REFERENCE_TOLERANCE = 1e-6
 
 
 def sha256(path: Path) -> str:
