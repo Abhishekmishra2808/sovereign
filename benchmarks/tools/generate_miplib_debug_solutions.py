@@ -56,6 +56,30 @@ def run_entry(entry: dict, out_dir: Path, time_limit: float) -> dict:
             "missing": True,
             "reason": "missing input; run run_miplib_stage2.py --fetch",
         }
+    source_hash = sha256(path)
+    output = out_dir / f"{name}.json"
+    if output.exists():
+        try:
+            witness = json.loads(output.read_text(encoding="utf-8"))
+            if (
+                witness.get("source_sha256") == source_hash
+                and isinstance(witness.get("primal"), dict)
+            ):
+                return {
+                    "name": name,
+                    "source": entry.get("source"),
+                    "file": entry["file"],
+                    "sha256": source_hash,
+                    "status": "OPTIMAL",
+                    "read_status": "CACHED",
+                    "run_status": "CACHED",
+                    "value_valid": True,
+                    "objective": witness.get("objective"),
+                    "output": output.relative_to(ROOT).as_posix(),
+                    "error": None,
+                }
+        except (OSError, json.JSONDecodeError):
+            pass
 
     highs = highspy.Highs()
     highs.setOptionValue("output_flag", False)
@@ -83,7 +107,7 @@ def run_entry(entry: dict, out_dir: Path, time_limit: float) -> dict:
         "name": name,
         "source": entry.get("source"),
         "file": entry["file"],
-        "sha256": sha256(path),
+        "sha256": source_hash,
         "status": status,
         "read_status": str(read_status),
         "run_status": run_status,
@@ -106,7 +130,6 @@ def run_entry(entry: dict, out_dir: Path, time_limit: float) -> dict:
             "objective": float(info.objective_function_value),
             "primal": values,
         }
-        output = out_dir / f"{name}.json"
         output.write_text(json.dumps(witness, indent=2) + "\n", encoding="utf-8")
         row["objective"] = witness["objective"]
         row["output"] = output.relative_to(ROOT).as_posix()
