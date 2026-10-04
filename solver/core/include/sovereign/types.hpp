@@ -107,6 +107,11 @@ struct MipDiagnostics {
   std::int64_t iteration_limit_nodes = 0;
   std::int64_t unbounded_nodes = 0;
   std::int64_t cut_validity_rejections = 0;
+  bool debug_solution_enabled = false;
+  bool debug_solution_violation = false;
+  std::int64_t debug_solution_checks = 0;
+  std::string debug_solution_path;
+  std::string debug_solution_first_violation;
 };
 
 struct SolverResult {

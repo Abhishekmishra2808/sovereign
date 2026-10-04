@@ -33,7 +33,11 @@ struct BranchAndBoundOptions {
   int max_cuts_per_node = 20;
   // MIR separation costs an LP re-solve whenever it finds a cut, so below this
   // depth the tree keeps only the cheap cover and rounding cuts.
-  int cmir_max_depth = 4;
+  // CMIR candidates remain available for explicit ablations, but the default
+  // path keeps them disabled until each candidate can be certified
+  // independently of a known incumbent. A cut that is merely plausible can
+  // invalidate a global MILP bound before an incumbent exists.
+  int cmir_max_depth = -1;
   BranchRule branch_rule = BranchRule::StrongBranching;
   int strong_branch_candidates = 4;
   int reliability_threshold = 4;

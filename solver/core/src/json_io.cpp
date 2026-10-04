@@ -185,6 +185,14 @@ json mip_diagnostics_to_json(const MipDiagnostics& d) {
       {"iteration_limit_nodes", d.iteration_limit_nodes},
       {"unbounded_nodes", d.unbounded_nodes},
       {"cut_validity_rejections", d.cut_validity_rejections},
+      {"debug_solution_enabled", d.debug_solution_enabled},
+      {"debug_solution_violation", d.debug_solution_violation},
+      {"debug_solution_checks", d.debug_solution_checks},
+      {"debug_solution_path", d.debug_solution_path.empty() ? json(nullptr)
+                                                               : json(d.debug_solution_path)},
+      {"debug_solution_first_violation",
+       d.debug_solution_first_violation.empty() ? json(nullptr)
+                                                 : json(d.debug_solution_first_violation)},
   };
 }
 

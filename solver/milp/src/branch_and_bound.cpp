@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -21,6 +22,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <nlohmann/json.hpp>
 
 #if defined(_WIN32)
 #ifndef NOMINMAX
@@ -193,16 +196,259 @@ bool node_dual_simplex_enabled() {
   return enabled;
 }
 
+struct DebugSolution {
+  using Point = std::unordered_map<std::string, double>;
+
+  static constexpr double kTolerance = 1e-6;
+
+  bool enabled = false;
+  bool violation = false;
+  std::int64_t checks = 0;
+  std::string path;
+  std::string first_violation;
+  Point values;
+
+  static bool constraint_satisfied(const Constraint& c, const Point& point,
+                                   double tolerance, std::string* detail) {
+    double lhs = 0.0;
+    for (const auto& kv : c.linear) {
+      const auto it = point.find(kv.first);
+      if (it == point.end() || !std::isfinite(it->second)) {
+        if (detail != nullptr) *detail = "missing/non-finite variable " + kv.first;
+        return false;
+      }
+      lhs += kv.second * it->second;
+    }
+    double residual = 0.0;
+    if (c.sense == ConstraintSense::Le) {
+      residual = std::max(0.0, lhs - c.rhs);
+    } else if (c.sense == ConstraintSense::Ge) {
+      residual = std::max(0.0, c.rhs - lhs);
+    } else {
+      residual = std::abs(lhs - c.rhs);
+    }
+    const double scale = std::max({1.0, std::abs(lhs), std::abs(c.rhs)});
+    if (residual <= tolerance * scale) return true;
+    if (detail != nullptr) {
+      std::ostringstream oss;
+      oss << "constraint=" << c.name << " lhs=" << std::setprecision(17) << lhs
+          << " rhs=" << c.rhs << " residual=" << residual << " scale=" << scale;
+      *detail = oss.str();
+    }
+    return false;
+  }
+
+  static bool feasible(const OptimizationModel& model, const Point& point,
+                       double tolerance, std::string* detail) {
+    for (const auto& v : model.variables) {
+      const auto it = point.find(v.name);
+      if (it == point.end() || !std::isfinite(it->second)) {
+        if (detail != nullptr) *detail = "missing/non-finite variable " + v.name;
+        return false;
+      }
+      const double scale_lower = std::max(1.0, std::abs(v.lower_bound));
+      const double scale_upper = std::max(1.0, std::abs(v.upper_bound));
+      if (std::isfinite(v.lower_bound) &&
+          v.lower_bound - it->second > tolerance * scale_lower) {
+        if (detail != nullptr) {
+          std::ostringstream oss;
+          oss << "variable=" << v.name << " value=" << std::setprecision(17) << it->second
+              << " lower=" << v.lower_bound;
+          *detail = oss.str();
+        }
+        return false;
+      }
+      if (std::isfinite(v.upper_bound) &&
+          it->second - v.upper_bound > tolerance * scale_upper) {
+        if (detail != nullptr) {
+          std::ostringstream oss;
+          oss << "variable=" << v.name << " value=" << std::setprecision(17) << it->second
+              << " upper=" << v.upper_bound;
+          *detail = oss.str();
+        }
+        return false;
+      }
+    }
+    for (const auto& c : model.constraints) {
+      if (!constraint_satisfied(c, point, tolerance, detail)) return false;
+    }
+    return true;
+  }
+
+  void fail(std::int64_t node, int depth, const std::string& component,
+            const std::string& data) {
+    if (violation) return;
+    violation = true;
+    std::ostringstream oss;
+    oss << "node=" << node << " depth=" << depth << " component=" << component
+        << " data=" << data;
+    first_violation = oss.str();
+    std::cerr << "[debug-solution] violation " << first_violation << '\n';
+  }
+
+  bool load(const OptimizationModel& model) {
+    const char* env = std::getenv("SOVEREIGN_DEBUG_SOLUTION");
+    if (env == nullptr || std::string(env).empty()) return false;
+    enabled = true;
+    path = env;
+    try {
+      std::ifstream in(path);
+      if (!in) {
+        fail(-1, -1, "load", "could not open " + path);
+        return true;
+      }
+      nlohmann::json document;
+      in >> document;
+      const nlohmann::json* source = &document;
+      if (document.is_object() && document.contains("primal")) source = &document["primal"];
+      if (!source->is_object()) {
+        fail(-1, -1, "load", "solution must be an object or contain an object named primal");
+        return true;
+      }
+      for (auto it = source->begin(); it != source->end(); ++it) {
+        if (!it.value().is_number()) {
+          fail(-1, -1, "load", "non-numeric value for " + it.key());
+          return true;
+        }
+        values[it.key()] = it.value().get<double>();
+      }
+      std::string detail;
+      if (!feasible(model, values, kTolerance, &detail)) {
+        fail(-1, -1, "reference", detail);
+      }
+    } catch (const std::exception& ex) {
+      fail(-1, -1, "load", ex.what());
+    }
+    return true;
+  }
+
+  bool contains(const OptimizationModel& model) const {
+    std::string ignored;
+    return feasible(model, values, kTolerance, &ignored);
+  }
+
+  double objective(const OptimizationModel& model) const {
+    double value = model.objective.constant;
+    for (const auto& kv : model.objective.linear) {
+      const auto it = values.find(kv.first);
+      if (it != values.end()) value += kv.second * it->second;
+    }
+    return value;
+  }
+
+  void check_presolve(const PresolveResult& prep, std::int64_t node, int depth) {
+    if (!enabled || violation) return;
+    ++checks;
+    Point projected = values;
+    for (const auto& action : prep.actions) {
+      if (action.type == PresolveActionType::FixVariable) {
+        const auto it = values.find(action.name);
+        if (it == values.end() ||
+            std::abs(it->second - action.value) >
+                kTolerance * std::max(1.0, std::abs(action.value))) {
+          fail(node, depth, "presolve", "fixed variable " + action.name +
+                                     " value was changed by presolve");
+          return;
+        }
+        projected.erase(action.name);
+      } else if (action.type == PresolveActionType::SubstituteVariable) {
+        const auto name_it = values.find(action.name);
+        const auto other_it = values.find(action.other);
+        if (name_it == values.end() || other_it == values.end() ||
+            std::abs(name_it->second -
+                     (action.coeff * other_it->second + action.value)) >
+                kTolerance *
+                    std::max({1.0, std::abs(name_it->second),
+                              std::abs(action.coeff * other_it->second + action.value)})) {
+          fail(node, depth, "presolve", "substitution " + action.name + "=" +
+                                     action.other + " changed the known solution");
+          return;
+        }
+        projected.erase(action.name);
+      }
+    }
+    std::string detail;
+    if (!feasible(prep.reduced, projected, kTolerance, &detail)) {
+      fail(node, depth, "presolve", detail);
+    }
+  }
+
+  void check_lp_status(const SolverResult& result, bool contains_reference,
+                       std::int64_t node, int depth, const std::string& component) {
+    if (!enabled || violation || !contains_reference) return;
+    ++checks;
+    if (result.status == SolverStatus::Infeasible ||
+        result.status == SolverStatus::Unbounded ||
+        result.status == SolverStatus::NumericalError ||
+        result.status == SolverStatus::IterationLimit ||
+        result.status == SolverStatus::Error) {
+      fail(node, depth, component, to_string(result.status) + ": " + result.message);
+    }
+  }
+
+  void check_cut(const OptimizationModel& model, const Constraint& cut,
+                 std::int64_t node, int depth, const std::string& family) {
+    if (!enabled || violation || !contains(model)) return;
+    ++checks;
+    std::string detail;
+    if (!constraint_satisfied(cut, values, kTolerance, &detail)) {
+      fail(node, depth, "cut/" + family, detail);
+    }
+  }
+
+  void check_bound(Sense sense, double bound, double reference_objective,
+                   bool contains_reference, std::int64_t node, int depth,
+                   const std::string& component) {
+    if (!enabled || violation || !contains_reference || !std::isfinite(bound)) return;
+    ++checks;
+    const double scale = std::max({1.0, std::abs(bound), std::abs(reference_objective)});
+    const bool invalid =
+        sense == Sense::Minimize
+            ? bound > reference_objective + kTolerance * scale
+            : bound < reference_objective - kTolerance * scale;
+    if (invalid) {
+      std::ostringstream oss;
+      oss << "bound=" << std::setprecision(17) << bound
+          << " reference_objective=" << reference_objective;
+      fail(node, depth, component, oss.str());
+    }
+  }
+
+  void check_cutoff(bool contains_reference, std::int64_t node, int depth,
+                    Sense sense, double node_bound, double incumbent) {
+    if (!enabled || violation || !contains_reference) return;
+    ++checks;
+    std::ostringstream oss;
+    oss << "node_bound=" << std::setprecision(17) << node_bound
+        << " incumbent=" << incumbent << " reference_objective=" << objective_cache;
+    fail(node, depth, "objective_cutoff", oss.str());
+    (void)sense;
+  }
+
+  double objective_cache = 0.0;
+};
+
 SolverResult solve_node_lp(const OptimizationModel& node_model,
                            const RevisedSimplexOptions& /*lp_opt*/,
-                           const LpBasis* warm = nullptr, LpBasis* basis_out = nullptr) {
+                           const LpBasis* warm = nullptr, LpBasis* basis_out = nullptr,
+                           DebugSolution* debug = nullptr, std::int64_t debug_node = -1,
+                           int debug_depth = -1, const char* debug_component = "node LP") {
   OptimizationModel relax = make_lp_relaxation(node_model);
+  const bool reference_in_node = debug != nullptr && debug->enabled && debug->contains(relax);
+  auto observe = [&](const SolverResult& result) {
+    if (debug != nullptr && debug->enabled) {
+      debug->check_lp_status(result, reference_in_node, debug_node, debug_depth,
+                             debug_component);
+    }
+  };
   if (basis_out != nullptr) *basis_out = LpBasis{};
   if (node_dual_simplex_enabled()) {
     SolverResult dual = solve_lp_dual_simplex(relax, warm, basis_out);
     if (dual.status == SolverStatus::Optimal || dual.status == SolverStatus::Infeasible) {
+      observe(dual);
       return dual;
     }
+    observe(dual);
     if (basis_out != nullptr) *basis_out = LpBasis{};
   }
   // Branch bounds change at every node. The engine's one-time root presolve
@@ -210,11 +456,20 @@ SolverResult solve_node_lp(const OptimizationModel& node_model,
   // those infeasible nodes to Phase I can make simplex cycle for 100k pivots.
   Presolver presolver;
   const PresolveResult prep = presolver.run(relax);
+  if (debug != nullptr && debug->enabled && reference_in_node) {
+    if (prep.infeasible || prep.unbounded) {
+      debug->fail(debug_node, debug_depth, "presolve",
+                  prep.message.empty() ? "presolve returned a terminal status" : prep.message);
+    } else {
+      debug->check_presolve(prep, debug_node, debug_depth);
+    }
+  }
   if (prep.infeasible || prep.unbounded) {
     SolverResult r;
     r.status = prep.infeasible ? SolverStatus::Infeasible : SolverStatus::Unbounded;
     r.message = prep.message;
     attach_presolve_stats(r, prep.stats);
+    observe(r);
     return r;
   }
   if (prep.reduced.variables.empty()) {
@@ -228,6 +483,7 @@ SolverResult solve_node_lp(const OptimizationModel& node_model,
     }
     r.message = "Optimal (node presolve fixed all variables).";
     attach_presolve_stats(r, prep.stats);
+    observe(r);
     return r;
   }
   // Route through LpSolver so SOVEREIGN_LP_ALGORITHM=auto|ipm|simplex applies
@@ -243,10 +499,13 @@ SolverResult solve_node_lp(const OptimizationModel& node_model,
     if (simplex_result.status == SolverStatus::Optimal &&
         simplex_result.has_objective_value) {
       attach_presolve_stats(simplex_result, prep.stats);
+      observe(simplex_result);
       return simplex_result;
     }
+    observe(simplex_result);
   }
 
+  observe(result);
   return result;
 }
 
@@ -255,7 +514,8 @@ SolverResult solve_node_lp(const OptimizationModel& node_model,
 // further. Re-solving the continuous part with the integers fixed makes the
 // incumbent satisfy the original rows. If that LP fails, the point is kept.
 void polish_incumbent(const OptimizationModel& milp, std::unordered_map<std::string, double>& x,
-                      double& objective, const RevisedSimplexOptions& lp_opt) {
+                      double& objective, const RevisedSimplexOptions& lp_opt,
+                      DebugSolution* debug = nullptr) {
   OptimizationModel fixed = milp;
   bool any_continuous = false;
   for (auto& v : fixed.variables) {
@@ -268,7 +528,8 @@ void polish_incumbent(const OptimizationModel& milp, std::unordered_map<std::str
     v.lower_bound = v.upper_bound = std::round(it->second);
   }
   if (!any_continuous) return;
-  const SolverResult r = solve_node_lp(fixed, lp_opt);
+  const SolverResult r = solve_node_lp(fixed, lp_opt, nullptr, nullptr, debug, -1, -1,
+                                       "heuristic polish");
   if (r.status != SolverStatus::Optimal || !r.has_objective_value) return;
   std::unordered_map<std::string, double> polished = x;
   for (const auto& v : fixed.variables) {
@@ -289,30 +550,44 @@ struct ParallelLpJob {
   const OptimizationModel* model = nullptr;
   const RevisedSimplexOptions* opt = nullptr;
   const LpBasis* warm = nullptr;
+  DebugSolution* debug = nullptr;
+  std::int64_t debug_node = -1;
+  int debug_depth = -1;
   SolverResult result;
 };
 
 DWORD WINAPI parallel_lp_thread(LPVOID param) {
   auto* job = reinterpret_cast<ParallelLpJob*>(param);
-  job->result = solve_node_lp(*job->model, *job->opt, job->warm);
+  job->result = solve_node_lp(*job->model, *job->opt, job->warm, nullptr, job->debug,
+                              job->debug_node, job->debug_depth, "strong branching");
   return 0;
 }
 
 void solve_two_lps_parallel(const OptimizationModel& down, const OptimizationModel& up,
                             const RevisedSimplexOptions& lp_opt, const LpBasis* warm,
-                            SolverResult& down_r, SolverResult& up_r, bool enable_parallel) {
+                            SolverResult& down_r, SolverResult& up_r, bool enable_parallel,
+                            DebugSolution* debug = nullptr, std::int64_t debug_node = -1,
+                            int debug_depth = -1) {
   if (!enable_parallel) {
-    down_r = solve_node_lp(down, lp_opt, warm);
-    up_r = solve_node_lp(up, lp_opt, warm);
+    down_r = solve_node_lp(down, lp_opt, warm, nullptr, debug, debug_node, debug_depth,
+                           "strong branching");
+    up_r = solve_node_lp(up, lp_opt, warm, nullptr, debug, debug_node, debug_depth,
+                         "strong branching");
     return;
   }
   ParallelLpJob jobs[2];
   jobs[0].model = &down;
   jobs[0].opt = &lp_opt;
   jobs[0].warm = warm;
+  jobs[0].debug = debug;
+  jobs[0].debug_node = debug_node;
+  jobs[0].debug_depth = debug_depth;
   jobs[1].model = &up;
   jobs[1].opt = &lp_opt;
   jobs[1].warm = warm;
+  jobs[1].debug = debug;
+  jobs[1].debug_node = debug_node;
+  jobs[1].debug_depth = debug_depth;
   HANDLE h0 = CreateThread(nullptr, 0, parallel_lp_thread, &jobs[0], 0, nullptr);
   HANDLE h1 = CreateThread(nullptr, 0, parallel_lp_thread, &jobs[1], 0, nullptr);
   if (h0 && h1) {
@@ -327,24 +602,32 @@ void solve_two_lps_parallel(const OptimizationModel& down, const OptimizationMod
       WaitForSingleObject(h0, INFINITE);
       CloseHandle(h0);
       down_r = jobs[0].result;
-      up_r = solve_node_lp(up, lp_opt, warm);
+      up_r = solve_node_lp(up, lp_opt, warm, nullptr, debug, debug_node, debug_depth,
+                           "strong branching");
     } else if (h1) {
       WaitForSingleObject(h1, INFINITE);
       CloseHandle(h1);
-      down_r = solve_node_lp(down, lp_opt, warm);
+      down_r = solve_node_lp(down, lp_opt, warm, nullptr, debug, debug_node, debug_depth,
+                             "strong branching");
       up_r = jobs[1].result;
     } else {
-      down_r = solve_node_lp(down, lp_opt, warm);
-      up_r = solve_node_lp(up, lp_opt, warm);
+      down_r = solve_node_lp(down, lp_opt, warm, nullptr, debug, debug_node, debug_depth,
+                             "strong branching");
+      up_r = solve_node_lp(up, lp_opt, warm, nullptr, debug, debug_node, debug_depth,
+                           "strong branching");
     }
   }
 }
 #else
 void solve_two_lps_parallel(const OptimizationModel& down, const OptimizationModel& up,
                             const RevisedSimplexOptions& lp_opt, const LpBasis* warm,
-                            SolverResult& down_r, SolverResult& up_r, bool) {
-  down_r = solve_node_lp(down, lp_opt, warm);
-  up_r = solve_node_lp(up, lp_opt, warm);
+                            SolverResult& down_r, SolverResult& up_r, bool,
+                            DebugSolution* debug = nullptr, std::int64_t debug_node = -1,
+                            int debug_depth = -1) {
+  down_r = solve_node_lp(down, lp_opt, warm, nullptr, debug, debug_node, debug_depth,
+                         "strong branching");
+  up_r = solve_node_lp(up, lp_opt, warm, nullptr, debug, debug_node, debug_depth,
+                       "strong branching");
 }
 #endif
 
@@ -360,7 +643,9 @@ int apply_cuts(OptimizationModel& model, const std::unordered_map<std::string, d
                double integer_tol, int max_cuts,
                const std::vector<std::unordered_map<std::string, double>>& reference_points,
                std::vector<std::string>* rejections, std::size_t base_rows, bool with_cmir,
-               std::unordered_map<std::string, std::int64_t>* cut_counts) {
+               std::unordered_map<std::string, std::int64_t>* cut_counts,
+               DebugSolution* debug = nullptr, std::int64_t debug_node = -1,
+               int debug_depth = -1) {
   auto covers = generate_cover_cuts(model, x, integer_tol);
   std::vector<Cut> cmir;
   if (with_cmir) cmir = generate_cmir_cuts(model, x, integer_tol, 8, base_rows);
@@ -376,6 +661,9 @@ int apply_cuts(OptimizationModel& model, const std::unordered_map<std::string, d
   int rejected = 0;
   for (const auto& cut : candidates) {
     if (added >= max_cuts) break;
+    if (debug != nullptr && debug->enabled) {
+      debug->check_cut(model, cut.constraint, debug_node, debug_depth, cut.source);
+    }
     const std::string why = check_cut_validity(model, cut.constraint, reference_points,
                                                std::max(integer_tol, 1e-6));
     if (!why.empty()) {
@@ -434,7 +722,9 @@ int pick_strong_branch(const OptimizationModel& milp,
                        double parent_obj, double tol, int max_candidates,
                        const RevisedSimplexOptions& lp_opt, const LpBasis* warm,
                        bool parallel_lps,
-                       std::unordered_map<std::string, PseudoCostStats>* stats) {
+                       std::unordered_map<std::string, PseudoCostStats>* stats,
+                       DebugSolution* debug = nullptr, std::int64_t debug_node = -1,
+                       int debug_depth = -1) {
   auto cands = fractional_vars(milp, x, tol);
   if (cands.empty()) return -1;
   std::sort(cands.begin(), cands.end(), [&](int a, int b) {
@@ -464,7 +754,8 @@ int pick_strong_branch(const OptimizationModel& milp,
         std::max(up.variables[static_cast<std::size_t>(i)].lower_bound, ceil_v);
 
     SolverResult rd, ru;
-    solve_two_lps_parallel(down, up, lp_opt, warm, rd, ru, parallel_lps);
+    solve_two_lps_parallel(down, up, lp_opt, warm, rd, ru, parallel_lps, debug,
+                           debug_node, debug_depth);
 
     const bool down_inf = rd.status == SolverStatus::Infeasible;
     const bool up_inf = ru.status == SolverStatus::Infeasible;
@@ -508,7 +799,9 @@ int pick_reliability_branch(const OptimizationModel& milp,
                             double tol, int reliability, int max_strong,
                             const RevisedSimplexOptions& lp_opt, const LpBasis* warm,
                             bool parallel_lps,
-                            std::unordered_map<std::string, PseudoCostStats>& stats) {
+                            std::unordered_map<std::string, PseudoCostStats>& stats,
+                            DebugSolution* debug = nullptr, std::int64_t debug_node = -1,
+                            int debug_depth = -1) {
   const auto cands = fractional_vars(milp, x, tol);
   if (cands.empty()) return -1;
 
@@ -567,7 +860,8 @@ int pick_reliability_branch(const OptimizationModel& milp,
       up.variables[static_cast<std::size_t>(s.var)].lower_bound =
           std::max(bv.lower_bound, std::ceil(val));
       SolverResult rd, ru;
-      solve_two_lps_parallel(down, up, lp_opt, warm, rd, ru, parallel_lps);
+      solve_two_lps_parallel(down, up, lp_opt, warm, rd, ru, parallel_lps, debug,
+                             debug_node, debug_depth);
       ++strong_done;
 
       const bool down_inf = rd.status == SolverStatus::Infeasible;
@@ -606,6 +900,22 @@ BranchAndBoundSolver::BranchAndBoundSolver(BranchAndBoundOptions options)
 SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
   SolverResult result;
   result.status = SolverStatus::Error;
+  DebugSolution debug;
+  const bool debug_enabled = debug.load(model);
+  if (debug_enabled) {
+    debug.objective_cache = debug.objective(model);
+    result.mip_diagnostics.debug_solution_enabled = true;
+    result.mip_diagnostics.debug_solution_path = debug.path;
+  }
+  auto attach_debug = [&]() {
+    if (!debug_enabled) return;
+    result.mip_diagnostics.debug_solution_violation = debug.violation;
+    result.mip_diagnostics.debug_solution_checks = debug.checks;
+    result.mip_diagnostics.debug_solution_first_violation = debug.first_violation;
+    if (debug.violation && !debug.first_violation.empty()) {
+      result.warnings.push_back("debug_solution_violation: " + debug.first_violation);
+    }
+  };
 
   if (model.problem_type != ProblemType::MILP &&
       model.problem_type != ProblemType::LP) {
@@ -651,9 +961,10 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
   bool has_incumbent = false;
   double incumbent = 0.0;
   std::unordered_map<std::string, double> incumbent_x;
+  DebugSolution* debug_ptr = debug_enabled ? &debug : nullptr;
   auto offer_incumbent = [&](std::unordered_map<std::string, double> x, double objective) {
     if (!better_incumbent(sense, objective, incumbent, has_incumbent)) return false;
-    polish_incumbent(model, x, objective, lp_opt);
+    polish_incumbent(model, x, objective, lp_opt, debug_ptr);
     if (!better_incumbent(sense, objective, incumbent, has_incumbent)) return false;
     has_incumbent = true;
     incumbent = objective;
@@ -675,7 +986,15 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
     return sense == Sense::Minimize ? std::min(a, b) : std::max(a, b);
   };
   double closed_bound = no_bound;
-  auto close_node = [&](double bound) { closed_bound = weaker(closed_bound, bound); };
+  auto close_node = [&](double bound, const SearchNode& node,
+                        const OptimizationModel& node_model,
+                        const std::string& component) {
+    closed_bound = weaker(closed_bound, bound);
+    if (debug_ptr != nullptr) {
+      debug_ptr->check_bound(sense, bound, debug_ptr->objective_cache,
+                             debug_ptr->contains(node_model), node.id, node.depth, component);
+    }
+  };
   std::vector<std::string> warnings;
   std::vector<std::string> cut_rejections;
   std::size_t cut_rejection_count = 0;
@@ -798,21 +1117,31 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
                 << " t=" << (now_seconds() - t_start) << "s (lp " << t_lp << " cuts " << t_cuts
                 << " heur " << t_heur << " branch " << t_branch << ")\n";
     }
-    if (can_prune_by_bound(sense, node.bound, incumbent, has_incumbent, options_.mip_gap)) {
-      close_node(node.bound);
-      continue;
-    }
-
     OptimizationModel node_model = *node.model;
     for (const BoundChange& bc : node.bounds) {
       Variable& v = node_model.variables[static_cast<std::size_t>(bc.var)];
       v.lower_bound = bc.lower;
       v.upper_bound = bc.upper;
     }
+    const bool reference_in_node =
+        debug_ptr != nullptr && debug_ptr->contains(node_model);
+    if (debug_ptr != nullptr) {
+      debug_ptr->check_bound(sense, node.bound, debug_ptr->objective_cache,
+                             reference_in_node, node.id, node.depth, "node bound");
+    }
+    if (can_prune_by_bound(sense, node.bound, incumbent, has_incumbent, options_.mip_gap)) {
+      if (debug_ptr != nullptr) {
+        debug_ptr->check_cutoff(reference_in_node, node.id, node.depth, sense,
+                                node.bound, incumbent);
+      }
+      close_node(node.bound, node, node_model, "objective cutoff");
+      continue;
+    }
 
     LpBasis node_basis;
     double t0 = now_seconds();
-    SolverResult lp = solve_node_lp(node_model, lp_opt, node.basis.get(), &node_basis);
+    SolverResult lp = solve_node_lp(node_model, lp_opt, node.basis.get(), &node_basis,
+                                    debug_ptr, node.id, node.depth, "node LP");
     t_lp += now_seconds() - t0;
     lp_iterations += lp.iterations;
     record_presolve(lp);
@@ -836,6 +1165,7 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
       result.message = "MILP relaxation unbounded.";
       result.nodes = nodes;
       result.iterations = lp_iterations;
+      attach_debug();
       return result;
     }
     // A node LP without a certified objective has no valid bound either, so it
@@ -855,7 +1185,7 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
       } else if (lp.status == SolverStatus::IterationLimit) {
         ++result.mip_diagnostics.iteration_limit_nodes;
       }
-      close_node(node.bound);
+      close_node(node.bound, node, node_model, "LP failure");
       std::ostringstream oss;
       oss << "Node LP returned " << to_string(lp.status)
           << " (subtree dropped, optimality not certified)";
@@ -884,21 +1214,27 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
       if (has_incumbent) {
         reference_points.push_back(incumbent_x);
       }
+      if (debug_ptr != nullptr && debug_ptr->contains(node_model)) {
+        reference_points.push_back(debug_ptr->values);
+      }
       const int rounds = (node.depth == 0) ? options_.max_cut_rounds : 1;
       for (int round = 0; round < rounds; ++round) {
         std::vector<std::string> rejections;
         const int added = apply_cuts(node_model, lp.primal, options_.integer_tol,
                                      options_.max_cuts_per_node, reference_points,
                                      &rejections, model.constraints.size(),
-                                     node.depth <= options_.cmir_max_depth,
-                                     &result.mip_diagnostics.cuts_by_family);
+                                     options_.cmir_max_depth >= 0 &&
+                                         node.depth <= options_.cmir_max_depth,
+                                     &result.mip_diagnostics.cuts_by_family, debug_ptr,
+                                     node.id, node.depth);
         for (auto& r : rejections) note_cut_rejection(std::move(r));
         if (added == 0) break;
         cuts_added_here += added;
         LpBasis cut_basis;
         SolverResult cut_lp = solve_node_lp(node_model, lp_opt,
                                             node_basis.empty() ? nullptr : &node_basis,
-                                            &cut_basis);
+                                            &cut_basis, debug_ptr, node.id, node.depth,
+                                            "cut-loop LP");
         lp_iterations += cut_lp.iterations;
         record_presolve(cut_lp);
         // Keep the pre-cut LP on failure: cuts are valid inequalities, so its
@@ -957,6 +1293,11 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
     t_heur += now_seconds() - t0;
 
     node.bound = lp.objective_value;
+    if (debug_ptr != nullptr) {
+      debug_ptr->check_bound(sense, node.bound, debug_ptr->objective_cache,
+                             debug_ptr->contains(node_model), node.id, node.depth,
+                             "node LP bound");
+    }
 
     // Accept integer-feasible nodes BEFORE bound pruning. Pruning on
     // relative_gap <= mip_gap when the LP objective is within mip_gap of the
@@ -973,7 +1314,11 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
 
     if (can_prune_by_bound(sense, lp.objective_value, incumbent, has_incumbent,
                            options_.mip_gap)) {
-      close_node(lp.objective_value);
+      if (debug_ptr != nullptr) {
+        debug_ptr->check_cutoff(debug_ptr->contains(node_model), node.id, node.depth,
+                                sense, lp.objective_value, incumbent);
+      }
+      close_node(lp.objective_value, node, node_model, "objective cutoff");
       continue;
     }
 
@@ -983,11 +1328,12 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
       bvar = pick_reliability_branch(node_model, lp.primal, lp.objective_value,
                                      options_.integer_tol, options_.reliability_threshold,
                                      options_.max_strong_per_node, lp_opt, child_basis.get(),
-                                     parallel_strong, pseudo);
+                                     parallel_strong, pseudo, debug_ptr, node.id, node.depth);
     } else if (options_.branch_rule == BranchRule::FullStrong) {
       bvar = pick_strong_branch(node_model, lp.primal, lp.objective_value,
                                 options_.integer_tol, options_.strong_branch_candidates,
-                                lp_opt, child_basis.get(), parallel_strong, &pseudo);
+                                lp_opt, child_basis.get(), parallel_strong, &pseudo,
+                                debug_ptr, node.id, node.depth);
     } else if (options_.branch_rule == BranchRule::PseudoCost) {
       bvar = pick_pseudo_cost(node_model, lp.primal, options_.integer_tol, pseudo);
     } else {
@@ -1049,6 +1395,10 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
   result.iterations = lp_iterations;
   result.warnings = warnings;
   const double final_bound = global_bound();
+  if (debug_ptr != nullptr) {
+    debug_ptr->check_bound(sense, final_bound, debug_ptr->objective_cache, true, -1, -1,
+                           "final best bound");
+  }
   if (std::isfinite(final_bound)) {
     result.mip_diagnostics.has_best_bound = true;
     result.mip_diagnostics.best_bound = final_bound;
@@ -1127,6 +1477,7 @@ SolverResult BranchAndBoundSolver::solve(const OptimizationModel& model) const {
                               std::to_string(tree_cut_nodes) + " non-root nodes");
   }
 
+  attach_debug();
   // Rejected cuts are never silent. A generator that emits invalid cuts is a
   // correctness problem, so the count goes into the summary and the individual
   // reasons follow (bounded, so a pathological generator cannot exhaust memory).

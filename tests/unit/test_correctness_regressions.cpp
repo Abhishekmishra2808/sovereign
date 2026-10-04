@@ -27,8 +27,10 @@
 
 #include "mini_test.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <fstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -679,4 +681,30 @@ TEST(NetlibRegression, FinnisTemporaryBoundFallsBackAndVerifies) {
   EXPECT_TRUE(verification.is_valid);
   EXPECT_TRUE(verification.max_constraint_violation <= 1e-6);
   EXPECT_TRUE(verification.max_bound_violation <= 1e-6);
+}
+
+TEST(MiplibRegression, Qnet1OBestBoundDoesNotExceedKnownOptimum) {
+  const std::string path =
+      std::string(SOVEREIGN_TEST_DATA_DIR) +
+      "/../../benchmarks/datasets/coverage/miplib_stage2/qnet1_o.mps";
+  std::ifstream input(path);
+  if (!input) {
+    // The official MIPLIB corpus is intentionally ignored by Git. The full
+    // benchmark gate downloads it with run_miplib_stage2.py --fetch.
+    std::cout << "[  SKIPPED ] official qnet1_o input is not present: " << path << "\n";
+    return;
+  }
+
+  const OptimizationModel model = load_model_from_file(path);
+  BranchAndBoundOptions opt;
+  opt.max_nodes = 25;
+  opt.enable_heuristics = false;
+  opt.branch_rule = BranchRule::MostFractional;
+  opt.parallel_workers = 1;
+  const SolverResult result = BranchAndBoundSolver(opt).solve(model);
+  constexpr double known_optimum = 16029.692681;
+  if (result.mip_diagnostics.has_best_bound) {
+    EXPECT_TRUE(result.mip_diagnostics.best_bound <=
+                known_optimum + 1e-6 * std::max(1.0, std::abs(known_optimum)));
+  }
 }
