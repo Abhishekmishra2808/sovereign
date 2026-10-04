@@ -1,0 +1,28 @@
+mingw32-make: Entering directory 'C:/Users/abhis/Desktop/26119/build-agent'
+mingw32-make[1]: Entering directory 'C:/Users/abhis/Desktop/26119/build-agent'
+mingw32-make[2]: Entering directory 'C:/Users/abhis/Desktop/26119/build-agent'
+mingw32-make[2]: Entering directory 'C:/Users/abhis/Desktop/26119/build-agent'
+mingw32-make[2]: Leaving directory 'C:/Users/abhis/Desktop/26119/build-agent'
+mingw32-make[2]: Leaving directory 'C:/Users/abhis/Desktop/26119/build-agent'
+mingw32-make[2]: Entering directory 'C:/Users/abhis/Desktop/26119/build-agent'
+mingw32-make[2]: Entering directory 'C:/Users/abhis/Desktop/26119/build-agent'
+[  1%] Building CXX object solver/CMakeFiles/sovereign-launcher.dir/launcher/src/launcher_main.cpp.obj
+[  3%] Building C object solver/CMakeFiles/monocypher.dir/__/third_party/monocypher/monocypher.c.obj
+C:\Users\abhis\Desktop\26119\solver\launcher\src\launcher_main.cpp:21:22: fatal error: filesystem: No such file or directory
+ #include <filesystem>
+                      ^
+compilation terminated.
+solver\CMakeFiles\sovereign-launcher.dir\build.make:77: recipe for target 'solver/CMakeFiles/sovereign-launcher.dir/launcher/src/launcher_main.cpp.obj' failed
+mingw32-make[2]: *** [solver/CMakeFiles/sovereign-launcher.dir/launcher/src/launcher_main.cpp.obj] Error 1
+mingw32-make[2]: Leaving directory 'C:/Users/abhis/Desktop/26119/build-agent'
+CMakeFiles\Makefile2:329: recipe for target 'solver/CMakeFiles/sovereign-launcher.dir/all' failed
+mingw32-make[1]: *** [solver/CMakeFiles/sovereign-launcher.dir/all] Error 2
+mingw32-make[1]: *** Waiting for unfinished jobs....
+[  4%] Building C object solver/CMakeFiles/monocypher.dir/__/third_party/monocypher/monocypher-ed25519.c.obj
+[  6%] Linking C static library libmonocypher.a
+mingw32-make[2]: Leaving directory 'C:/Users/abhis/Desktop/26119/build-agent'
+[  6%] Built target monocypher
+mingw32-make[1]: Leaving directory 'C:/Users/abhis/Desktop/26119/build-agent'
+Makefile:144: recipe for target 'all' failed
+mingw32-make: *** [all] Error 2
+mingw32-make: Leaving directory 'C:/Users/abhis/Desktop/26119/build-agent'

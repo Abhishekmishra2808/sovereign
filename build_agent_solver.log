@@ -1,0 +1,18 @@
+[  9%] Built target monocypher
+[ 12%] Building CXX object solver/CMakeFiles/sovereign_core.dir/lp/src/revised_simplex.cpp.obj
+[ 15%] Building CXX object solver/CMakeFiles/sovereign_core.dir/lp/src/interior_point.cpp.obj
+[ 18%] Building CXX object solver/CMakeFiles/sovereign_core.dir/qp/src/qp_solver.cpp.obj
+[ 21%] Building CXX object solver/CMakeFiles/sovereign_core.dir/qp/src/convex_qp.cpp.obj
+[ 24%] Building CXX object solver/CMakeFiles/sovereign_core.dir/qp/src/qp_interior_point.cpp.obj
+[ 27%] Building CXX object solver/CMakeFiles/sovereign_core.dir/milp/src/milp_solver.cpp.obj
+[ 30%] Building CXX object solver/CMakeFiles/sovereign_core.dir/milp/src/branch_and_bound.cpp.obj
+[ 33%] Building CXX object solver/CMakeFiles/sovereign_core.dir/cuts/src/cuts.cpp.obj
+[ 36%] Building CXX object solver/CMakeFiles/sovereign_core.dir/heuristics/src/heuristics.cpp.obj
+[ 39%] Building CXX object solver/CMakeFiles/sovereign_core.dir/presolve/src/presolve.cpp.obj
+[ 42%] Building CXX object solver/CMakeFiles/sovereign_core.dir/gpu/src/gpu_spmv.cpp.obj
+[ 45%] Building CXX object solver/CMakeFiles/sovereign_core.dir/gpu/src/cuda_driver.cpp.obj
+[ 48%] Linking CXX static library libsovereign_core.a
+[ 93%] Built target sovereign_core
+[ 96%] Building CXX object solver/CMakeFiles/sovereign.dir/cli/main.cpp.obj
+[100%] Linking CXX executable sovereign.exe
+[100%] Built target sovereign

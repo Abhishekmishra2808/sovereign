@@ -1,0 +1,12 @@
+{
+  "n": 5000,
+  "gi_runtime_seconds": 8.497925499919802,
+  "scipy_success": false,
+  "scipy_status": 0,
+  "scipy_message": "The maximum number of iterations is exceeded.",
+  "scipy_optimality": 3.7761993459284326e-05,
+  "scipy_cost": 91.0337607095037,
+  "x_difference_inf_longdouble": "0.07806384697763086",
+  "objective_difference_longdouble": "4.332263747034219",
+  "objective_relative_difference": "0.0473534468510594"
+}

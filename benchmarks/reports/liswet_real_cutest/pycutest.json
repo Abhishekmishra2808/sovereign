@@ -1,0 +1,16 @@
+{
+  "problem_n": 2002,
+  "problem_m": 2000,
+  "objective": 7.221894982162432,
+  "objective_zero": 505.53197247,
+  "objective_zero_from_c_cutest": 505.5319724744125,
+  "stored_constant_difference": 4.4125e-09,
+  "objective_increment_from_pycutest": -498.310077487837568,
+  "objective_qp_mpmath": -498.310077487838045721894134,
+  "objective_increment_difference": 4.77721894134e-13,
+  "gradient_inf": 0.3193618827747446,
+  "c_cutest_gradient_match_inf": 0.0,
+  "constraint_min": -2.220446049250313e-16,
+  "constraint_max": 2.220446049250313e-16,
+  "note": "Raw p.obj differs from mpmath distance by the SIF stored objective constant; the objective increment agrees to sub-1e-12."
+}

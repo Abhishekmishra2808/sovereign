@@ -1,0 +1,319 @@
+{"suite": "netlib", "name": "25fv47", "coef_range": 1194749.9849999999, "primal_degeneracy": 0.08404384896467722, "dual_degeneracy": 0.027462121212121212, "basis_condition": 1944903.5902516567}
+{"suite": "netlib", "name": "80bau3b", "coef_range": 476090.90909090906, "primal_degeneracy": 0.1830238726790451, "dual_degeneracy": 0.020427910977314268, "basis_condition": 22814.4101150418}
+{"suite": "netlib", "name": "adlittle", "coef_range": 53583.333333333336, "primal_degeneracy": 0.017857142857142856, "dual_degeneracy": 0.1951219512195122, "basis_condition": 5342.416529547338}
+{"suite": "netlib", "name": "afiro", "coef_range": 22.700934579439252, "primal_degeneracy": 0.3333333333333333, "dual_degeneracy": 0.20833333333333334, "basis_condition": 37.93502699999999}
+{"suite": "netlib", "name": "agg", "coef_range": 21200000.0, "primal_degeneracy": 0.06967213114754098, "dual_degeneracy": 0.08396946564885496, "basis_condition": 50752041.19972689}
+{"suite": "netlib", "name": "agg2", "coef_range": 21200000.0, "primal_degeneracy": 0.011627906976744186, "dual_degeneracy": 0.16872427983539096, "basis_condition": 156785.01788371397}
+{"suite": "netlib", "name": "agg3", "coef_range": 21200000.0, "primal_degeneracy": 0.007751937984496124, "dual_degeneracy": 0.1646090534979424, "basis_condition": 342704.8499706024}
+{"suite": "netlib", "name": "bandm", "coef_range": 200000.0, "primal_degeneracy": 0.036065573770491806, "dual_degeneracy": 0.005917159763313609, "basis_condition": 239454.63508111789}
+{"suite": "netlib", "name": "beaconfd", "coef_range": 416666.6666666667, "primal_degeneracy": 0.2947976878612717, "dual_degeneracy": 0.03333333333333333, "basis_condition": 67140.5183949375}
+{"suite": "netlib", "name": "blend", "coef_range": 22000.0, "primal_degeneracy": 0.08108108108108109, "dual_degeneracy": 0.05, "basis_condition": 13302.488675993734}
+{"suite": "netlib", "name": "bnl1", "coef_range": 70909.09090909091, "primal_degeneracy": 0.1088646967340591, "dual_degeneracy": 0.2555438225976769, "basis_condition": 21640059.40208203}
+{"suite": "netlib", "name": "bnl2", "coef_range": 130000.00000000001, "primal_degeneracy": 0.32228915662650603, "dual_degeneracy": 0.25800548947849955, "basis_condition": 50891854.28851386}
+{"suite": "netlib", "name": "boeing1", "coef_range": 274079.94346289756, "primal_degeneracy": 0.1111111111111111, "dual_degeneracy": 0.06648936170212766, "basis_condition": 54618312.12416919}
+{"suite": "netlib", "name": "boeing2", "coef_range": 300000.0, "primal_degeneracy": 0.42168674698795183, "dual_degeneracy": 0.15827338129496402, "basis_condition": 4857359.027436034}
+{"suite": "netlib", "name": "bore3d", "coef_range": 14269040.0, "primal_degeneracy": 0.44206008583690987, "dual_degeneracy": 0.06369426751592357, "basis_condition": 15409763.437744582}
+{"suite": "netlib", "name": "brandy", "coef_range": 254624.99999999997, "primal_degeneracy": 0.32727272727272727, "dual_degeneracy": 0.05128205128205128, "basis_condition": 123979.71726010172}
+{"suite": "netlib", "name": "capri", "coef_range": 2419386.7777777775, "primal_degeneracy": 0.025830258302583026, "dual_degeneracy": 0.2564102564102564, "basis_condition": 1133539.3847027444}
+{"suite": "netlib", "name": "cycle", "coef_range": 91061800.0, "primal_degeneracy": 0.9164477141355754, "dual_degeneracy": 0.7088377723970944, "basis_condition": 54618790463.790016}
+{"suite": "netlib", "name": "czprob", "coef_range": 87261.14649681529, "primal_degeneracy": 0.05597416576964478, "dual_degeneracy": 0.025524907369287773, "basis_condition": 14839.789918485225}
+{"suite": "netlib", "name": "d2q06c", "coef_range": 11613497.62, "primal_degeneracy": 0.11469368954398894, "dual_degeneracy": 0.010092744135297326, "basis_condition": 749977218.2921927}
+{"suite": "netlib", "name": "d6cube", "coef_range": 360.0, "primal_degeneracy": 0.7518072289156627, "dual_degeneracy": 0.004081632653061225, "basis_condition": 479054.2779518043}
+{"suite": "netlib", "name": "degen2", "coef_range": 1.0, "primal_degeneracy": 0.47072072072072074, "dual_degeneracy": 0.0, "basis_condition": 3486.0000000000014}
+{"suite": "netlib", "name": "degen3", "coef_range": 1.0, "primal_degeneracy": 0.5189620758483033, "dual_degeneracy": 0.004516711833785004, "basis_condition": 23324.00000000011}
+{"suite": "netlib", "name": "dfl001", "coef_range": 24.00000000096, "primal_degeneracy": 0.4730686872014495, "dual_degeneracy": 0.03270879644331534, "basis_condition": 342539.7716493425}
+{"suite": "netlib", "name": "e226", "coef_range": 5716153.846153847, "primal_degeneracy": 0.12556053811659193, "dual_degeneracy": 0.02, "basis_condition": 3601485.770671113}
+{"suite": "netlib", "name": "etamacro", "coef_range": 105263.15789473684, "primal_degeneracy": 0.26, "dual_degeneracy": 0.027247956403269755, "basis_condition": 5349747.009256328}
+{"suite": "netlib", "name": "fffff800", "coef_range": 13623074.086922226, "primal_degeneracy": 0.24618320610687022, "dual_degeneracy": 0.39923224568138194, "basis_condition": 37383289633.034035}
+{"suite": "netlib", "name": "finnis", "coef_range": 69414.31670281995, "primal_degeneracy": 0.29577464788732394, "dual_degeneracy": 0.13714285714285715, "basis_condition": 133946.68634960352}
+{"suite": "netlib", "name": "fit1d", "coef_range": 189000.0, "primal_degeneracy": 0.0, "dual_degeneracy": 0.0, "basis_condition": 1079292.084540609}
+{"suite": "netlib", "name": "fit1p", "coef_range": 189000.0, "primal_degeneracy": 0.0, "dual_degeneracy": 0.0, "basis_condition": 122366362.31209572}
+{"suite": "netlib", "name": "fit2d", "coef_range": 51280.0, "primal_degeneracy": 0.0, "dual_degeneracy": 0.0002857414991903991, "basis_condition": 19839.114032483056}
+{"suite": "netlib", "name": "fit2p", "coef_range": 51280.0, "primal_degeneracy": 0.001, "dual_degeneracy": 0.0, "basis_condition": 1236822436.8659203}
+{"suite": "netlib", "name": "forplan", "coef_range": 378890.39242219215, "primal_degeneracy": 0.3167701863354037, "dual_degeneracy": 0.0030303030303030303, "basis_condition": 22935740.710251436}
+{"suite": "netlib", "name": "ganges", "coef_range": 714.2857142857143, "primal_degeneracy": 0.0855614973262032, "dual_degeneracy": 0.504950495049505, "basis_condition": 351132.92558213224}
+{"suite": "netlib", "name": "gfrd-pnc", "coef_range": 1095.2, "primal_degeneracy": 0.4448051948051948, "dual_degeneracy": 0.0, "basis_condition": 119790.42850449042}
+{"suite": "netlib", "name": "greenbea", "coef_range": 1666666.6666666665, "primal_degeneracy": 0.6112040133779264, "dual_degeneracy": 0.11899663505659223, "basis_condition": 554507136.9105358}
+{"suite": "netlib", "name": "greenbeb", "coef_range": 1666666.6666666665, "primal_degeneracy": 0.5681438127090301, "dual_degeneracy": 0.12978524743230627, "basis_condition": 4974793.645321001}
+{"suite": "netlib", "name": "grow15", "coef_range": 166666.66666666666, "primal_degeneracy": 0.0, "dual_degeneracy": 0.6753623188405797, "basis_condition": 1786.5234332763669}
+{"suite": "netlib", "name": "grow22", "coef_range": 166666.66666666666, "primal_degeneracy": 0.0, "dual_degeneracy": 0.808300395256917, "basis_condition": 1533.6403332714137}
+{"suite": "netlib", "name": "grow7", "coef_range": 166666.66666666666, "primal_degeneracy": 0.0, "dual_degeneracy": 0.6024844720496895, "basis_condition": 124.23670572701089}
+{"suite": "netlib", "name": "israel", "coef_range": 1600000.0, "primal_degeneracy": 0.0, "dual_degeneracy": 0.13380281690140844, "basis_condition": 12985365.625387402}
+{"suite": "netlib", "name": "kb2", "coef_range": 664.7058823529411, "primal_degeneracy": 0.0, "dual_degeneracy": 0.0, "basis_condition": 1564846.893595856}
+{"suite": "netlib", "name": "lotfi", "coef_range": 52083.333333333336, "primal_degeneracy": 0.06535947712418301, "dual_degeneracy": 0.14084507042253522, "basis_condition": 7339453.156556722}
+{"suite": "netlib", "name": "maros", "coef_range": 168384000.0, "primal_degeneracy": 0.4598108747044917, "dual_degeneracy": 0.0288028802880288, "basis_condition": 6933371378.591044}
+{"suite": "netlib", "name": "maros-r7", "coef_range": 598.0861244019138, "primal_degeneracy": 0.0, "dual_degeneracy": 0.0, "basis_condition": 988.3994188411956}
+{"suite": "netlib", "name": "modszk1", "coef_range": 1608.1216216216217, "primal_degeneracy": 0.03056768558951965, "dual_degeneracy": 0.0010504201680672268, "basis_condition": 6007.976192601691}
+{"suite": "netlib", "name": "nesm", "coef_range": 33333.328, "primal_degeneracy": 0.0, "dual_degeneracy": 0.09788359788359788, "basis_condition": 944458.9264779662}
+{"suite": "netlib", "name": "perold", "coef_range": 445559036.0377358, "primal_degeneracy": 0.0864, "dual_degeneracy": 0.0463980463980464, "basis_condition": 117633859995.48906}
+{"suite": "netlib", "name": "pilot", "coef_range": 145600000.0, "primal_degeneracy": 0.03816793893129771, "dual_degeneracy": 0.01673380849085838, "basis_condition": 334517526.6226294}
+{"suite": "netlib", "name": "pilot4", "coef_range": 752540223.7837839, "primal_degeneracy": 0.05853658536585366, "dual_degeneracy": 0.06559766763848396, "basis_condition": 166649017951.42743}
+{"suite": "netlib", "name": "pilot87", "coef_range": 1000000000.0, "primal_degeneracy": 0.02413793103448276, "dual_degeneracy": 0.007647323436797121, "basis_condition": 531933245.1473498}
+{"suite": "netlib", "name": "pilotnov", "coef_range": 2925570500000.0, "primal_degeneracy": 0.13128205128205128, "dual_degeneracy": 0.9457013574660633, "basis_condition": 3745624106487.1787}
+{"suite": "netlib", "name": "recipe", "coef_range": 1208.3333333333335, "primal_degeneracy": 0.7362637362637363, "dual_degeneracy": 0.6428571428571429, "basis_condition": 159760.09}
+{"suite": "netlib", "name": "sc105", "coef_range": 20.0, "primal_degeneracy": 0.12380952380952381, "dual_degeneracy": 0.06896551724137931, "basis_condition": 483.06442974201616}
+{"suite": "netlib", "name": "sc205", "coef_range": 20.0, "primal_degeneracy": 0.06829268292682927, "dual_degeneracy": 0.04424778761061947, "basis_condition": 2298.7605922825915}
+{"suite": "netlib", "name": "sc50a", "coef_range": 20.0, "primal_degeneracy": 0.1, "dual_degeneracy": 0.03571428571428571, "basis_condition": 116.74477846763538}
+{"suite": "netlib", "name": "sc50b", "coef_range": 10.0, "primal_degeneracy": 0.04, "dual_degeneracy": 0.0, "basis_condition": 123.34256390625002}
+{"suite": "netlib", "name": "scagr25", "coef_range": 46.6, "primal_degeneracy": 0.09341825902335456, "dual_degeneracy": 0.0, "basis_condition": 13806.482922690055}
+{"suite": "netlib", "name": "scagr7", "coef_range": 46.6, "primal_degeneracy": 0.0, "dual_degeneracy": 0.0, "basis_condition": 10362.536279313676}
+{"suite": "netlib", "name": "scfxm1", "coef_range": 260000.0, "primal_degeneracy": 0.11515151515151516, "dual_degeneracy": 0.05128205128205128, "basis_condition": 2875116.0538787846}
+{"suite": "netlib", "name": "scfxm2", "coef_range": 260000.0, "primal_degeneracy": 0.09090909090909091, "dual_degeneracy": 0.04945054945054945, "basis_condition": 4091364.1544551393}
+{"suite": "netlib", "name": "scfxm3", "coef_range": 260000.0, "primal_degeneracy": 0.08282828282828283, "dual_degeneracy": 0.0463980463980464, "basis_condition": 4091364.1544551393}
+{"suite": "netlib", "name": "scorpion", "coef_range": 100.0, "primal_degeneracy": 0.3324742268041237, "dual_degeneracy": 0.0, "basis_condition": 3242.5832893050388}
+{"suite": "netlib", "name": "scrs8", "coef_range": 388765.06, "primal_degeneracy": 0.38571428571428573, "dual_degeneracy": 0.03409090909090909, "basis_condition": 567153.6306105441}
+{"suite": "netlib", "name": "scsd1", "coef_range": 4.123105541235323, "primal_degeneracy": 0.8571428571428571, "dual_degeneracy": 0.048034934497816595, "basis_condition": 81.39261280285855}
+{"suite": "netlib", "name": "scsd6", "coef_range": 4.123105541235323, "primal_degeneracy": 0.6326530612244898, "dual_degeneracy": 0.09634551495016612, "basis_condition": 330.7081404788087}
+{"suite": "netlib", "name": "scsd8", "coef_range": 4.123105541235323, "primal_degeneracy": 0.3123425692695214, "dual_degeneracy": 0.07777305567360816, "basis_condition": 3413.9408756839434}
+{"suite": "netlib", "name": "sctap1", "coef_range": 80.0, "primal_degeneracy": 0.24666666666666667, "dual_degeneracy": 0.4530386740331492, "basis_condition": 102344.16666666666}
+{"suite": "netlib", "name": "sctap2", "coef_range": 80.0, "primal_degeneracy": 0.3798165137614679, "dual_degeneracy": 0.20184135977337112, "basis_condition": 52003.0}
+{"suite": "netlib", "name": "sctap3", "coef_range": 80.0, "primal_degeneracy": 0.41283783783783784, "dual_degeneracy": 0.22837184309511016, "basis_condition": 33296.333333333336}
+{"suite": "netlib", "name": "seba", "coef_range": 156.0, "primal_degeneracy": 0.14757281553398058, "dual_degeneracy": 0.024344569288389514, "basis_condition": 2602528.0}
+{"suite": "netlib", "name": "share1b", "coef_range": 13222.3, "primal_degeneracy": 0.0, "dual_degeneracy": 0.0, "basis_condition": 23870619.87697101}
+{"suite": "netlib", "name": "share2b", "coef_range": 10300.0, "primal_degeneracy": 0.10416666666666667, "dual_degeneracy": 0.09090909090909091, "basis_condition": 1311527.2120606378}
+{"suite": "netlib", "name": "shell", "coef_range": 1.0, "primal_degeneracy": 0.28171641791044777, "dual_degeneracy": 0.0010080645161290322, "basis_condition": 117.0}
+{"suite": "netlib", "name": "ship04l", "coef_range": 338.8658865886589, "primal_degeneracy": 0.31343283582089554, "dual_degeneracy": 0.0005449591280653951, "basis_condition": 873.0864086408641}
+{"suite": "netlib", "name": "ship04s", "coef_range": 338.8658865886589, "primal_degeneracy": 0.26616915422885573, "dual_degeneracy": 0.000856898029134533, "basis_condition": 2285.821303591145}
+{"suite": "netlib", "name": "ship08l", "coef_range": 446.01043664421746, "primal_degeneracy": 0.43444730077120824, "dual_degeneracy": 0.0, "basis_condition": 2884.092600690954}
+{"suite": "netlib", "name": "ship08s", "coef_range": 446.01043664421746, "primal_degeneracy": 0.4023136246786632, "dual_degeneracy": 0.0, "basis_condition": 1400.0637627309954}
+{"suite": "netlib", "name": "ship12l", "coef_range": 256.0, "primal_degeneracy": 0.37098175499565594, "dual_degeneracy": 0.00042517006802721087, "basis_condition": 10108.476819204801}
+{"suite": "netlib", "name": "ship12s", "coef_range": 256.0, "primal_degeneracy": 0.3518679409209383, "dual_degeneracy": 0.000992063492063492, "basis_condition": 10108.476819204801}
+{"suite": "netlib", "name": "sierra", "coef_range": 100000.0, "primal_degeneracy": 0.20863895680521596, "dual_degeneracy": 0.031746031746031744, "basis_condition": 10000200001.0}
+{"suite": "netlib", "name": "stair", "coef_range": 985262.9999999999, "primal_degeneracy": 0.0028089887640449437, "dual_degeneracy": 0.005681818181818182, "basis_condition": 89395.14330407738}
+{"suite": "netlib", "name": "standata", "coef_range": 300.0, "primal_degeneracy": 0.7632311977715878, "dual_degeneracy": 0.06482465462274177, "basis_condition": 3239.5717190625005}
+{"suite": "netlib", "name": "standgub", "coef_range": 1363.6363636363637, "primal_degeneracy": 0.7645429362880887, "dual_degeneracy": 0.1619047619047619, "basis_condition": 3239.5717190625005}
+{"suite": "netlib", "name": "standmps", "coef_range": 300.0, "primal_degeneracy": 0.5524625267665952, "dual_degeneracy": 0.07682926829268293, "basis_condition": 19567.703875000003}
+{"suite": "netlib", "name": "stocfor1", "coef_range": 5378.715244487057, "primal_degeneracy": 0.08547008547008547, "dual_degeneracy": 0.0, "basis_condition": 519366.8385123055}
+{"suite": "netlib", "name": "stocfor2", "coef_range": 1660.746003552398, "primal_degeneracy": 0.15391747797867408, "dual_degeneracy": 0.0, "basis_condition": 8669891.019021256}
+{"suite": "netlib", "name": "tuff", "coef_range": 999999999.9999999, "primal_degeneracy": 0.5795795795795796, "dual_degeneracy": 0.24641833810888253, "basis_condition": 100020001.0}
+{"suite": "netlib", "name": "vtpbase", "coef_range": 30000.750018750467, "primal_degeneracy": 0.48484848484848486, "dual_degeneracy": 0.0, "basis_condition": 1850936242.8253224}
+{"suite": "netlib", "name": "wood1p", "coef_range": 33333333.333333332, "primal_degeneracy": 0.8401639344262295, "dual_degeneracy": 0.004523026315789474, "basis_condition": 44349.75519538331}
+{"suite": "netlib", "name": "woodw", "coef_range": 100000.0, "primal_degeneracy": 0.4899817850637523, "dual_degeneracy": 0.20477906821519157, "basis_condition": 981090.4532281283}
+{"suite": "miplib", "name": "10teams", "coef_range": 1.0, "relaxation_status": "Optimal", "relaxation_objective": 917.0000000000001, "root_gap": 0.007575757575757087}
+{"suite": "miplib", "name": "50v-10", "coef_range": 216.0, "relaxation_status": "Optimal", "relaxation_objective": 2879.0656868536717, "root_gap": 0.13050160345293943}
+{"suite": "miplib", "name": "air03", "coef_range": 1.0, "relaxation_status": "Optimal", "relaxation_objective": 338864.25, "root_gap": 0.0038092368297271873}
+{"suite": "miplib", "name": "air04", "coef_range": 1.0, "relaxation_status": "Optimal", "relaxation_objective": 55535.43638822425, "root_gap": 0.010715991445495005}
+{"suite": "miplib", "name": "air05", "coef_range": 1.0, "relaxation_status": "Optimal", "relaxation_objective": 25877.60926785141, "root_gap": 0.01882121529341736}
+{"suite": "miplib", "name": "assign1-5-8", "coef_range": 5.0, "relaxation_status": "Optimal", "relaxation_objective": 183.36255497382186, "root_gap": 0.13508228785932275}
+{"suite": "miplib", "name": "b-ball", "coef_range": 2.0, "relaxation_status": "Optimal", "relaxation_objective": -1.8181818181818183, "root_gap": 0.17499999999999458}
+{"suite": "miplib", "name": "beasleyC3", "coef_range": 82.0, "relaxation_status": "Optimal", "relaxation_objective": 40.42682926829263, "root_gap": 0.9463835155592873}
+{"suite": "miplib", "name": "binkar10_1", "coef_range": 28.809999, "relaxation_status": "Optimal", "relaxation_objective": 6637.188026943753, "root_gap": 0.015455588711208066}
+{"suite": "miplib", "name": "blend2", "coef_range": 7243.0, "relaxation_status": "Optimal", "relaxation_objective": 6.915675114009087, "root_gap": 0.08992120473864773}
+{"suite": "miplib", "name": "cap6000", "coef_range": 99446.0, "relaxation_status": "Optimal", "relaxation_objective": -2451537.3250240455, "root_gap": 6.539774957085985e-05}
+{"suite": "miplib", "name": "danoint", "coef_range": 133.0, "relaxation_status": "Optimal", "relaxation_objective": 62.63728041845077, "root_gap": 0.04613278550485734}
+{"suite": "miplib", "name": "dcmulti", "coef_range": 600.0, "relaxation_status": "Optimal", "relaxation_objective": 183975.53969317526, "root_gap": 0.022353149115349705}
+{"suite": "miplib", "name": "eil33-2", "coef_range": 1.0, "relaxation_status": "Optimal", "relaxation_objective": 811.278996122807, "root_gap": 0.13140029947796728}
+{"suite": "miplib", "name": "enlight_hard", "coef_range": 2.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0, "root_gap": 1.0}
+{"suite": "miplib", "name": "exp-1-500-5-5", "coef_range": 863.0, "relaxation_status": "Optimal", "relaxation_objective": 28427.048404552133, "root_gap": 0.5685484480314458}
+{"suite": "miplib", "name": "fiber", "coef_range": 216.0, "relaxation_status": "Optimal", "relaxation_objective": 156082.5175925926, "root_gap": 0.6154989139088841}
+{"suite": "miplib", "name": "flugpl", "coef_range": 166.66666666666666, "relaxation_status": "Optimal", "relaxation_objective": 1167185.7255923206, "root_gap": 0.028559529261489344}
+{"suite": "miplib", "name": "gen-ip002", "coef_range": 5579.439492684338, "relaxation_status": "Optimal", "relaxation_objective": -4840.54196130089, "root_gap": 0.011735993563336971}
+{"suite": "miplib", "name": "gen-ip016", "coef_range": 1971.3997711442048, "relaxation_status": "Optimal", "relaxation_objective": -9505.628172760373, "root_gap": 0.003100581594894634}
+{"suite": "miplib", "name": "gen-ip021", "coef_range": 599.6650205159696, "relaxation_status": "Optimal", "relaxation_objective": 2327.8425844887583, "root_gap": 0.014233437502071625}
+{"suite": "miplib", "name": "gen-ip036", "coef_range": 135654.0101468807, "relaxation_status": "Optimal", "relaxation_objective": -4632.298152873467, "root_gap": 0.005530417522364267}
+{"suite": "miplib", "name": "gen-ip054", "coef_range": 1424.7160634615302, "relaxation_status": "Optimal", "relaxation_objective": 6765.2090427277435, "root_gap": 0.011073962804238512}
+{"suite": "miplib", "name": "glass4", "coef_range": 8400000.0, "relaxation_status": "Optimal", "relaxation_objective": 800002400.0, "root_gap": 0.33333833326549195}
+{"suite": "miplib", "name": "gmu-35-40", "coef_range": 3217.881125, "relaxation_status": "Optimal", "relaxation_objective": -2406943.556342882, "root_gap": 8.7325497238349e-05}
+{"suite": "miplib", "name": "gt2", "coef_range": 2534.0, "relaxation_status": "Optimal", "relaxation_objective": 13460.233074411897, "root_gap": 0.3640634473017086}
+{"suite": "miplib", "name": "khb05250", "coef_range": 5000.0, "relaxation_status": "Optimal", "relaxation_objective": 95919464.0, "root_gap": 0.1030553460771619}
+{"suite": "miplib", "name": "lotsize", "coef_range": 20019.0, "relaxation_status": "Optimal", "relaxation_objective": 348385.3465507299, "root_gap": 0.7646355064361589}
+{"suite": "miplib", "name": "markshare_4_0", "coef_range": 99.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0, "root_gap": 1.0}
+{"suite": "miplib", "name": "markshare_5_0", "coef_range": 100.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0, "root_gap": 1.0}
+{"suite": "miplib", "name": "mas74", "coef_range": 9948.0, "relaxation_status": "Optimal", "relaxation_objective": 10482.795280331198, "root_gap": 0.11171677752977531}
+{"suite": "miplib", "name": "mas76", "coef_range": 9936.0, "relaxation_status": "Optimal", "relaxation_objective": 38893.90364052266, "root_gap": 0.027775249341122944}
+{"suite": "miplib", "name": "mcsched", "coef_range": 1000.0, "relaxation_status": "Optimal", "relaxation_objective": 193774.75370662293, "root_gap": 0.08559289091927853}
+{"suite": "miplib", "name": "mik-250-20-75-4", "coef_range": 1996.0, "relaxation_status": "Optimal", "relaxation_objective": -61651.22709753319, "root_gap": 0.15166327642985902}
+{"suite": "miplib", "name": "misc07", "coef_range": 700.0, "relaxation_status": "Optimal", "relaxation_objective": 1415.0, "root_gap": 0.49644128113879005}
+{"suite": "miplib", "name": "mod010", "coef_range": 20.0, "relaxation_status": "Optimal", "relaxation_objective": 6532.083333333333, "root_gap": 0.0024307676644268433}
+{"suite": "miplib", "name": "mod011", "coef_range": 296159.4963273872, "relaxation_status": "Optimal", "relaxation_objective": -62121982.55190485, "root_gap": 0.12175153868576798}
+{"suite": "miplib", "name": "neos-2657525-crna", "coef_range": 227587.5, "relaxation_status": "Optimal", "relaxation_objective": 0.0, "root_gap": 1.0}
+{"suite": "miplib", "name": "neos-3754480-nidda", "coef_range": 32431.769176456746, "relaxation_status": "Optimal", "relaxation_objective": -1216923.270104393, "root_gap": 1.0106331716455421}
+{"suite": "miplib", "name": "neos-911970", "coef_range": 135.0, "relaxation_status": "Optimal", "relaxation_objective": 23.259999999999998, "root_gap": 0.5752373995617239}
+{"suite": "miplib", "name": "neos17", "coef_range": 1.001, "relaxation_status": "Optimal", "relaxation_objective": 0.0006814985014984978, "root_gap": 0.995456754721746}
+{"suite": "miplib", "name": "neos5", "coef_range": 1.0, "relaxation_status": "Optimal", "relaxation_objective": 13.000000000000002, "root_gap": 0.13333333333333322}
+{"suite": "miplib", "name": "noswot", "coef_range": 84.0, "relaxation_status": "Optimal", "relaxation_objective": -43.00000000000001, "root_gap": 0.046511422093023405}
+{"suite": "miplib", "name": "p0201", "coef_range": 64.0, "relaxation_status": "Optimal", "relaxation_objective": 6875.0, "root_gap": 0.09717662508207453}
+{"suite": "miplib", "name": "p200x1188c", "coef_range": 3950.0, "relaxation_status": "Optimal", "relaxation_objective": 5678.607088607595, "root_gap": 0.6233845942029717}
+{"suite": "miplib", "name": "pg", "coef_range": 1607.0, "relaxation_status": "Optimal", "relaxation_objective": -11824.65738155926, "root_gap": 0.266419116663137}
+{"suite": "miplib", "name": "pg5_34", "coef_range": 1529.0, "relaxation_status": "Optimal", "relaxation_objective": -16646.586017379595, "root_gap": 0.1386009458618582}
+{"suite": "miplib", "name": "pk1", "coef_range": 55.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0, "root_gap": 1.0}
+{"suite": "miplib", "name": "qiu", "coef_range": 85.5, "relaxation_status": "Optimal", "relaxation_objective": -931.6388458551393, "root_gap": 0.8573769894405407}
+{"suite": "miplib", "name": "qnet1", "coef_range": 4122.94, "relaxation_status": "Optimal", "relaxation_objective": 14274.10266709443, "root_gap": 0.10952112737547699}
+{"suite": "miplib", "name": "qnet1_o", "coef_range": 4122.94, "relaxation_status": "Optimal", "relaxation_objective": 12095.57166666667, "root_gap": 0.2454271016060367}
+{"suite": "miplib", "name": "r50x360", "coef_range": 100.0, "relaxation_status": "Optimal", "relaxation_objective": 556.02, "root_gap": 0.6636297640653358}
+{"suite": "miplib", "name": "ran14x18-disj-8", "coef_range": 11790801883.748156, "relaxation_status": "Optimal", "relaxation_objective": 3444.421066389563, "root_gap": 0.07208484202867381}
+{"suite": "miplib", "name": "rentacar", "coef_range": 9999900.0, "relaxation_status": "Optimal", "relaxation_objective": 28806137.64426007, "root_gap": 0.051079999620543354}
+{"suite": "miplib", "name": "roll3000", "coef_range": 1288.0, "relaxation_status": "Optimal", "relaxation_objective": 11097.1276768551, "root_gap": 0.1390901719362002}
+{"suite": "miplib", "name": "rout", "coef_range": 649.1818181818181, "relaxation_status": "Optimal", "relaxation_objective": 981.8642857142856, "root_gap": 0.08880778266241646}
+{"suite": "miplib", "name": "sp150x300d", "coef_range": 3049.0, "relaxation_status": "Optimal", "relaxation_objective": 4.891111839947525, "root_gap": 0.9291143211601808}
+{"suite": "miplib", "name": "supportcase26", "coef_range": 10000.0, "relaxation_status": "Optimal", "relaxation_objective": 1288.1021611356975, "root_gap": 0.26188494389899336}
+{"suite": "miplib", "name": "swath", "coef_range": 1116.5678, "relaxation_status": "Optimal", "relaxation_objective": 334.4968581000001, "root_gap": 0.28435708767876783}
+{"suite": "miplib", "name": "tr12-30", "coef_range": 1498.0, "relaxation_status": "Optimal", "relaxation_objective": 14210.42652103263, "root_gap": 0.8911878884419688}
+{"suite": "miplib", "name": "uct-subprob", "coef_range": 1.0, "relaxation_status": "Optimal", "relaxation_objective": 242.0000000000001, "root_gap": 0.22929936305732448}
+{"suite": "miplib", "name": "unitcal_7", "coef_range": 1000.0, "relaxation_status": "Optimal", "relaxation_objective": 19387553.38127112, "root_gap": 0.012630395308707928}
+{"suite": "infeasible", "name": "bnatt500", "coef_range": 8.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "control30-5-10-4", "coef_range": 1.7634459641081986e+27, "relaxation_status": "Not Set"}
+{"suite": "infeasible", "name": "dell", "coef_range": 990774.3698099081, "relaxation_status": "Optimal", "relaxation_objective": -2301.9906128900534}
+{"suite": "infeasible", "name": "enlight11", "coef_range": 2.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "enlight4", "coef_range": 2.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "enlight9", "coef_range": 2.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "fhnw-binpack4-18", "coef_range": 560.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "fhnw-binpack4-4", "coef_range": 560.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "fhnw-sq3", "coef_range": 930.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "flugplinf", "coef_range": 3000.0, "relaxation_status": "Optimal", "relaxation_objective": 1167185.7255923206}
+{"suite": "infeasible", "name": "g503inf", "coef_range": 59.32203389830509, "relaxation_status": "Optimal", "relaxation_objective": 195.92377309482956}
+{"suite": "infeasible", "name": "misc04inf", "coef_range": 88888888.88888888, "relaxation_status": "Optimal", "relaxation_objective": 2656.4240001681765}
+{"suite": "infeasible", "name": "misc05inf", "coef_range": 1250.0, "relaxation_status": "Optimal", "relaxation_objective": 2930.9}
+{"suite": "infeasible", "name": "mod008inf", "coef_range": 174.0, "relaxation_status": "Optimal", "relaxation_objective": 290.93107271496876}
+{"suite": "infeasible", "name": "neos-2626858-aoos", "coef_range": 182100.0, "relaxation_status": "Optimal", "relaxation_objective": 2.3061887535355607}
+{"suite": "infeasible", "name": "neos-2656603-coxs", "coef_range": 607175.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "neos-3135526-osun", "coef_range": 8605461.876571136, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "neos-3211096-shag", "coef_range": 5.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "neos-4382714-ruvuma", "coef_range": 1.0, "relaxation_status": "Time limit reached"}
+{"suite": "infeasible", "name": "neos859080", "coef_range": 10.0, "relaxation_status": "Optimal", "relaxation_objective": 1.0000000000000004}
+{"suite": "infeasible", "name": "no-ip-64999", "coef_range": 9.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "no-ip-65059", "coef_range": 9.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "p2m2p1m1p0n100", "coef_range": 2.187442852788784, "relaxation_status": "Optimal", "relaxation_objective": 80424.0}
+{"suite": "infeasible", "name": "ponderthis0517-inf", "coef_range": 1.0, "relaxation_status": "Optimal", "relaxation_objective": 0.0}
+{"suite": "infeasible", "name": "pythago7825", "coef_range": 1.0, "relaxation_status": "Time limit reached"}
+{"suite": "infeasible", "name": "stein15inf", "coef_range": 1.0, "relaxation_status": "Optimal", "relaxation_objective": 7.000000000000001}
+{"suite": "infeasible", "name": "stein45inf", "coef_range": 1.0, "relaxation_status": "Optimal", "relaxation_objective": 21.999999999999986}
+{"suite": "infeasible", "name": "stein9inf", "coef_range": 1.0, "relaxation_status": "Optimal", "relaxation_objective": 4.0}
+{"suite": "qp", "name": "AUG2D", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "AUG2DC", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "AUG2DCQP", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "AUG2DQP", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "AUG3D", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "AUG3DC", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "AUG3DCQP", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "AUG3DQP", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "BOYD1", "coef_range": 402166666.6666667, "hessian_range": 1782.0}
+{"suite": "qp", "name": "BOYD2", "coef_range": 127650000.0, "hessian_range": 10.0}
+{"suite": "qp", "name": "CONT-050", "coef_range": 4.0, "hessian_range": 2.0}
+{"suite": "qp", "name": "CONT-100", "coef_range": 4.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "CONT-101", "coef_range": 4.040404040404041, "hessian_range": 1.0}
+{"suite": "qp", "name": "CONT-200", "coef_range": 4.0, "hessian_range": 2.0}
+{"suite": "qp", "name": "CONT-201", "coef_range": 4.0201005025125625, "hessian_range": 2.0}
+{"suite": "qp", "name": "CONT-300", "coef_range": 4.013376584154988, "hessian_range": 3.0000000000000004}
+{"suite": "qp", "name": "CVXQP1_L", "coef_range": 4.0, "hessian_range": 95000.0}
+{"suite": "qp", "name": "CVXQP1_M", "coef_range": 4.0, "hessian_range": 9500.0}
+{"suite": "qp", "name": "CVXQP1_S", "coef_range": 4.0, "hessian_range": 950.0}
+{"suite": "qp", "name": "CVXQP2_L", "coef_range": 4.0, "hessian_range": 95000.0}
+{"suite": "qp", "name": "CVXQP2_M", "coef_range": 4.0, "hessian_range": 9500.0}
+{"suite": "qp", "name": "CVXQP2_S", "coef_range": 4.0, "hessian_range": 950.0}
+{"suite": "qp", "name": "CVXQP3_L", "coef_range": 4.0, "hessian_range": 95000.0}
+{"suite": "qp", "name": "CVXQP3_M", "coef_range": 4.0, "hessian_range": 9500.0}
+{"suite": "qp", "name": "CVXQP3_S", "coef_range": 4.0, "hessian_range": 950.0}
+{"suite": "qp", "name": "DPKLO1", "coef_range": 34215.640255768696, "hessian_range": 1.0}
+{"suite": "qp", "name": "DTOC3", "coef_range": 5000.0, "hessian_range": 5.999999999999999}
+{"suite": "qp", "name": "DUAL1", "coef_range": 1.0, "hessian_range": 80.0}
+{"suite": "qp", "name": "DUAL2", "coef_range": 1.0, "hessian_range": 100.0}
+{"suite": "qp", "name": "DUAL3", "coef_range": 1.0, "hessian_range": 214.0}
+{"suite": "qp", "name": "DUAL4", "coef_range": 1.0, "hessian_range": 238.0}
+{"suite": "qp", "name": "DUALC1", "coef_range": 2059.0, "hessian_range": 1156.7593416370107}
+{"suite": "qp", "name": "DUALC2", "coef_range": 2237.0, "hessian_range": 385.61189358372457}
+{"suite": "qp", "name": "DUALC5", "coef_range": 600.0, "hessian_range": 139.85714285714286}
+{"suite": "qp", "name": "DUALC8", "coef_range": 2007.0, "hessian_range": 183.1865626103992}
+{"suite": "qp", "name": "EXDATA", "coef_range": 1.0, "hessian_range": 2865.3295128939826}
+{"suite": "qp", "name": "GENHS28", "coef_range": 3.0, "hessian_range": 2.0}
+{"suite": "qp", "name": "GOULDQP2", "coef_range": 1.0, "hessian_range": 2.0}
+{"suite": "qp", "name": "GOULDQP3", "coef_range": 1.0, "hessian_range": 3.0}
+{"suite": "qp", "name": "HS118", "coef_range": 1.0, "hessian_range": 1.4999999999999998}
+{"suite": "qp", "name": "HS21", "coef_range": 10.0, "hessian_range": 100.0}
+{"suite": "qp", "name": "HS268", "coef_range": 10.0, "hessian_range": 950.4090909090909}
+{"suite": "qp", "name": "HS35", "coef_range": 2.0, "hessian_range": 2.0}
+{"suite": "qp", "name": "HS35MOD", "coef_range": 2.0, "hessian_range": 2.0}
+{"suite": "qp", "name": "HS51", "coef_range": 3.0, "hessian_range": 2.0}
+{"suite": "qp", "name": "HS52", "coef_range": 3.0, "hessian_range": 16.0}
+{"suite": "qp", "name": "HS53", "coef_range": 3.0, "hessian_range": 2.0}
+{"suite": "qp", "name": "HS76", "coef_range": 4.0, "hessian_range": 2.0}
+{"suite": "qp", "name": "HUES-MOD", "coef_range": 4.9995e+16, "hessian_range": 1.0}
+{"suite": "qp", "name": "HUESTIS", "coef_range": 4.9995e+16, "hessian_range": 1.0}
+{"suite": "qp", "name": "KSIP", "coef_range": 8.192020971573688e+29, "hessian_range": 20.0}
+{"suite": "qp", "name": "LASER", "coef_range": 3.9999999940000004, "hessian_range": 6004802348177955.0}
+{"suite": "qp", "name": "LISWET1", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "LISWET10", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "LISWET11", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "LISWET12", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "LISWET2", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "LISWET3", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "LISWET4", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "LISWET5", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "LISWET6", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "LISWET7", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "LISWET8", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "LISWET9", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "LOTSCHD", "coef_range": 7.4, "hessian_range": 4.1198046018991965}
+{"suite": "qp", "name": "MOSARQP1", "coef_range": 4.0, "hessian_range": 1447.487393033819}
+{"suite": "qp", "name": "MOSARQP2", "coef_range": 4.0, "hessian_range": 2096.7125701496525}
+{"suite": "qp", "name": "POWELL20", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "PRIMAL1", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "PRIMAL2", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "PRIMAL3", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "PRIMAL4", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "PRIMALC1", "coef_range": 2059.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "PRIMALC2", "coef_range": 2237.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "PRIMALC5", "coef_range": 600.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "PRIMALC8", "coef_range": 2007.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "Q25FV47", "coef_range": 1194749.9849999999, "hessian_range": 40.0}
+{"suite": "qp", "name": "QADLITTL", "coef_range": 53583.333333333336, "hessian_range": 20.0}
+{"suite": "qp", "name": "QAFIRO", "coef_range": 22.700934579439252, "hessian_range": 10.0}
+{"suite": "qp", "name": "QBANDM", "coef_range": 200000.0, "hessian_range": 20.0}
+{"suite": "qp", "name": "QBEACONF", "coef_range": 416666.6666666667, "hessian_range": 10.0}
+{"suite": "qp", "name": "QBORE3D", "coef_range": 14269040.0, "hessian_range": 20.0}
+{"suite": "qp", "name": "QBRANDY", "coef_range": 254624.99999999997, "hessian_range": 20.0}
+{"suite": "qp", "name": "QCAPRI", "coef_range": 2419386.7777777775, "hessian_range": 40.0}
+{"suite": "qp", "name": "QE226", "coef_range": 5716153.846153847, "hessian_range": 20.0}
+{"suite": "qp", "name": "QETAMACR", "coef_range": 105263.15789473684, "hessian_range": 20.0}
+{"suite": "qp", "name": "QFFFFF80", "coef_range": 13623074.086922226, "hessian_range": 10.0}
+{"suite": "qp", "name": "QFORPLAN", "coef_range": 378890.39242219215, "hessian_range": 80.0}
+{"suite": "qp", "name": "QGFRDXPN", "coef_range": 1095.2, "hessian_range": 20.0}
+{"suite": "qp", "name": "QGROW15", "coef_range": 166666.66666666666, "hessian_range": 150.0}
+{"suite": "qp", "name": "QGROW22", "coef_range": 166666.66666666666, "hessian_range": 200.0}
+{"suite": "qp", "name": "QGROW7", "coef_range": 166666.66666666666, "hessian_range": 70.0}
+{"suite": "qp", "name": "QISRAEL", "coef_range": 1600000.0, "hessian_range": 40.0}
+{"suite": "qp", "name": "QPCBLEND", "coef_range": 22000.0, "hessian_range": 10.0}
+{"suite": "qp", "name": "QPCBOEI1", "coef_range": 274079.50530035334, "hessian_range": 10.0}
+{"suite": "qp", "name": "QPCBOEI2", "coef_range": 300000.0, "hessian_range": 10.0}
+{"suite": "qp", "name": "QPCSTAIR", "coef_range": 985262.9999999999, "hessian_range": 10.0}
+{"suite": "qp", "name": "QPILOTNO", "coef_range": 2925570500000.0, "hessian_range": 70.0}
+{"suite": "qp", "name": "QPTEST", "coef_range": 2.0, "hessian_range": 5.0}
+{"suite": "qp", "name": "QRECIPE", "coef_range": 1208.3333333333335, "hessian_range": 10.0}
+{"suite": "qp", "name": "QSC205", "coef_range": 20.0, "hessian_range": 30.0}
+{"suite": "qp", "name": "QSCAGR25", "coef_range": 46.6, "hessian_range": 50.0}
+{"suite": "qp", "name": "QSCAGR7", "coef_range": 46.6, "hessian_range": 30.0}
+{"suite": "qp", "name": "QSCFXM1", "coef_range": 260000.0, "hessian_range": 90.0}
+{"suite": "qp", "name": "QSCFXM2", "coef_range": 260000.0, "hessian_range": 120.0}
+{"suite": "qp", "name": "QSCFXM3", "coef_range": 260000.0, "hessian_range": 130.0}
+{"suite": "qp", "name": "QSCORPIO", "coef_range": 100.0, "hessian_range": 40.0}
+{"suite": "qp", "name": "QSCRS8", "coef_range": 388765.06, "hessian_range": 40.0}
+{"suite": "qp", "name": "QSCSD1", "coef_range": 4.123105541235323, "hessian_range": 20.0}
+{"suite": "qp", "name": "QSCSD6", "coef_range": 4.123105541235323, "hessian_range": 20.0}
+{"suite": "qp", "name": "QSCSD8", "coef_range": 4.123105541235323, "hessian_range": 40.0}
+{"suite": "qp", "name": "QSCTAP1", "coef_range": 80.0, "hessian_range": 20.0}
+{"suite": "qp", "name": "QSCTAP2", "coef_range": 80.0, "hessian_range": 20.0}
+{"suite": "qp", "name": "QSCTAP3", "coef_range": 80.0, "hessian_range": 20.0}
+{"suite": "qp", "name": "QSEBA", "coef_range": 156.0, "hessian_range": 70.0}
+{"suite": "qp", "name": "QSHARE1B", "coef_range": 13222.3, "hessian_range": 10.0}
+{"suite": "qp", "name": "QSHARE2B", "coef_range": 10300.0, "hessian_range": 50.0}
+{"suite": "qp", "name": "QSHELL", "coef_range": 1.0, "hessian_range": 20.0}
+{"suite": "qp", "name": "QSHIP04L", "coef_range": 338.8658865886589, "hessian_range": 20.0}
+{"suite": "qp", "name": "QSHIP04S", "coef_range": 338.8658865886589, "hessian_range": 20.0}
+{"suite": "qp", "name": "QSHIP08L", "coef_range": 446.01043664421746, "hessian_range": 50.0}
+{"suite": "qp", "name": "QSHIP08S", "coef_range": 446.01043664421746, "hessian_range": 50.0}
+{"suite": "qp", "name": "QSHIP12L", "coef_range": 256.0, "hessian_range": 50.0}
+{"suite": "qp", "name": "QSHIP12S", "coef_range": 256.0, "hessian_range": 50.0}
+{"suite": "qp", "name": "QSIERRA", "coef_range": 100000.0, "hessian_range": 10.0}
+{"suite": "qp", "name": "QSTAIR", "coef_range": 985262.9999999999, "hessian_range": 160.0}
+{"suite": "qp", "name": "QSTANDAT", "coef_range": 300.0, "hessian_range": 20.0}
+{"suite": "qp", "name": "S268", "coef_range": 10.0, "hessian_range": 950.4090909090909}
+{"suite": "qp", "name": "STADAT1", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "STADAT2", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "STADAT3", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "STCQP1", "coef_range": 1.0, "hessian_range": 73.0}
+{"suite": "qp", "name": "STCQP2", "coef_range": 1.0, "hessian_range": 73.0}
+{"suite": "qp", "name": "TAME", "coef_range": 1.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "UBH1", "coef_range": 4.0, "hessian_range": 2.0}
+{"suite": "qp", "name": "VALUES", "coef_range": 1.0, "hessian_range": 43478.260869565216}
+{"suite": "qp", "name": "YAO", "coef_range": 2.0, "hessian_range": 1.0}
+{"suite": "qp", "name": "ZECEVIC2", "coef_range": 4.0, "hessian_range": 1.0}

@@ -1,0 +1,56 @@
+{
+  "dual": {},
+  "dual_certificate_space": null,
+  "dual_residual": 0.0,
+  "duality_gap": 0.0,
+  "gpu_factorizations": 0,
+  "gpu_operations": 0,
+  "gpu_used": false,
+  "iterations": 730812,
+  "load_seconds": 0.003,
+  "lp_diagnostics": {},
+  "message": "Branch-and-bound stopped at the time limit (600 s, 156232 nodes explored). No integer-feasible point was found, so infeasibility cannot be certified either.",
+  "mip_diagnostics": {
+    "best_bound": 24.999999954,
+    "cut_validity_rejections": 0,
+    "cuts_by_family": {
+      "cmir": 248
+    },
+    "dropped_subtrees": 0,
+    "has_best_bound": true,
+    "iteration_limit_nodes": 0,
+    "node_lp_failures": 0,
+    "numerical_error_nodes": 0,
+    "presolve_fixed_variables": 0,
+    "presolve_passes": 0,
+    "presolve_removed_constraints": 0,
+    "presolve_substituted_variables": 0,
+    "presolve_tightened_bounds": 0,
+    "time_to_first_incumbent": null,
+    "unbounded_nodes": 0
+  },
+  "nodes": 156232,
+  "objective_value": null,
+  "optimality_gap": 0.0,
+  "optimality_proven": false,
+  "peak_memory_mb": 82.46484375,
+  "presolve": {
+    "fixed_variables": 0,
+    "passes": 0,
+    "removed_constraints": 0,
+    "substituted_variables": 0,
+    "tightened_bounds": 0
+  },
+  "primal": {},
+  "primal_residual": 0.0,
+  "requested_device": "cpu",
+  "runtime_seconds": 600.1423431,
+  "slacks": {},
+  "status": "TIME_LIMIT",
+  "warnings": [
+    "Added 40 validated cuts at the root",
+    "nodes=156232 lp_iters=730812 branch_rule=strong parallel_strong_lp=off",
+    "search_profile total=600.001s node_lp=316.94s cuts=40.7944s heuristics=201.742s branching=10.1346s dive_lps=79123",
+    "Added 208 validated cuts at 26 non-root nodes"
+  ]
+}

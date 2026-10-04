@@ -1,0 +1,14 @@
+{
+  "n": 1000,
+  "reference_method": "cvxopt",
+  "gi_runtime_seconds": 0.5734974001534283,
+  "reference_status": "unknown",
+  "reference_status_val": null,
+  "reference_iterations": 31,
+  "reference_primal_residual": 7.536300762741014e-16,
+  "reference_dual_residual": 3.231081217917081e-08,
+  "reference_objective": -17.61432077642679,
+  "x_difference_inf_longdouble": "4.855243584955815e-08",
+  "objective_difference_longdouble": "1.1250200770973606e-09",
+  "objective_relative_difference": "6.386962582190354e-11"
+}

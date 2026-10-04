@@ -1,0 +1,14 @@
+{
+  "problem_n": 2002,
+  "problem_m": 2000,
+  "objective": 7.221894982161224,
+  "gradient_inf": 0.3193618827751641,
+  "c_cutest_minus_c_file_inf": 4.994205049513312e-11,
+  "constraint_min": -2.220446049250313e-16,
+  "constraint_max": 2.220446049250313e-16,
+  "objective_distance_independent_mpmath": 7.22189498656168399875891696926,
+  "objective_difference": 4.400459998758917e-09,
+  "objective_relative_difference": 6.093220694772189e-10,
+  "same_x_file": "x.txt",
+  "note": "Gradient is nonzero because the constrained optimum has active constraints."
+}

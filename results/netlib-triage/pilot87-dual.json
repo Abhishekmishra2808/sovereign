@@ -1,0 +1,30 @@
+{
+  "dual": {},
+  "dual_residual": 0.0,
+  "duality_gap": 0.0,
+  "gpu_factorizations": 0,
+  "gpu_operations": 0,
+  "gpu_used": false,
+  "iterations": 139260,
+  "load_seconds": 0.178495,
+  "message": "Dual simplex hit its iteration limit.",
+  "nodes": 0,
+  "objective_value": null,
+  "optimality_gap": 0.0,
+  "optimality_proven": false,
+  "peak_memory_mb": 22.30859375,
+  "presolve": {
+    "fixed_variables": 0,
+    "passes": 0,
+    "removed_constraints": 0,
+    "substituted_variables": 0,
+    "tightened_bounds": 0
+  },
+  "primal": {},
+  "primal_residual": 0.0,
+  "requested_device": "cpu",
+  "runtime_seconds": 177.89639050000005,
+  "slacks": {},
+  "status": "ITERATION_LIMIT",
+  "warnings": []
+}

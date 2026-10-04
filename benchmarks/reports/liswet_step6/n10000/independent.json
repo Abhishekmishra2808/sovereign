@@ -1,0 +1,17 @@
+{
+  "n": 10000,
+  "solver_message": "Optimal; certifier primal=1.62630325872825665e-19 dual=0 stationarity=4.97247463717613927e-10 complementarity=5.17745532256458528e-14 lambda_inf=76217.2515522117319 consistency=4.97247463717613927e-10 min_lambda=4.25184894074521341e-11; gi_iterations=26328/200040; drops=8167; refreshes=0; guard_trips=0; max_guard_value_over_guard_tol=0.000248041206386031264; guard_n_eff=n^2; guard_C=16; active=9994; max_drift=93.2057777995542835; max_support_residual=1.27183381881668112e-10; max_step_difference=0; step_verified=0; objective=-174.732277721415102",
+  "solver_status": "OPTIMAL",
+  "independent": {
+    "n": 10000,
+    "variables": 10002,
+    "min_slack": "-5.7e-17",
+    "primal_violation": "5.7e-17",
+    "min_lambda": "1.9916312021e-12",
+    "lambda_inf": "76217.25155221159589022291838",
+    "stationarity_inf": "7.36840081423999999999999999997e-12",
+    "complementarity_inf": "2.168498053338823461409728e-12",
+    "objective_qp": "-174.732277721415114503042825445",
+    "objective_distance": "10.8192874363655325085450813146"
+  }
+}

@@ -1,0 +1,14 @@
+degenerate LP                    cycle                SOLVED       2.43s   HiGHS SOLVED 0.3s
+degenerate LP                    greenbea             SOLVED      14.42s   HiGHS SOLVED 0.3s
+degenerate LP                    degen3               SOLVED       2.60s   HiGHS SOLVED 0.2s
+ill-conditioned LP               pilotnov             SOLVED       1.10s   HiGHS SOLVED 0.3s
+ill-conditioned LP               pilot87              TIMEOUT    300.00s   HiGHS SOLVED 14.0s   | 
+ill-conditioned LP               d2q06c               SOLVED      32.41s   HiGHS SOLVED 1.1s
+ill-conditioned QP               QPILOTNO             SOLVED       4.72s   HiGHS FAILED 0.2s
+ill-conditioned QP               LISWET1              FAILED     123.75s   HiGHS SOLVED 1.1s   | QP unsolved. QP-IPM: QP-IPM iteration limit reached without convergence. | Mehrotra starti
+weak LP relaxation (MILP)        pk1                  TIMEOUT    301.22s   HiGHS TIMEOUT 300.0s   | Branch-and-bound stopped at the time limit (300 s, 57700 nodes explored). Reporting the in
+weak LP relaxation (MILP)        sp150x300d           TIMEOUT    300.72s   HiGHS SOLVED 0.1s   | Branch-and-bound stopped at the time limit (300 s, 27381 nodes explored). Reporting the in
+weak LP relaxation (MILP)        p200x1188c           TIMEOUT    300.30s   HiGHS SOLVED 1.3s   | Branch-and-bound stopped at the time limit (300 s, 2466 nodes explored). Reporting the inc
+weak LP relaxation (MILP)        qnet1                TIMEOUT    302.40s   HiGHS SOLVED 1.0s   | Branch-and-bound stopped at the time limit (300 s, 26 nodes explored). No integer-feasible
+infeasible, feasible relaxation  enlight9             TIMEOUT    300.06s   HiGHS SOLVED 12.6s   | Branch-and-bound stopped at the time limit (300 s, 185820 nodes explored). No integer-feas
+solved 6 of 13 (limit 300 s)

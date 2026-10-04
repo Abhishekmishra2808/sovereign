@@ -1,0 +1,17 @@
+{
+  "n": 2000,
+  "variables": 2002,
+  "reference": "CVXOPT sparse primal QP",
+  "reference_status": "unknown",
+  "reference_iterations": 40,
+  "reference_primal_infeasibility": 4.697312813494839e-14,
+  "reference_dual_infeasibility": 1.1691342190255524e-05,
+  "reference_min_slack": -9.992007221626409e-16,
+  "x_difference_inf": 3.338248203976768e-07,
+  "gi_objective_qp": "-498.3100774874184",
+  "reference_objective_qp": "-498.31007749493085",
+  "gi_objective_distance": "7.221894986561676",
+  "reference_objective_distance": "7.221894979051323",
+  "objective_difference_longdouble": "7.510352340034387e-09",
+  "relative_objective_difference": "1.0399420597806804e-09"
+}

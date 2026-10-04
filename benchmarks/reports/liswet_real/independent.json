@@ -1,0 +1,12 @@
+{
+  "n": 2000,
+  "variables": 2002,
+  "min_slack": "-3.0e-16",
+  "primal_violation": "3.0e-16",
+  "min_lambda": "0.1388170684218540984",
+  "lambda_inf": "11731.2807148855571055456",
+  "stationarity_inf": "7.171216e-13",
+  "complementarity_inf": "1.401235252540994758839888e-12",
+  "objective_qp": "-498.310077487419833843544385152",
+  "objective_distance": "7.22189498656168399875891696926"
+}
